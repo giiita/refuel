@@ -2,6 +2,12 @@
 
 Scaladia is a lightweight DI container with peripheral tools.
 
+## How to use
+
+```
+libraryDependencies += "com.github.giiita" %% "scaladia" % "0.1"
+````
+
 ## Examples
 
 ### Default usage
