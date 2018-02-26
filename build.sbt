@@ -8,9 +8,11 @@ description := "Lightweight DI container for Scala."
 
 licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
 
-crossScalaVersions in ThisBuild := Seq("2.11.12", "2.12.4")
+scalaVersion := "2.12.4"
 
-organization in ThisBuild := "com.github.giiita"
+crossScalaVersions := Seq("2.11.12", "2.12.4")
+
+organization := "com.github.giiita"
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.12.4",
