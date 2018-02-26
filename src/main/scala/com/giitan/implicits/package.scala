@@ -2,19 +2,19 @@ package com.giitan
 
 package object implicits {
   /**
-    *　ネストしたOptionの展開クラス
+    *　Function group for expanding nested option
     *
-    * @param optoptT ネストしたOption実態
-    * @tparam T ネストしたOptionの型パラメータ
+    * @param optoptT Nested option value
+    * @tparam T Option type
     */
-  implicit class NOptionalT[T](optoptT: Option[Option[T]]) {
+  implicit class NestedOptionT[T](optoptT: Option[Option[T]]) {
 
     /**
-      * this が Some[Some[X] ] の時、func(X)を返す。
+      * Function group for expanding option
       *
-      * @param fnc Xから実態を取得する関数
-      * @tparam Z Respone Type
-      * @return OptionにタップしたResponse
+      * @param fnc Expanding option.
+      * @tparam Z Respone optional Type
+      * @return Function result.
       */
     def >>[Z](fnc: T => Z): Option[Z] = for {
       optT <- optoptT
@@ -22,11 +22,11 @@ package object implicits {
     } yield fnc(t)
 
     /**
-      * this が Some[X] の時、func[X]を返す。new T パターン
+      * When this is Some,do apply.
       *
-      * @param f1 コンストラクタ
-      * @tparam A Response Type
-      * @return OptionにラップしたResponse
+      * @param f1 apply
+      * @tparam A Respone optional Type
+      * @return Function result or None
       */
     def <<[A](f1: T => A): Option[A] = for {
       optT <- optoptT
@@ -34,11 +34,10 @@ package object implicits {
     } yield f1(t)
 
     /**
-      * this が Some[X] の時、Xを返す。
-      * this が Non　　　の時、aを返す。
+      * Returns some value of Option or default.
       *
-      * @param default Noneの時のDefault値
-      * @return X or a
+      * @param default Default value.
+      * @return Some value of Option or default
       */
     def ||=>(default: T): T = {
       (for {
@@ -51,11 +50,10 @@ package object implicits {
     }
 
     /**
-      * this が Some[X] の時、Xを返す。
-      * this が Non　　　の時、aを返す。
+      * Returns the Some value of Option. Or throw an exception.
       *
-      * @param e Noneの時のDefault値
-      * @return X or a
+      * @param e Exception
+      * @return Some value of Option or exception
       */
     def >>>(e: Exception): T = (for {
       optT <- optoptT
@@ -67,41 +65,40 @@ package object implicits {
   }
 
   /**
-    * Optionの展開クラス
+    * Function group for expanding option.
     *
-    * @param optT Option実態
-    * @tparam T Optionの型パラメータ
+    * @param optT Option value.
+    * @tparam T Option type.
     */
-  implicit class OptionalT[T](optT: Option[T]) {
+  implicit class OptionT[T](optT: Option[T]) {
 
     /**
-      * this が Some[X] の時、func(X)を返す。
+      * Function group for expanding option
       *
-      * @param fnc Xから実態を取得する関数
-      * @tparam Z Respone Type
-      * @return OptionにラップしたResponse
+      * @param fnc Expanding option.
+      * @tparam Z Respone optional Type
+      * @return Function result.
       */
     def >>[Z](fnc: T => Z): Option[Z] = for {
       t <- optT
     } yield fnc(t)
 
     /**
-      * this が Some[X] の時、func[X]を返す。new T パターン
+      * When this is Some,do apply.
       *
-      * @param f1 コンストラクタ
-      * @tparam A Response Type
-      * @return OptionにラップしたResponse
+      * @param f1 apply
+      * @tparam A Respone optional Type
+      * @return Function result or None
       */
     def <<[A](f1: T => A): Option[A] = for {
       t <- optT
     } yield f1(t)
 
     /**
-      * this が Some[X] の時、Xを返す。
-      * this が Non　　　の時、aを返す。
+      * Returns some value of Option or default.
       *
-      * @param t Noneの時のDefault値
-      * @return X or a
+      * @param t Default value.
+      * @return Some value of Option or default
       */
     def ||=>(t: T): T = optT match {
       case Some(x) => x
@@ -109,11 +106,10 @@ package object implicits {
     }
 
     /**
-      * this が Some[X] の時、Xを返す。
-      * this が Non　　　の時、aを返す。
+      * Returns the Some value of Option. Or throw an exception.
       *
-      * @param e Noneの時のDefault値
-      * @return X or a
+      * @param e Exception
+      * @return Some value of Option or exception
       */
     def >>>(e: Exception): T = optT match {
       case Some(x) => x
@@ -122,30 +118,30 @@ package object implicits {
   }
 
   /**
-    * 実態クラス
+    * Function group for value.
     *
-    * @param t 任意の値
-    * @tparam T 任意の型
+    * @param t Value.
+    * @tparam T Value type.
     */
   implicit class ValuedT[T](t: T) {
 
     /**
-      * this が Some[X] の時、func(X)を返す。
+      * Function group for expanding option
       *
-      * @param f1 Xから実態を取得する関数
-      * @tparam A Respone Type
-      * @return OptionにラップしたResponse
+      * @param f1 Option getter.
+      * @tparam A Respone option Type
+      * @return Function result.
       */
     def >>[A](f1: T => Option[A]): Option[A] = for {
       a <- f1(t)
     } yield a
 
     /**
-      * this が Some[X] の時、func[X]を返す。new T パターン
+      * When this is Some,do apply.
       *
-      * @param f1 コンストラクタ
-      * @tparam A Response Type
-      * @return OptionにラップしたResponse
+      * @param f1 apply
+      * @tparam A Respone optional Type
+      * @return Function result or None
       */
     def <<[A](f1: T => A): A = f1(t)
   }
