@@ -18,3 +18,5 @@ developers := List(
     url=url("https://github.com/giiita")
   )
 )
+
+publishMavenStyle := true
