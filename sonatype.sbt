@@ -1,6 +1,3 @@
-useGpg := true
-pgpReadOnly := false
-
 sonatypeProfileName := "com.github.giiita"
 
 licenses := Seq(
