@@ -5,7 +5,6 @@ import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.{AutoInjector, Injector}
 import com.giitan.implicits._
-import org.clapper.classutil.ClassFinder
 
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
@@ -20,10 +19,11 @@ package object container {
 
     private[this] val mirror = runtimeMirror(this.getClass.getClassLoader)
 
-    private[giitan] val automaticDependencies: Iterator[ModuleMirror] =
-      ClassFinder.concreteSubclasses(classOf[AutoInjector],  ClassFinder().getClasses()).map(r =>
-        mirror.reflectModule(mirror.staticModule(r.name))
-      )
+    private[giitan] val automaticDependencies: Iterable[ModuleMirror] =
+      typeOf[AutoInjector].decls.collect {
+        case c: ClassSymbol =>
+          mirror.reflectModule(mirror.moduleSymbol(mirror.runtimeClass(c)))
+      }
 
     /**
       * Search accessible dependencies.
