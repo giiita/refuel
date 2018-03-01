@@ -1,7 +1,6 @@
 package com.giitan
 
 import com.giitan.box.Container
-import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.{AutoInjector, Injector}
@@ -36,9 +35,9 @@ package object container {
       * @return
       */
     private[giitan] def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty  || sc.contains(scope.getClass)
+      AutomaticContainerInitializer
 
-      automaticDependencies.foreach(_.instance)
+      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty  || sc.contains(scope.getClass)
 
       val tipe = tag.tpe
 
