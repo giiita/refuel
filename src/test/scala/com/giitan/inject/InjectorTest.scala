@@ -14,15 +14,6 @@ class InjectorTest extends WordSpec with Matchers {
   object Z extends X
 
   "inject" should {
-    "the simplest Injection" in {
-      object Execute extends Injector {
-        def test(): Assertion = {
-          inject[TopLevelAutoInjectable] shouldBe TopLevelAutoInjectable
-        }
-      }
-
-      Execute.test()
-    }
 
     "default" in {
       trait InjectorB extends Injector {

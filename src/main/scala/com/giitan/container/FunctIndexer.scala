@@ -16,7 +16,6 @@ object FunctIndexer extends Indexer {
     * @tparam S
     */
   def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
-    val c = implicitly[Container]
     implicitly[Container].indexing(tag, value, scope)
   }
 }

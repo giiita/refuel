@@ -11,7 +11,7 @@ private[giitan] trait Container {
     */
   protected var v: Set[Injectable[_]]
 
-  private[giitan] val automaticDependencies: Iterator[ModuleMirror]
+  private[giitan] val automaticDependencies: Iterable[ModuleMirror]
 
   /**
     * Search accessible dependencies.
