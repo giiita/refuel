@@ -14,7 +14,6 @@ class InjectorTest extends WordSpec with Matchers {
   object Z extends X
 
   "inject" should {
-
     "default" in {
       trait InjectorB extends Injector {
         depends[A](B)
