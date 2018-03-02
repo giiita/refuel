@@ -1,15 +1,18 @@
 package com.giitan.box
 
+import com.giitan.box.ClassFinder.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 
 import scala.reflect.runtime.universe._
 
-trait Container {
+private[giitan] trait Container {
   /**
     * Injectable object mapper.
     */
   protected var v: Set[Injectable[_]]
+
+  private[giitan] val automaticDependencies: RichClassCrowd
 
   /**
     * Search accessible dependencies.
@@ -20,7 +23,7 @@ trait Container {
     * @tparam S
     * @return
     */
-  def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T
+  private[giitan] def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T
 
   /**
     * Regist dependencies.
@@ -31,19 +34,19 @@ trait Container {
     * @tparam T
     * @tparam S
     */
-  def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit
+  private[giitan] def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit
 
   /**
     * Condense the accessible type.
     *
     * @param typTag Dependency object type.
     */
-  def scoped(typTag: Type): Unit
+  private[giitan] def scoped(typTag: Type): Unit
 
   /**
     * Extend the accessible type.
     *
     * @param typTag Dependency object type.
     */
-  def scoped(clazz: Class[_], typTag: Type): Unit
+  private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit
 }
