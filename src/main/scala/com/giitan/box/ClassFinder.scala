@@ -48,11 +48,13 @@ object ClassFinder {
 
 case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getContextClassLoader) {
 
-  private def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
+  private[this] def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
 
-  private def isClassFile(entry: JarEntry): Boolean = isClassFile(entry.getName)
-  private def isClassFile(file: File): Boolean = file.isFile && isClassFile(file.getName)
-  private def isClassFile(filePath: String): Boolean = true // filePath.endsWith(".class")
+  private[this] def isClassFile(entry: JarEntry): Boolean = isClassFile(entry.getName)
+  private[this] def isClassFile(file: File): Boolean = file.isFile && isClassFile(file.getName)
+  private[this] def isClassFile(filePath: String): Boolean = filePath.endsWith(".class")
+
+  private[this] def resolvePackage(packageName: String): String = if (packageName.isEmpty) "" else s"$packageName."
 
   private def resourceNameToClassName(resourceName: String): String =
     pathToClassName(resourceNameToPackageName(resourceName))
@@ -64,7 +66,7 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
   private val finderFunction: PartialFunction[URL, String => RichClassCrowd] =
     findClassesWithFile.orElse(findClassesWithJarFile).orElse(findClassesWithNone)
 
-  def findClasses(rootPackageName: String): RichClassCrowd = {
+  def findClasses(rootPackageName: String = ""): RichClassCrowd = {
     val resourceName = packageNameToResourceName(rootPackageName)
 
     val resources = classLoader.getResources(resourceName).asScala
@@ -83,9 +85,9 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
         dir.list.foreach { path =>
           new File(dir, path) match {
             case file if isClassFile(file) =>
-              classes += classLoader.loadClass(packageName + "." + pathToClassName(file.getName))
+              classes += classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
             case directory if directory.isDirectory =>
-              findClassesWithFileInner(packageName + "." + directory.getName, directory)
+              findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
             case _ =>
           }
         }
