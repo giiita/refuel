@@ -1,9 +1,10 @@
 package com.giitan
 
-import com.giitan.box.Container
+import com.giitan.box.ClassFinder.RichClassCrowd
+import com.giitan.box.{ClassFinder, Container}
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
-import com.giitan.injector.{AutoInjector, Injector}
+import com.giitan.injector.Injector
 import com.giitan.implicits._
 
 import scala.language.implicitConversions
@@ -17,13 +18,8 @@ package object container {
       */
     protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
 
-    private[this] val mirror = runtimeMirror(this.getClass.getClassLoader)
-
-    private[giitan] val automaticDependencies: Iterable[ModuleMirror] =
-      typeOf[AutoInjector].decls.collect {
-        case c: ClassSymbol =>
-          mirror.reflectModule(mirror.moduleSymbol(mirror.runtimeClass(c)))
-      }
+    private[giitan] val automaticDependencies: RichClassCrowd =
+      ClassFinder().findClasses("com.giitan")
 
     /**
       * Search accessible dependencies.

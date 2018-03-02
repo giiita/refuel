@@ -1,5 +1,6 @@
 package com.giitan.box
 
+import com.giitan.box.ClassFinder.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 
@@ -11,7 +12,7 @@ private[giitan] trait Container {
     */
   protected var v: Set[Injectable[_]]
 
-  private[giitan] val automaticDependencies: Iterable[ModuleMirror]
+  private[giitan] val automaticDependencies: RichClassCrowd
 
   /**
     * Search accessible dependencies.
