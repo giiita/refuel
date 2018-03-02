@@ -1,6 +1,7 @@
 package com.giitan
 
-import com.giitan.box.Container
+import com.giitan.box.ClassFinder.RichClassCrowd
+import com.giitan.box.{ClassFinder, Container}
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
@@ -17,6 +18,9 @@ package object container {
       */
     protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
 
+    private[giitan] val automaticDependencies: RichClassCrowd =
+      ClassFinder().findClasses("com.giitan")
+
     /**
       * Search accessible dependencies.
       *
@@ -26,11 +30,16 @@ package object container {
       * @tparam S
       * @return
       */
-    def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
+    private[giitan] def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
+      AutomaticContainerInitializer
+
       def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty  || sc.contains(scope.getClass)
 
       val tipe = tag.tpe
-      v.find(r => r.tipe == tipe && inScope(r.scope)) >> (_.applier.asInstanceOf[T]) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head}")
+
+      v.find(r => r.tipe == tipe && inScope(r.scope)) >>
+        (_.applier.asInstanceOf[T]) >>>
+        new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head}")
     }
 
     /**
@@ -42,7 +51,7 @@ package object container {
       * @tparam T
       * @tparam S
       */
-    def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
+    private[giitan] def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
       v = v.overRide(tag, value, scope.getClass)
     }
 
@@ -51,7 +60,7 @@ package object container {
       *
       * @param typTag Dependency object type.
       */
-    def scoped(typTag: Type): Unit = {
+    private[giitan] def scoped(typTag: Type): Unit = {
       v.find(_.tipe == typTag) >> (_.clear)
     }
 
@@ -60,7 +69,7 @@ package object container {
       *
       * @param typTag Dependency object type.
       */
-    def scoped(clazz: Class[_], typTag: Type): Unit = {
+    private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit = {
       v.find(_.tipe == typTag) match {
         case Some(ij) => ij += clazz
         case None => throw new IllegalAccessException(s"Uninjectable object. ${typTag.baseClasses.head}")
