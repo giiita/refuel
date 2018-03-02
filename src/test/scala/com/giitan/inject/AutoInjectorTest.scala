@@ -1,8 +1,8 @@
 package com.giitan.inject
 
-import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
+
 
 class AutoInjectorTest extends WordSpec with Matchers {
   "inject" should {
