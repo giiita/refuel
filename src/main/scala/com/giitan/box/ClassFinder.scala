@@ -17,19 +17,10 @@ object ClassFinder {
 
   case class RichClassCrowd(value: List[Class[_]] = List.empty) {
 
-    def isAutoInjectorSubType(v: List[Symbol]): Boolean = {
-      v.exists(r => {
-        println(r)
-        r.typeSignature.typeSymbol.asClass == autoInjectorClassSymbol ||
-          isAutoInjectorSubType(r.typeSignature.baseClasses)
-      })
-    }
-
     private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
 
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
-
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
