@@ -13,6 +13,18 @@ class InjectorTest extends WordSpec with Matchers {
   object Y extends X
   object Z extends X
 
+  trait Named {
+    def name: Int
+  }
+
+  object Named1 extends Named {
+    def name = 1
+  }
+
+  object Named2 extends Named {
+    def name = 2
+  }
+
   "inject" should {
 
     "default" in {
@@ -110,6 +122,21 @@ class InjectorTest extends WordSpec with Matchers {
 
       ExecuteB.test()
       ExecuteY.test()
+    }
+
+    "Local overload." in {
+      trait InjectorA extends Injector {
+        depends[Named](Named1)
+        depends[Named](Named2)
+      }
+
+      object Execute extends InjectorA {
+        def test(): Assertion = {
+          inject[Named].name shouldBe 2
+        }
+      }
+
+      Execute.test()
     }
   }
 }
