@@ -3,6 +3,9 @@ package com.giitan.inject
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
+import scala.collection.parallel.ParMap
+import scala.collection.parallel.immutable.ParVector
+
 class InjectorTest extends WordSpec with Matchers {
 
   trait A
