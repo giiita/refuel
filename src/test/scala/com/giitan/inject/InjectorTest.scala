@@ -3,9 +3,6 @@ package com.giitan.inject
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
-import scala.collection.parallel.ParMap
-import scala.collection.parallel.immutable.ParVector
-
 class InjectorTest extends WordSpec with Matchers {
 
   trait A
@@ -125,21 +122,6 @@ class InjectorTest extends WordSpec with Matchers {
 
       ExecuteB.test()
       ExecuteY.test()
-    }
-
-    "Local overload." in {
-      trait InjectorA extends Injector {
-        depends[Named](Named1)
-        depends[Named](Named2)
-      }
-
-      object Execute extends InjectorA {
-        def test(): Assertion = {
-          inject[Named].name shouldBe 2
-        }
-      }
-
-      Execute.test()
     }
   }
 }
