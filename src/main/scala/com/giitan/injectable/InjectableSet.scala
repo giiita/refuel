@@ -16,7 +16,7 @@ object InjectableSet {
       * @return
       */
     def overRide[T: TypeTag](tag: TypeTag[T], value: T, scope: Class[_]): Set[Injectable[_]] = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty  || sc.contains(scope.getClass)
+      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope)
 
       val tipe = typeOf[T]
       v.filter(r =>
