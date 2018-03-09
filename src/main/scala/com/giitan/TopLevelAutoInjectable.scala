@@ -1,4 +1,4 @@
-package com.giitan.inject.hoge
+package com.giitan
 
 import com.giitan.injector.AutoInjector
 

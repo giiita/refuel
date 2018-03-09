@@ -1,6 +1,6 @@
 package com.giitan.inject
 
-import com.giitan.inject.hoge.TopLevelAutoInjectable
+import com.giitan.TopLevelAutoInjectable
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 

@@ -58,43 +58,43 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
   private def packageNameToResourceName(packageName: String): String =
     packageName.replace('.', '/')
 
-  private val finderFunction: PartialFunction[URL, String => RichClassCrowd] =
-    findClassesWithFile.orElse(findClassesWithJarFile).orElse(findClassesWithNone)
-
   def findClasses(rootPackageName: String = ""): RichClassCrowd = {
     val resourceName = packageNameToResourceName(rootPackageName)
 
-    val resources = classLoader.getResources(resourceName).asScala
+    classLoader.get
+    val resources = classLoader.getResources("./").asScala
 
-    resources.map({
-      case null => RichClassCrowd()
-      case url => finderFunction(url)(rootPackageName)
-    }).reduce(_ +++ _)
+    println("★★★★★★★★★★★★★★★★★★★★★")
+    resources.map(r => {
+      println(r.getPath)
+      r match {
+        case null => RichClassCrowd()
+        case url  => findClassesWithFile(url, rootPackageName)
+      }
+    }) match {
+      case x if x.isEmpty => RichClassCrowd()
+      case x => x.reduceLeft(_ +++ _)
+    }
   }
 
-  def findClassesWithFile: PartialFunction[URL, String => RichClassCrowd] = {
+  def findClassesWithFile(x: URL, rootPackageName: String): RichClassCrowd = x match {
     case url if url.getProtocol == "file" =>
       def findClassesWithFileInner(packageName: String, dir: File): List[Class[_]] = {
         dir.list.flatMap(path => {
           new File(dir, path) match {
             case file if isClassFile(file) =>
-              val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
-              if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
+              println(s"★$packageName${pathToClassName(file.getName)}★")
+                val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
+                if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
             case directory if directory.isDirectory =>
+              println(s"★★$packageName${directory.getName}★★")
               findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
             case _ => Nil
           }
         }).toList
       }
 
-      def rich(packageName: String, dir: File): RichClassCrowd = {
-        RichClassCrowd(findClassesWithFileInner(packageName, dir))
-      }
-
-      rich(_: String, new File(url.getFile))
-  }
-
-  def findClassesWithJarFile: PartialFunction[URL, String => RichClassCrowd] = {
+      RichClassCrowd(findClassesWithFileInner(rootPackageName, new File(x.getFile)))
     case url if url.getProtocol == "jar" =>
       def manageJar[T](jarFile: JarFile)(body: JarFile => T): T = try {
         body(jarFile)
@@ -109,8 +109,8 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
               RichClassCrowd(
                 jarFile.entries.asScala.map(entry => {
                   if (resourceNameToPackageName(entry.getName).startsWith(packageName) && isClassFile(entry)) {
-                    val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
-                    if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
+                      val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
+                      if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
                   } else Nil
                 }).flatten.toList
               )
@@ -118,11 +118,8 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
           case _ => RichClassCrowd()
         }
 
-      findClassesWithJarFileInner
-  }
-
-  def findClassesWithNone: PartialFunction[URL, String => RichClassCrowd] = {
-    case _ => _ => RichClassCrowd()
+      findClassesWithJarFileInner(rootPackageName)
+    case _ => RichClassCrowd()
   }
 }
 
