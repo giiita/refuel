@@ -1,7 +1,6 @@
 package com.giitan.box
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
@@ -9,11 +8,11 @@ import java.util.jar.{JarEntry, JarFile}
 import com.giitan.box.ClassFinder.RichClassCrowd
 import com.giitan.injector.AutoInjector
 
+import scala.reflect._
 import scala.reflect.runtime.universe._
 
 object ClassFinder {
   private val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
-  private val autoInjectorClassSymbol = classOf[AutoInjector]
 
   case class RichClassCrowd(value: List[Class[_]] = List.empty) {
 
@@ -22,15 +21,20 @@ object ClassFinder {
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         try {
-          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
+          val x = mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
+          x.toString
         } catch {
-          case _: Throwable =>
+          case e: Throwable => e.printStackTrace()
         }
       }
     }
 
-    def initialize(): Unit = {
-      value.foreach(r => fire(r))
+    def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
+      val target = classTag[T].runtimeClass
+      value.find(r => target.isAssignableFrom(r)) match {
+        case Some(x) => fire(x)
+        case _ =>
+      }
     }
 
     def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++: next.value)
@@ -63,30 +67,31 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
     val resources = classLoader.getResources(resourceName).asScala
 
     resources.map({
-      case null => println(null); RichClassCrowd()
+      case null => RichClassCrowd()
       case url => finderFunction(url)(rootPackageName)
     }).reduce(_ +++ _)
   }
 
   def findClassesWithFile: PartialFunction[URL, String => RichClassCrowd] = {
     case url if url.getProtocol == "file" =>
-      val classes = new ListBuffer[Class[_]]
-
-      def findClassesWithFileInner(packageName: String, dir: File): RichClassCrowd = {
-        dir.list.foreach { path =>
+      def findClassesWithFileInner(packageName: String, dir: File): List[Class[_]] = {
+        dir.list.flatMap(path => {
           new File(dir, path) match {
             case file if isClassFile(file) =>
-              classes += classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
+              val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
+              if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
             case directory if directory.isDirectory =>
               findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
-            case _ =>
+            case _ => Nil
           }
-        }
-
-        RichClassCrowd(classes.toList)
+        }).toList
       }
 
-      findClassesWithFileInner(_: String, new File(url.getFile))
+      def rich(packageName: String, dir: File): RichClassCrowd = {
+        RichClassCrowd(findClassesWithFileInner(packageName, dir))
+      }
+
+      rich(_: String, new File(url.getFile))
   }
 
   def findClassesWithJarFile: PartialFunction[URL, String => RichClassCrowd] = {
@@ -100,15 +105,17 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
       def findClassesWithJarFileInner(packageName: String): RichClassCrowd =
         url.openConnection match {
           case jarURLConnection: JarURLConnection =>
-            manageJar(jarURLConnection.getJarFile) { jarFile =>
+            manageJar(jarURLConnection.getJarFile)(jarFile =>
               RichClassCrowd(
-                jarFile.entries.asScala.toList.collect {
-                  case jarEntry if resourceNameToPackageName(jarEntry.getName).startsWith(packageName) &&
-                    isClassFile(jarEntry) =>
-                    classLoader.loadClass(resourceNameToClassName(jarEntry.getName))
-                }
+                jarFile.entries.asScala.map(entry => {
+                  if (resourceNameToPackageName(entry.getName).startsWith(packageName) && isClassFile(entry)) {
+                    val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
+                    if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
+                  } else Nil
+                }).flatten.toList
               )
-            }
+            )
+          case _ => RichClassCrowd()
         }
 
       findClassesWithJarFileInner

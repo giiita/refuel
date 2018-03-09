@@ -100,7 +100,7 @@ package object implicits {
       * @param t Default value.
       * @return Some value of Option or default
       */
-    def ||=>(t: T): T = optT match {
+    def getOrElse(t: T): T = optT match {
       case Some(x) => x
       case None => t
     }
