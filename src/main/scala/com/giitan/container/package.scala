@@ -32,8 +32,6 @@ package object container {
       * @return
       */
     private[giitan] def find[T: ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): T = {
-      AutomaticContainerInitializer.initialize(tag)
-
       def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope.getClass)
 
       def search(tipe: Type): Option[T] = {
@@ -46,8 +44,9 @@ package object container {
       search(tipe) match {
         case Some(x) => x
         case None    =>
+          println(s"★★★★★★★★★★★★★　Initialize $tag  【 ${v.map(_.tipe).mkString(", ")} 】")
           AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head}")
+          search(tipe) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head} 【 ${v.map(_.tipe).mkString(", ")} 】")
       }
     }
 
