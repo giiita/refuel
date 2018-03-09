@@ -8,6 +8,7 @@ import com.giitan.injector.Injector
 import com.giitan.implicits._
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
 package object container {
@@ -19,39 +20,47 @@ package object container {
     protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
-      ClassFinder().findClasses("")
+      ClassFinder().findClasses()
 
     /**
       * Search accessible dependencies.
       *
-      * @param tag Dependency object typed tag.
+      * @param tag   Dependency object typed tag.
       * @param scope Typed objects to be accessed.
       * @tparam T
       * @tparam S
       * @return
       */
-    private[giitan] def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
-      AutomaticContainerInitializer
+    private[giitan] def find[T: ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): T = {
+      AutomaticContainerInitializer.initialize(tag)
 
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty  || sc.contains(scope.getClass)
+      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope.getClass)
+
+      def search(tipe: Type): Option[T] = {
+        v.find(r => r.tipe == tipe && inScope(r.scope)) >>
+          (_.applier.asInstanceOf[T])
+      }
 
       val tipe = tag.tpe
 
-      v.find(r => r.tipe == tipe && inScope(r.scope)) >>
-        (_.applier.asInstanceOf[T]) >>>
-        new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head}")
+      search(tipe) match {
+        case Some(x) => x
+        case None    =>
+          AutomaticContainerInitializer.initialize(tag)
+          search(tipe) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head}")
+      }
     }
 
     /**
       * Regist dependencies.
       *
-      * @param tag Dependency object typed tag.
+      * @param tag   Dependency object typed tag.
       * @param value Dependency object.
       * @param scope Typed objects to be accessed.
       * @tparam T
       * @tparam S
       */
-    private[giitan] def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
+    private[giitan] def indexing[T: TypeTag, S <: Injector : TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
       v = v.overRide(tag, value, scope.getClass)
     }
 
@@ -72,7 +81,7 @@ package object container {
     private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit = {
       v.find(_.tipe == typTag) match {
         case Some(ij) => ij += clazz
-        case None => throw new IllegalAccessException(s"Uninjectable object. ${typTag.baseClasses.head}")
+        case None     => throw new IllegalAccessException(s"Uninjectable object. ${typTag.baseClasses.head}")
       }
     }
   }

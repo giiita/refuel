@@ -4,6 +4,7 @@ import com.giitan.box.Container
 import com.giitan.container._
 import com.giitan.scope.Closed
 
+import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
 trait Injector {me =>
@@ -14,7 +15,7 @@ trait Injector {me =>
     * @tparam T Injectable type.
     * @return
     */
-  def inject[T: TypeTag]: T = {
+  def inject[T: TypeTag: ClassTag]: T = {
     implicitly[Container].find(typeTag[T], me)
   }
 

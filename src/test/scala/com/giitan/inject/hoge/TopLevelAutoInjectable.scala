@@ -1,4 +1,4 @@
-package com.giitan.inject
+package com.giitan.inject.hoge
 
 import com.giitan.annotation.AutoLoad
 import com.giitan.injector.AutoInjector

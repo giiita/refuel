@@ -4,6 +4,7 @@ import com.giitan.box.ClassFinder.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 
+import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
 private[giitan] trait Container {
@@ -23,7 +24,7 @@ private[giitan] trait Container {
     * @tparam S
     * @return
     */
-  private[giitan] def find[T, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T
+  private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T
 
   /**
     * Regist dependencies.
