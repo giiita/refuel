@@ -44,7 +44,6 @@ package object container {
       search(tipe) match {
         case Some(x) => x
         case None    =>
-          println(s"★★★★★★★★★★★★★　Initialize $tag  【 ${v.map(_.tipe).mkString(", ")} 】")
           AutomaticContainerInitializer.initialize(tag)
           search(tipe) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head} 【 ${v.map(_.tipe).mkString(", ")} 】")
       }
