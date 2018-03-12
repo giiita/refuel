@@ -58,14 +58,24 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
   private def packageNameToResourceName(packageName: String): String =
     packageName.replace('.', '/')
 
+  implicit class IterateUrl(value: Iterator[URL]) {
+    def or(next: Unit => Iterator[URL]): Iterator[URL] =
+      try {
+        if (value.isEmpty) next() else value
+      } catch {
+        case e: Throwable => throw new UnsupportedOperationException("The Runtime to be loaded must be a Class list or a jar archive.", e)
+      }
+  }
+
   def findClasses(rootPackageName: String = ""): RichClassCrowd = {
     val resourceName = packageNameToResourceName(rootPackageName)
 
-    classLoader.get
-    val resources = classLoader.getResources("./").asScala
+    val resources = classLoader.getResources(resourceName).asScala
 
-    println("★★★★★★★★★★★★★★★★★★★★★")
-    resources.map(r => {
+    val thisPackage = packageNameToResourceName(this.getClass.getPackage.getName)
+    val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
+
+    resources.or(_ => Iterator(new URL(paths))).map(r => {
       println(r.getPath)
       r match {
         case null => RichClassCrowd()
