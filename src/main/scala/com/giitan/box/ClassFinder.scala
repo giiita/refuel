@@ -90,11 +90,15 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
         dir.list.flatMap(path => {
           new File(dir, path) match {
             case file if isClassFile(file) =>
-              val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
-              if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
+              try {
+                val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
+                if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
+              } catch {
+                case _: Throwable => None// class load failed.
+              }
             case directory if directory.isDirectory =>
               findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
-            case _ => Nil
+            case _ => None
           }
         }).toList
       }
@@ -114,9 +118,13 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
               RichClassCrowd(
                 jarFile.entries.asScala.map(entry => {
                   if (resourceNameToPackageName(entry.getName).startsWith(packageName) && isClassFile(entry)) {
+                    try {
                       val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
-                      if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
-                  } else Nil
+                      if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
+                    } catch {
+                      case _: Throwable => None// class load failed.
+                    }
+                  } else None
                 }).flatten.toList
               )
             )
