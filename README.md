@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "0.4.2"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "0.5.0"
 ````
 
 ## Examples
@@ -13,11 +13,11 @@ libraryDependencies += "com.github.giiita" %% "scaladia" % "0.4.2"
 ### The simplest Injection
 
 ```
-object A extends A
-
-trait A extends AutoInjector {me =>
-  depends[A](me).acceptedGlobal
+object A extends A {
+  depends[A](this).acceptedGlobal
 }
+
+trait A extends AutoInjector
 ```
 
 ```
@@ -29,6 +29,7 @@ object TestA extends Injector {
 ```
 
 Classes that inherit AutoInjector are registered automatically when DI container is initialized.<br/>
+Resolve dependencies only within the jar archive that scaladia was shipped with.<br/>
 However, when automatically injecting the object definition, it must be defined in a statically accessible hierarchy, such as top level.<br/>
 In AutoInjector, when multiple dependencies of the same type are registered, it is not guaranteed which one is injected.
 Please use Injector in such a case.
@@ -37,6 +38,7 @@ You can overwrite settings injected with AutoInjector with Injector.<br/><br/><b
 
 
 AutoInjectorを継承したクラスは、DIコンテナの初期化時に自動的に登録されます。<br/>
+scaladiaが同梱されたjar archive内のみの依存を解決します。<br/>
 ただし、object定義を自動注入する場合、トップレベルなど、静的にアクセスできる階層に定義しなければなりません。<br/>
 AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
 その場合、Injectorを使用してください。
