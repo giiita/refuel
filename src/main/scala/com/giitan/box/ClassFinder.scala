@@ -75,12 +75,9 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
     val thisPackage = packageNameToResourceName(this.getClass.getPackage.getName)
     val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
 
-    resources.or(_ => Iterator(new URL(paths))).map(r => {
-      println(r.getPath)
-      r match {
-        case null => RichClassCrowd()
-        case url  => findClassesWithFile(url, rootPackageName)
-      }
+    resources.or(_ => Iterator(new URL(paths))).map({
+      case null => RichClassCrowd()
+      case url  => findClassesWithFile(url, rootPackageName)
     }) match {
       case x if x.isEmpty => RichClassCrowd()
       case x => x.reduceLeft(_ +++ _)
@@ -93,11 +90,9 @@ case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getCont
         dir.list.flatMap(path => {
           new File(dir, path) match {
             case file if isClassFile(file) =>
-              println(s"★$packageName${pathToClassName(file.getName)}★")
-                val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
-                if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
+              val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
+              if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Seq(classType) else Nil
             case directory if directory.isDirectory =>
-              println(s"★★$packageName${directory.getName}★★")
               findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
             case _ => Nil
           }
