@@ -1,6 +1,6 @@
 package com.giitan.inject
 
-import com.giitan.injector.Injector
+import com.giitan.injector.{AutoInjector, Injector}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 class InjectorTest extends WordSpec with Matchers {
@@ -43,7 +43,7 @@ class InjectorTest extends WordSpec with Matchers {
 
     "out of scope" in {
       trait InjectorB extends Injector {
-        depends[A](B)
+        depends[A](B).accept(this)
       }
 
       trait InjectorY extends Injector {
@@ -62,35 +62,9 @@ class InjectorTest extends WordSpec with Matchers {
             inject[A]
             throw new Exception("Do not be successful.")
           } catch {
-            case e: IllegalAccessException => true shouldBe true// e.getMessage shouldBe "Uninjectable object. trait A"
-            case _: Throwable => throw new Exception("Unknown exception.")
+            case e: IllegalAccessException => e.getMessage shouldBe "trait A or internal dependencies injected failed. "
+            case e: Throwable => throw new Exception("Unknown exception.", e)
           }
-        }
-      }
-
-      ExecuteB.test()
-      ExecuteY.test()
-    }
-
-    "Append scope." in {
-      trait InjectorB extends Injector {
-        depends[A](B)
-          .accept(ExecuteY)
-      }
-
-      trait InjectorY extends Injector {
-        depends[X](Y)
-      }
-
-      object ExecuteB extends InjectorB {
-        def test(): Assertion = {
-          inject[A] shouldBe B
-        }
-      }
-
-      object ExecuteY extends InjectorY {
-        def test(): Assertion = {
-          inject[A] shouldBe B
         }
       }
 
@@ -123,5 +97,46 @@ class InjectorTest extends WordSpec with Matchers {
       ExecuteB.test()
       ExecuteY.test()
     }
+
+    "mount yet." in {
+
+      trait K extends I {me =>
+        def name: String = "K"
+        depends[I](me)
+      }
+
+      trait CallerExpand extends Caller with K
+
+      new Caller{}.result shouldBe "J"
+    }
+
+    "mount." in {
+
+      trait K extends I {me =>
+        def name: String = "K"
+        override def mount = {
+          me.as[I]
+        }
+      }
+
+      trait CallerExpand extends Caller with K
+
+      new CallerExpand{}.result shouldBe "K"
+    }
   }
+}
+
+trait I extends AutoInjector {
+  def name: String
+}
+object J extends I {
+  def name: String = "J"
+  depends[I](this)
+}
+
+object Caller extends Caller
+
+trait Caller extends Injector {
+  val i: I = inject[I]
+  def result: String = i.name
 }

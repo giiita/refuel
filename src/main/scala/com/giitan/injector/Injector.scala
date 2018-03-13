@@ -2,12 +2,13 @@ package com.giitan.injector
 
 import com.giitan.box.Container
 import com.giitan.container._
+import com.giitan.implicits.InjectorExpander
 import com.giitan.scope.Closed
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
-trait Injector {me =>
+trait Injector extends InjectorExpander {me =>
   /**
     * Inject a dependency object.
     * If there is no object with access authority, an [[ IllegalAccessException ]] occurs.
@@ -16,6 +17,7 @@ trait Injector {me =>
     * @return
     */
   def inject[T: TypeTag: ClassTag]: T = {
+    mount
     implicitly[Container].find(typeTag[T], me)
   }
 
@@ -32,4 +34,6 @@ trait Injector {me =>
     FunctIndexer.indexing(typeTag[X], v, me)
     Closed[X]
   }
+
+  def mount: Unit = {}
 }

@@ -1,5 +1,6 @@
 package com.giitan.injectable
 
+import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
 
@@ -38,12 +39,11 @@ object InjectableSet {
     new Injectable[T] {
       val tipe: Type = tag.tpe
       val applier: T = value
-      var scope: Seq[Class[_]] = Seq(stype)
 
-      def clear: Unit = this.scope = Nil
+      def clear: Unit = this.scope.clear()
 
       def +=(c: Class[_]): Injectable[T] = {
-        this.scope = scope :+ c
+        scope += c
         this
       }
     }
