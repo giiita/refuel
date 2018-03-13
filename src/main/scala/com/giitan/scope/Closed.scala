@@ -33,6 +33,7 @@ trait Closed[X] extends Scope {
 
   /**
     * Allow access to all types.
+    * Default this.
     */
   def acceptedGlobal: Unit = implicitly[Container].scoped(tt)
 }

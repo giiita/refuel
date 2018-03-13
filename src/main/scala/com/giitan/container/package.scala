@@ -32,12 +32,11 @@ package object container {
       * @return
       */
     private[giitan] def find[T: ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): T = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope.getClass)
+      def inScope(sc: Seq[Class[_]]): Boolean = sc.contains(scope.getClass)
+      def globalScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty
 
-      def search(tipe: Type): Option[T] = {
-        v.find(r => r.tipe == tipe && inScope(r.scope)) >>
-          (_.applier.asInstanceOf[T])
-      }
+      def search(tipe: Type): Option[T] =
+        (v.find(r => r.tipe == tipe && inScope(r.scope)) or v.find(r => r.tipe == tipe && globalScope(r.scope))) >> (_.applier.asInstanceOf[T])
 
       val tipe = tag.tpe
 
@@ -45,7 +44,7 @@ package object container {
         case Some(x) => x
         case None    =>
           AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new IllegalAccessException(s"Inject failed. ${tipe.baseClasses.head} ")
+          search(tipe) >>> new IllegalAccessException(s"${tipe.baseClasses.head} or internal dependencies injected failed. ")
       }
     }
 

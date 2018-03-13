@@ -32,7 +32,7 @@ object ScaladiaClassLoader {
           val x = mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
           x.toString
         } catch {
-          case e: Throwable => e.printStackTrace()
+          case _: Throwable =>
         }
       }
     }
