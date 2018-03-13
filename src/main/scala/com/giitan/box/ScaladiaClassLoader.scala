@@ -8,16 +8,24 @@ import java.util.jar.{JarEntry, JarFile}
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injector.AutoInjector
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect._
 import scala.reflect.runtime.universe._
 
 object ScaladiaClassLoader {
   private val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
 
-  case class RichClassCrowd(value: List[Class[_]] = List.empty) {
+  object RichClassCrowd {
+    def apply(value: List[Class[_]]): RichClassCrowd = {
+      RichClassCrowd(new ListBuffer() ++= value)
+    }
+  }
+
+  case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
 
     private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
 
+      drop(clazz)
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         try {
@@ -33,15 +41,24 @@ object ScaladiaClassLoader {
       val target = classTag[T].runtimeClass
       value.find(r => target.isAssignableFrom(r)) match {
         case Some(x) => fire(x)
-        case _ =>
+        case _ => initialize()
       }
     }
 
     def initialize(): Unit = {
-      value.foreach(r => fire(r))
+      def loop(looped: ListBuffer[Class[_]]): Unit = {
+        looped.result() match {
+          case Nil =>
+          case _ =>
+            fire(looped.head)
+            loop(value)
+        }
+      }
+      loop(value)
     }
 
-    def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++: next.value)
+    def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++= next.value)
+    def drop[T](dropClass: Class[T]): Unit = value -= dropClass
   }
 }
 
