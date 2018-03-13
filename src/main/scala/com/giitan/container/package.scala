@@ -45,7 +45,7 @@ package object container {
         case Some(x) => x
         case None    =>
           AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new IllegalAccessException(s"Uninjectable object. ${tipe.baseClasses.head} 【 ${v.map(_.tipe).mkString(", ")} 】")
+          search(tipe) >>> new IllegalAccessException(s"Inject failed. ${tipe.baseClasses.head} ")
       }
     }
 
