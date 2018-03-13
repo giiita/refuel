@@ -1,7 +1,7 @@
 package com.giitan
 
-import com.giitan.box.ClassFinder.RichClassCrowd
-import com.giitan.box.{ClassFinder, Container}
+import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
+import com.giitan.box.{ScaladiaClassLoader, Container}
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
@@ -20,7 +20,7 @@ package object container {
     protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
-      ClassFinder().findClasses()
+      ScaladiaClassLoader().findClasses()
 
     /**
       * Search accessible dependencies.

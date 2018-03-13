@@ -1,6 +1,6 @@
 package com.giitan.box
 
-import com.giitan.box.ClassFinder.RichClassCrowd
+import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 

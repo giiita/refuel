@@ -5,13 +5,13 @@ import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.box.ClassFinder.RichClassCrowd
+import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injector.AutoInjector
 
 import scala.reflect._
 import scala.reflect.runtime.universe._
 
-object ClassFinder {
+object ScaladiaClassLoader {
   private val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
 
   case class RichClassCrowd(value: List[Class[_]] = List.empty) {
@@ -37,11 +37,15 @@ object ClassFinder {
       }
     }
 
+    def initialize(): Unit = {
+      value.foreach(r => fire(r))
+    }
+
     def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++: next.value)
   }
 }
 
-case class ClassFinder(classLoader: ClassLoader = Thread.currentThread().getContextClassLoader) {
+case class ScaladiaClassLoader(classLoader: ClassLoader = Thread.currentThread().getContextClassLoader) {
 
   private[this] def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
 
