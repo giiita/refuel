@@ -43,6 +43,7 @@ package object container {
       search(tipe) match {
         case Some(x) => x
         case None    =>
+
           AutomaticContainerInitializer.initialize(tag)
           search(tipe) >>> new IllegalAccessException(s"${tipe.baseClasses.head} or internal dependencies injected failed. ")
       }

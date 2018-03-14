@@ -7,12 +7,15 @@ import java.util.jar.{JarEntry, JarFile}
 
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injector.AutoInjector
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect._
 import scala.reflect.runtime.universe._
 
 object ScaladiaClassLoader {
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
   private val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
 
   object RichClassCrowd {
@@ -29,10 +32,9 @@ object ScaladiaClassLoader {
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         try {
-          val x = mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
-          x.toString
+          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
-          case _: Throwable =>
+          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
         }
       }
     }
