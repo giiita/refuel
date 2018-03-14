@@ -15,14 +15,5 @@ class AutoInjectorTest extends WordSpec with Matchers {
 
       Execute.test()
     }
-    "Injection not setting" in {
-      object Execute extends Injector {
-        def test(): Assertion = {
-          inject[UnInjectable] shouldBe UnInjectable
-        }
-      }
-
-      Execute.test()
-    }
   }
 }
