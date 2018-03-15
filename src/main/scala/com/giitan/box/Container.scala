@@ -12,7 +12,7 @@ private[giitan] trait Container {
   /**
     * Injectable object mapper.
     */
-  protected val v: ListBuffer[Injectable[_]]
+  val v: ListBuffer[Injectable[_]]
 
   private[giitan] val automaticDependencies: RichClassCrowd
 
