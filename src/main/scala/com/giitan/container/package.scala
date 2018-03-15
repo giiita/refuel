@@ -20,7 +20,7 @@ package object container {
     protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
-      ScaladiaClassLoader().findClasses()
+      ScaladiaClassLoader.findClasses()
 
     /**
       * Search accessible dependencies.
