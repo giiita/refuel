@@ -8,7 +8,9 @@ import scala.reflect.runtime.universe._
 
 private[giitan] object AutomaticContainerInitializer {
 
-  LoggerFactory.getLogger(this.getClass).debug(s"Loading from ${implicitly[Container].automaticDependencies.value.map(_.getSimpleName).mkString(", ")}")
+  // (this.getClass).debug(s"Loading from ${implicitly[Container].automaticDependencies.value.map(_.getSimpleName).mkString(", ")}")
+  println(s"Loading from ${implicitly[Container].automaticDependencies.value.map(_.getSimpleName).mkString("\n ")}")
+  println(s"Load result ${implicitly[Container].v.map(_.tipe).mkString("\n ")}")
   implicitly[Container].automaticDependencies.initialize()
 
   def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {

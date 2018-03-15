@@ -18,7 +18,7 @@ package object container {
     /**
       * Injectable object mapper.
       */
-    protected val v: ListBuffer[Injectable[_]] = ListBuffer.empty[Injectable[_]]
+    val v: ListBuffer[Injectable[_]] = ListBuffer.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
       ScaladiaClassLoader.findClasses()
