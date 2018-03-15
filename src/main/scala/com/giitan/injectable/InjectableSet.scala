@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
 
 object InjectableSet {
-  implicit class InjectableList(v: Set[Injectable[_]]) {
+  implicit class InjectableList(v: ListBuffer[Injectable[_]]) {
     /**
       * Append dependencies object.
       * Overwrite if already registered.
@@ -16,13 +16,18 @@ object InjectableSet {
       * @tparam T
       * @return
       */
-    def overwrite[T: TypeTag](tag: TypeTag[T], value: T, scope: Class[_]): Set[Injectable[_]] = {
+    def overwrite[T: TypeTag](tag: TypeTag[T], value: T, scope: Class[_]): Unit = {
       def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope)
 
       val tipe = typeOf[T]
-      v.filter(r =>
-        r.tipe != tipe || (r.tipe == tipe && !inScope(r.scope))
-      ) + toInjectly(tag, value, scope)
+
+      v.find(r => {
+        r.tipe == tipe && inScope(r.scope)
+      }) match {
+        case Some(x) => v -= x
+        case _ =>
+      }
+      v += toInjectly(tag, value, scope)
     }
   }
 

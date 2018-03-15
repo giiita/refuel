@@ -1,12 +1,13 @@
 package com.giitan
 
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
-import com.giitan.box.{ScaladiaClassLoader, Container}
+import com.giitan.box.{Container, ScaladiaClassLoader}
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
 import com.giitan.implicits._
 
+import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
@@ -17,7 +18,7 @@ package object container {
     /**
       * Injectable object mapper.
       */
-    protected var v: Set[Injectable[_]] = Set.empty[Injectable[_]]
+    protected val v: ListBuffer[Injectable[_]] = ListBuffer.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
       ScaladiaClassLoader.findClasses()
@@ -48,7 +49,7 @@ package object container {
           search(tipe) >>> new IllegalAccessException(
             s"""${tipe.baseClasses.head} or internal dependencies injected failed.
                |Injectable sets:
-               |  ${v.map(_.applier.getClass.getSimpleName).mkString("\n  ")}
+               |  ${v.map(r => s"${r.applier.getClass.getSimpleName} as ${r.tipe}").mkString("\n  ")}
                |""".stripMargin
           )
       }
@@ -64,7 +65,7 @@ package object container {
       * @tparam S
       */
     private[giitan] def indexing[T: TypeTag, S <: Injector : TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
-      v = v.overwrite(tag, value, scope.getClass)
+      v.overwrite(tag, value, scope.getClass)
     }
 
     /**
