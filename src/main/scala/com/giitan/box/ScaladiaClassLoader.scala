@@ -34,7 +34,7 @@ object ScaladiaClassLoader {
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
-          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
+          case e: Throwable => throw new IllegalAccessException(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")// logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
         }
       }
     }
