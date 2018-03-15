@@ -123,10 +123,11 @@ object ScaladiaClassLoader {
       drop(clazz)
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
+        println(s"Initialize ${clazz.getSimpleName}")
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
-          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
+          case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
         }
       }
     }
