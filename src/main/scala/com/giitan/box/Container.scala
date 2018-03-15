@@ -4,6 +4,7 @@ import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
@@ -11,7 +12,7 @@ private[giitan] trait Container {
   /**
     * Injectable object mapper.
     */
-  protected var v: Set[Injectable[_]]
+  protected val v: ListBuffer[Injectable[_]]
 
   private[giitan] val automaticDependencies: RichClassCrowd
 
