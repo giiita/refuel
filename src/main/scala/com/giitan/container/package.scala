@@ -45,7 +45,13 @@ package object container {
         case None    =>
 
           AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new IllegalAccessException(s"${tipe.baseClasses.head} or internal dependencies injected failed. ")
+          search(tipe) >>> new IllegalAccessException(
+            s"""
+               |${tipe.baseClasses.head} or internal dependencies injected failed.
+               |Injectable sets:
+               |  ${v.map(_.applier.getClass.getSimpleName).mkString("\n  ")}
+               |""".stripMargin
+          )
       }
     }
 
@@ -59,7 +65,7 @@ package object container {
       * @tparam S
       */
     private[giitan] def indexing[T: TypeTag, S <: Injector : TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
-      v = v.overRide(tag, value, scope.getClass)
+      v = v.overwrite(tag, value, scope.getClass)
     }
 
     /**
