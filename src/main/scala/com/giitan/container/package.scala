@@ -46,8 +46,7 @@ package object container {
 
           AutomaticContainerInitializer.initialize(tag)
           search(tipe) >>> new IllegalAccessException(
-            s"""
-               |${tipe.baseClasses.head} or internal dependencies injected failed.
+            s"""${tipe.baseClasses.head} or internal dependencies injected failed.
                |Injectable sets:
                |  ${v.map(_.applier.getClass.getSimpleName).mkString("\n  ")}
                |""".stripMargin
