@@ -1,6 +1,6 @@
 package com.giitan.inject
 
-import com.giitan.injector.{AutoInjector, Injector}
+import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 class InjectorTest extends WordSpec with Matchers {
@@ -62,7 +62,7 @@ class InjectorTest extends WordSpec with Matchers {
             inject[A]
             throw new Exception("Do not be successful.")
           } catch {
-            case e: IllegalAccessException => e.getMessage shouldBe "trait A or internal dependencies injected failed. "
+            case e: IllegalAccessException => assert(e.getMessage startsWith "trait A or internal dependencies injected failed.")
             case e: Throwable => throw new Exception("Unknown exception.", e)
           }
         }
@@ -114,7 +114,7 @@ class InjectorTest extends WordSpec with Matchers {
 
       trait K extends I {me =>
         def name: String = "K"
-        override def mount = {
+        override def mount(): Unit = {
           me.as[I]
         }
       }
@@ -124,19 +124,4 @@ class InjectorTest extends WordSpec with Matchers {
       new CallerExpand{}.result shouldBe "K"
     }
   }
-}
-
-trait I extends AutoInjector {
-  def name: String
-}
-object J extends I {
-  def name: String = "J"
-  depends[I](this)
-}
-
-object Caller extends Caller
-
-trait Caller extends Injector {
-  val i: I = inject[I]
-  def result: String = i.name
 }
