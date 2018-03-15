@@ -17,7 +17,7 @@ object InjectableSet {
       * @return
       */
     def overwrite[T: TypeTag](tag: TypeTag[T], value: T, scope: Class[_]): Unit = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty || sc.contains(scope)
+      def inScope(sc: Seq[Class[_]]): Boolean = sc.contains(scope)
 
       val tipe = typeOf[T]
 
@@ -44,13 +44,7 @@ object InjectableSet {
     new Injectable[T] {
       val tipe: Type = tag.tpe
       val applier: T = value
-
-      def clear: Unit = this.scope.clear()
-
-      def +=(c: Class[_]): Injectable[T] = {
-        scope += c
-        this
-      }
+      val scope: ListBuffer[Class[_]] = ListBuffer(stype)
     }
   }
 }

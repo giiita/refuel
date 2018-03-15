@@ -10,15 +10,18 @@ trait Injectable[T] {
   // Injection value.
   val applier: T
   // Accessible type.
-  val scope: ListBuffer[Class[_]] = ListBuffer.empty
+  val scope: ListBuffer[Class[_]]
 
   /**
     *  Append accessible type.
     */
-  def +=(c: Class[_]): Injectable[T]
+  def +=(c: Class[_]): Injectable[T] = {
+    scope += c
+    this
+  }
 
   /**
     * Clear accessible type.
     */
-  def clear: Unit
+  def clear: Unit = this.scope.clear()
 }
