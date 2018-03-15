@@ -129,7 +129,7 @@ object ScaladiaClassLoader {
         } catch {
           case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. $e")
         }
-      }
+      } else drop(clazz)
     }
 
     def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
