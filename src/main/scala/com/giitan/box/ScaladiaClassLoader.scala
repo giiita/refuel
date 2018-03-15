@@ -5,7 +5,6 @@ import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injector.AutoInjector
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -14,57 +13,7 @@ import scala.reflect._
 import scala.reflect.runtime.universe._
 
 object ScaladiaClassLoader {
-  val logger: Logger = LoggerFactory.getLogger(this.getClass)
-
-  private val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
-
-  object RichClassCrowd {
-    def apply(value: List[Class[_]]): RichClassCrowd = {
-      RichClassCrowd(new ListBuffer() ++= value)
-    }
-  }
-
-  case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
-
-    private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
-
-      drop(clazz)
-      val mirror = runtimeMirror(classLoader)
-      if (clazz.getName.trim.endsWith("$")) {
-        try {
-          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
-        } catch {
-          case e: Throwable => throw new IllegalAccessException(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")// logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
-        }
-      }
-    }
-
-    def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
-      val target = classTag[T].runtimeClass
-      value.find(r => target.isAssignableFrom(r)) match {
-        case Some(x) => fire(x)
-        case _ => initialize()
-      }
-    }
-
-    def initialize(): Unit = {
-      def loop(looped: ListBuffer[Class[_]]): Unit = {
-        looped.result() match {
-          case Nil =>
-          case _ =>
-            fire(looped.head)
-            loop(value)
-        }
-      }
-      loop(value)
-    }
-
-    def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++= next.value)
-    def drop[T](dropClass: Class[T]): Unit = value -= dropClass
-  }
-}
-
-case class ScaladiaClassLoader(classLoader: ClassLoader = Thread.currentThread().getContextClassLoader) {
+  private[giitan] val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
 
   private[this] def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
 
@@ -156,6 +105,54 @@ case class ScaladiaClassLoader(classLoader: ClassLoader = Thread.currentThread()
 
       findClassesWithJarFileInner(rootPackageName)
     case _ => RichClassCrowd()
+  }
+
+
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
+  object RichClassCrowd {
+    def apply(value: List[Class[_]]): RichClassCrowd = {
+      RichClassCrowd(new ListBuffer() ++= value)
+    }
+  }
+
+  case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
+
+    private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
+
+      drop(clazz)
+      val mirror = runtimeMirror(classLoader)
+      if (clazz.getName.trim.endsWith("$")) {
+        try {
+          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
+        } catch {
+          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
+        }
+      }
+    }
+
+    def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
+      val target = classTag[T].runtimeClass
+      value.find(r => target.isAssignableFrom(r)) match {
+        case Some(x) => fire(x)
+        case _ => initialize()
+      }
+    }
+
+    def initialize(): Unit = {
+      def loop(looped: ListBuffer[Class[_]]): Unit = {
+        looped.result() match {
+          case Nil =>
+          case _ =>
+            fire(looped.head)
+            loop(value)
+        }
+      }
+      loop(value)
+    }
+
+    def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++= next.value)
+    def drop[T](dropClass: Class[T]): Unit = value -= dropClass
   }
 }
 
