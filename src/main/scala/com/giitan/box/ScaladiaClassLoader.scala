@@ -119,17 +119,17 @@ object ScaladiaClassLoader {
   case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
 
     private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
+      drop(clazz)
 
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         println(s"Initialize ${clazz.getSimpleName}")
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
-          drop(clazz)
         } catch {
           case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. $e")
         }
-      } else drop(clazz)
+      }
     }
 
     def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {

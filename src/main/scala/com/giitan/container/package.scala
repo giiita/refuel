@@ -74,7 +74,12 @@ package object container {
       * @param typTag Dependency object type.
       */
     private[giitan] def scoped(typTag: Type): Unit = {
-      v.find(_.tipe == typTag) >> (_.clear)
+      v.collect {
+        case x if x.tipe == typTag => x
+      }.foreach(r => {
+        if (r.scope.isEmpty) v -= r
+        else r.scope.clear()
+      })
     }
 
     /**

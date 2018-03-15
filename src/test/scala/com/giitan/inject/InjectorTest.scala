@@ -27,23 +27,9 @@ class InjectorTest extends WordSpec with Matchers {
 
   "inject" should {
 
-    "default" in {
-      trait InjectorB extends Injector {
-        depends[A](B)
-      }
-
-      object Execute extends InjectorB {
-        def test(): Assertion = {
-          inject[A] shouldBe B
-        }
-      }
-
-      Execute.test()
-    }
-
     "out of scope" in {
       trait InjectorB extends Injector {
-        depends[A](B).accept(this)
+        narrow[A](B)
       }
 
       trait InjectorY extends Injector {
@@ -72,10 +58,23 @@ class InjectorTest extends WordSpec with Matchers {
       ExecuteY.test()
     }
 
+    "default" in {
+      trait InjectorB extends Injector {
+        depends[A](B)
+      }
+
+      object Execute extends InjectorB {
+        def test(): Assertion = {
+          inject[A] shouldBe B
+        }
+      }
+
+      Execute.test()
+    }
+
     "Be full access." in {
       trait InjectorB extends Injector {
         depends[A](B)
-          .acceptedGlobal
       }
 
       trait InjectorY extends Injector {
@@ -115,7 +114,7 @@ class InjectorTest extends WordSpec with Matchers {
       trait K extends I {me =>
         def name: String = "K"
         override def mount(): Unit = {
-          me.as[I]
+          me.narrow[I](me)
         }
       }
 
