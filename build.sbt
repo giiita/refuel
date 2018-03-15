@@ -40,5 +40,5 @@ releaseProcess := Seq[ReleaseStep](
   releaseStepCommandAndRemaining("+publishSigned"),
   setNextVersion,
   commitNextVersion,
-  releaseStepCommand("sonatypeReleaseAll")
+  ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
 )
