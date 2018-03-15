@@ -127,7 +127,7 @@ object ScaladiaClassLoader {
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
-          case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. ${e.getMessage}")
+          case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. $e")
         }
       }
     }
