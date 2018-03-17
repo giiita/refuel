@@ -2,6 +2,7 @@ package com.giitan
 
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.box.{Container, ScaladiaClassLoader}
+import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
@@ -46,8 +47,8 @@ package object container {
         case None    =>
 
           AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new IllegalAccessException(
-            s"""${tipe.baseClasses.head} or internal dependencies injected failed.
+          search(tipe) >>> new InjectableDefinitionException(
+            s"""$tipe or internal dependencies injected failed.
                |Injectable sets:
                |  ${v.map(r => s"${r.applier.getClass.getSimpleName} as ${r.tipe}").mkString("\n  ")}
                |""".stripMargin
@@ -90,7 +91,7 @@ package object container {
     private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit = {
       v.find(_.tipe == typTag) match {
         case Some(ij) => ij += clazz
-        case None     => throw new IllegalAccessException(s"Uninjectable object. ${typTag.baseClasses.head}")
+        case None     => throw new InjectableDefinitionException(s"Uninjectable object. ${typTag.baseClasses.head}")
       }
     }
   }
