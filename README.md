@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "0.5.0"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.0"
 ````
 
 ## Examples
@@ -29,20 +29,27 @@ object TestA extends Injector {
 ```
 
 Classes that inherit AutoInjector are registered automatically when DI container is initialized.<br/>
-Resolve dependencies only within the jar archive that scaladia was shipped with.<br/>
+Resolve dependencies from the class loader of the thread as seen from Scaladia 's static initializer.<br/>
 However, when automatically injecting the object definition, it must be defined in a statically accessible hierarchy, such as top level.<br/>
 In AutoInjector, when multiple dependencies of the same type are registered, it is not guaranteed which one is injected.
 Please use Injector in such a case.
-You can overwrite settings injected with AutoInjector with Injector.<br/><br/><br/>
+You can overwrite settings injected with AutoInjector with Injector.<br/>
+<br/>
+Currently, AutoInjector is an interface for injecting self type.<br/>
+
+Even if you set injection settings other than self type, it may not initialize to the correct order and may not behave as intended.<br/><br/><br/>
 
 
 
 AutoInjectorを継承したクラスは、DIコンテナの初期化時に自動的に登録されます。<br/>
-scaladiaが同梱されたjar archive内のみの依存を解決します。<br/>
+Scaladiaのstatic initializerから見たスレッドのクラスローダーから依存関係を解決します。<br/>
 ただし、object定義を自動注入する場合、トップレベルなど、静的にアクセスできる階層に定義しなければなりません。<br/>
 AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
 その場合、Injectorを使用してください。
 AutoInjectorで注入した設定をInjectorで上書きすることができます。
+
+現在、AutoInjectorは自己タイプを注入するためのインターフェースであり、
+自己タイプ以外の注入設定をしても、正しい順序に初期化されず、意図した挙動をしないことがあります。
 
 
 ### Custom usage

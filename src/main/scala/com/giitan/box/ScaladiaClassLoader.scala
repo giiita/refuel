@@ -5,6 +5,7 @@ import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
 
+import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injector.AutoInjector
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -123,11 +124,10 @@ object ScaladiaClassLoader {
 
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
-        println(s"Initialize ${clazz.getSimpleName}")
         try {
           mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
         } catch {
-          case e: Throwable => println(s"${clazz.getSimpleName} initialize failed. $e")
+          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. $e")
         }
       }
     }
@@ -136,7 +136,7 @@ object ScaladiaClassLoader {
       val target = classTag[T].runtimeClass
       value.find(r => target.isAssignableFrom(r)) match {
         case Some(x) => fire(x)
-        case _ => initialize()
+        case _ =>
       }
     }
 

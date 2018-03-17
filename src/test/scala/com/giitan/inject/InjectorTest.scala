@@ -1,5 +1,6 @@
 package com.giitan.inject
 
+import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
@@ -48,8 +49,8 @@ class InjectorTest extends WordSpec with Matchers {
             inject[A]
             throw new Exception("Do not be successful.")
           } catch {
-            case e: IllegalAccessException => assert(e.getMessage startsWith "trait A or internal dependencies injected failed.")
-            case e: Throwable => throw new Exception("Unknown exception.", e)
+            case _: InjectableDefinitionException => succeed
+            case _: Throwable => fail()
           }
         }
       }
