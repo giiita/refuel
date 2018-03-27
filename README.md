@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.0"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.1"
 ````
 
 ## Examples
@@ -14,7 +14,7 @@ libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.0"
 
 ```
 object A extends A {
-  depends[A](this).acceptedGlobal
+  depends[A](this)
 }
 
 trait A extends AutoInjector
@@ -22,6 +22,28 @@ trait A extends AutoInjector
 
 ```
 object TestA extends Injector {
+  def test = {
+    println(inject[A]) // B
+  }
+}
+```
+
+### Inject with member of object
+
+
+```
+object A extends A {
+  depends[A](this)
+}
+
+trait A extends AutoInjector
+```
+
+```
+object TestA extends Injector {
+  // If you need to replace later, you need to add "lazy".
+  private[this] lazy val a: A = inject[A]
+
   def test = {
     println(inject[A]) // B
   }

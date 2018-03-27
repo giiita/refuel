@@ -16,7 +16,7 @@ trait Injector {me =>
     * @return
     */
   def inject[T: TypeTag: ClassTag]: T = {
-    mount
+    mount()
     implicitly[Container].find(typeTag[T], me)
   }
 
@@ -49,5 +49,11 @@ trait Injector {me =>
     Scope[X].acceptedGlobal
   }
 
-  def mount: Unit = {}
+  /**
+    * When injecting a dependency with a member of object, it is injected at object initialization
+    * by the static initializer, so there are cases where you can not overwrite dependency registration.
+    *
+    * In that case, you can register the dependency relationship declared with mount before injecting.
+    */
+  def mount(): Unit = {}
 }

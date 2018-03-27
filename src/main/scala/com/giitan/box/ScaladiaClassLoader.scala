@@ -5,7 +5,6 @@ import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injector.AutoInjector
 import org.slf4j.{Logger, LoggerFactory}
 
