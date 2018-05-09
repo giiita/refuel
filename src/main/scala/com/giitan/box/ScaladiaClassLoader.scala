@@ -118,7 +118,7 @@ object ScaladiaClassLoader {
 
   case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
 
-    private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
+    private[this] def fire[T](clazz: Class[T]): Unit = {
       drop(clazz)
 
       val mirror = runtimeMirror(classLoader)
@@ -133,9 +133,8 @@ object ScaladiaClassLoader {
 
     def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
       val target = classTag[T].runtimeClass
-      value.find(r => target.isAssignableFrom(r)) match {
-        case Some(x) => fire(x)
-        case _ =>
+      value.collect {
+        case x if target.isAssignableFrom(x) => fire(x)
       }
     }
 
