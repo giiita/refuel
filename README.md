@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.1"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "0.8.0"
 ````
 
 ## Examples
@@ -13,11 +13,9 @@ libraryDependencies += "com.github.giiita" %% "scaladia" % "0.7.1"
 ### The simplest Injection
 
 ```
-object A extends A {
-  depends[A](this)
-}
+object A extends A with AutoInject[A]
 
-trait A extends AutoInjector
+trait A
 ```
 
 ```
@@ -32,11 +30,9 @@ object TestA extends Injector {
 
 
 ```
-object A extends A {
-  depends[A](this)
-}
+object A extends AutoInject[A]
 
-trait A extends AutoInjector
+trait A
 ```
 
 ```
@@ -63,15 +59,13 @@ Even if you set injection settings other than self type, it may not initialize t
 
 
 
-AutoInjectorを継承したクラスは、DIコンテナの初期化時に自動的に登録されます。<br/>
-Scaladiaのstatic initializerから見たスレッドのクラスローダーから依存関係を解決します。<br/>
+AutoInject[T]を継承したクラスは、DIコンテナの初期化時に自動的に登録されます。<br/>
+Scaladiaのstatic initializerから見たスレッドのカレントクラスローダーから依存関係を解決します。<br/>
 ただし、object定義を自動注入する場合、トップレベルなど、静的にアクセスできる階層に定義しなければなりません。<br/>
 AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
 その場合、Injectorを使用してください。
-AutoInjectorで注入した設定をInjectorで上書きすることができます。
-
-現在、AutoInjectorは自己タイプを注入するためのインターフェースであり、
-自己タイプ以外の注入設定をしても、正しい順序に初期化されず、意図した挙動をしないことがあります。
+AutoInjectで注入した設定をInjectorで上書きすることができます。
+AutoInjectは自己タイプを注入するためのインターフェースです。
 
 
 ### Custom usage
