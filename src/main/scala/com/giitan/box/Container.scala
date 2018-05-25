@@ -3,6 +3,7 @@ package com.giitan.box
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injectable.Injectable
 import com.giitan.injector.Injector
+import com.giitan.scope.Scope.ScopeType
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
@@ -34,21 +35,20 @@ private[giitan] trait Container {
     * @param value Dependency object.
     * @param scope Typed objects to be accessed.
     * @tparam T
-    * @tparam S
     */
-  private[giitan] def indexing[T: TypeTag, S <: Injector: TypeTag](tag: TypeTag[T], value: T, scope: S): Unit
+  private[giitan] def indexing[T: TypeTag](tag: TypeTag[T], value: T, scope: ScopeType): Unit
 
   /**
     * Condense the accessible type.
     *
     * @param typTag Dependency object type.
     */
-  private[giitan] def scoped(typTag: Type): Unit
+  private[giitan] def globaly(typTag: Type): Unit
 
   /**
     * Extend the accessible type.
     *
-    * @param typTag Dependency object type.
+    * @param targetType Dependency object type.
     */
-  private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit
+  private[giitan] def appendScope(acceptableType: ScopeType, targetType: Type): Unit
 }

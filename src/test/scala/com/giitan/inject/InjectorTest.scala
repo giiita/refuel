@@ -1,11 +1,10 @@
 package com.giitan.inject
 
-import com.giitan.exception.InjectableDefinitionException
+import com.giitan.inject.IntectorTest._
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
-class InjectorTest extends WordSpec with Matchers {
-
+object IntectorTest {
   trait A
   object B extends A
   object C extends A
@@ -25,39 +24,11 @@ class InjectorTest extends WordSpec with Matchers {
   object Named2 extends Named {
     def name = 2
   }
+}
 
-  "inject" should {
+class InjectorTest extends WordSpec with Matchers { me =>
 
-    "out of scope" in {
-      trait InjectorB extends Injector {
-        narrow[A](B)
-      }
-
-      trait InjectorY extends Injector {
-        depends[X](Y)
-      }
-
-      object ExecuteB extends InjectorB {
-        def test(): Assertion = {
-          inject[A] shouldBe B
-        }
-      }
-
-      object ExecuteY extends InjectorY {
-        def test(): Assertion = {
-          try {
-            inject[A]
-            throw new Exception("Do not be successful.")
-          } catch {
-            case _: InjectableDefinitionException => succeed
-            case _: Throwable => fail()
-          }
-        }
-      }
-
-      ExecuteB.test()
-      ExecuteY.test()
-    }
+  "Injector test" should {
 
     "default" in {
       trait InjectorB extends Injector {
@@ -96,32 +67,6 @@ class InjectorTest extends WordSpec with Matchers {
 
       ExecuteB.test()
       ExecuteY.test()
-    }
-
-    "mount yet." in {
-
-      trait K extends I {me =>
-        def name: String = "K"
-        depends[I](me)
-      }
-
-      trait CallerExpand extends Caller with K
-
-      new Caller{}.result shouldBe "J"
-    }
-
-    "mount." in {
-
-      trait K extends I {me =>
-        def name: String = "K"
-        override def mount(): Unit = {
-          me.narrow[I](me)
-        }
-      }
-
-      trait CallerExpand extends Caller with K
-
-      new CallerExpand{}.result shouldBe "K"
     }
   }
 }
