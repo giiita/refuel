@@ -7,4 +7,5 @@ package com.giitan.injector
   * Injectable that inherits from this must be statically accessible,
   * such as top level declaration.
   */
+@Deprecated
 trait AutoInjector extends Injector

@@ -7,7 +7,8 @@ import com.giitan.scope.Scope
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
-trait Injector {me =>
+trait Injector {
+  me =>
   /**
     * Inject a dependency object.
     * If there is no object with access authority, an [[ IllegalAccessException ]] occurs.
@@ -16,7 +17,6 @@ trait Injector {me =>
     * @return
     */
   def inject[T: TypeTag: ClassTag]: T = {
-    mount()
     implicitly[Container].find(typeTag[T], me)
   }
 
@@ -46,14 +46,6 @@ trait Injector {me =>
     */
   def depends[X: TypeTag](v: X): Unit = {
     FunctIndexer.indexing(typeTag[X], v, me)
-    Scope[X].acceptedGlobal
+    Scope[X].acceptedGlobal()
   }
-
-  /**
-    * When injecting a dependency with a member of object, it is injected at object initialization
-    * by the static initializer, so there are cases where you can not overwrite dependency registration.
-    *
-    * In that case, you can register the dependency relationship declared with mount before injecting.
-    */
-  def mount(): Unit = {}
 }

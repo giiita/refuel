@@ -7,6 +7,7 @@ import com.giitan.injectable.Injectable
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
 import com.giitan.implicits._
+import com.giitan.scope.Scope.ScopeType
 
 import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
@@ -16,9 +17,7 @@ import scala.reflect.runtime.universe._
 package object container {
   implicit val container: Container = new Container {
 
-    /**
-      * Injectable object mapper.
-      */
+    /* Injectable object mapper. */
     val v: ListBuffer[Injectable[_]] = ListBuffer.empty[Injectable[_]]
 
     private[giitan] val automaticDependencies: RichClassCrowd =
@@ -33,9 +32,12 @@ package object container {
       * @tparam S
       * @return
       */
-    private[giitan] def find[T: ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): T = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.contains(scope.getClass)
-      def globalScope(sc: Seq[Class[_]]): Boolean = sc.isEmpty
+    private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
+
+      val callerType: ScopeType = scope.getClass
+
+      def inScope(sc: Seq[ScopeType]): Boolean = sc.contains(callerType)
+      def globalScope(sc: Seq[ScopeType]): Boolean = sc.isEmpty
 
       def search(tipe: Type): Option[T] =
         (v.find(r => r.tipe == tipe && inScope(r.scope)) or v.find(r => r.tipe == tipe && globalScope(r.scope))) >> (_.applier.asInstanceOf[T])
@@ -48,10 +50,7 @@ package object container {
 
           AutomaticContainerInitializer.initialize(tag)
           search(tipe) >>> new InjectableDefinitionException(
-            s"""$tipe or internal dependencies injected failed.
-               |Injectable sets:
-               |  ${v.map(r => s"${r.applier.getClass.getSimpleName} as ${r.tipe}").mkString("\n  ")}
-               |""".stripMargin
+            s"$tipe or internal dependencies injected failed."
           )
       }
     }
@@ -63,10 +62,9 @@ package object container {
       * @param value Dependency object.
       * @param scope Typed objects to be accessed.
       * @tparam T
-      * @tparam S
       */
-    private[giitan] def indexing[T: TypeTag, S <: Injector : TypeTag](tag: TypeTag[T], value: T, scope: S): Unit = {
-      v.overwrite(tag, value, scope.getClass)
+    private[giitan] def indexing[T: TypeTag](tag: TypeTag[T], value: T, scope: ScopeType): Unit = {
+      v.overwrite(tag, value, scope)
     }
 
     /**
@@ -74,7 +72,7 @@ package object container {
       *
       * @param typTag Dependency object type.
       */
-    private[giitan] def scoped(typTag: Type): Unit = {
+    private[giitan] def globaly(typTag: Type): Unit = {
       v.collect {
         case x if x.tipe == typTag => x
       }.foreach(r => {
@@ -86,12 +84,12 @@ package object container {
     /**
       * Extend the accessible type.
       *
-      * @param typTag Dependency object type.
+      * @param targetType Dependency object type.
       */
-    private[giitan] def scoped(clazz: Class[_], typTag: Type): Unit = {
-      v.find(_.tipe == typTag) match {
-        case Some(ij) => ij += clazz
-        case None     => throw new InjectableDefinitionException(s"Uninjectable object. ${typTag.baseClasses.head}")
+    private[giitan] def appendScope(typeTag: ScopeType, targetType: Type): Unit = {
+      v.find(_.tipe == targetType) match {
+        case Some(ij) => ij += typeTag
+        case None     => throw new InjectableDefinitionException(s"Uninjectable object. ${targetType.baseClasses.head}")
       }
     }
   }

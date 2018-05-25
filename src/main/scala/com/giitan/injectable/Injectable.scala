@@ -1,5 +1,7 @@
 package com.giitan.injectable
 
+import com.giitan.scope.Scope.ScopeType
+
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
@@ -10,12 +12,12 @@ trait Injectable[T] {
   // Injection value.
   val applier: T
   // Accessible type.
-  val scope: ListBuffer[Class[_]]
+  val scope: ListBuffer[ScopeType]
 
   /**
     *  Append accessible type.
     */
-  def +=(c: Class[_]): Injectable[T] = {
+  def +=(c: ScopeType): Injectable[T] = {
     scope += c
     this
   }

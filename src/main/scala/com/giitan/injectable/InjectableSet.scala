@@ -1,5 +1,7 @@
 package com.giitan.injectable
 
+import com.giitan.scope.Scope.ScopeType
+
 import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
@@ -16,8 +18,8 @@ object InjectableSet {
       * @tparam T
       * @return
       */
-    def overwrite[T: TypeTag](tag: TypeTag[T], value: T, scope: Class[_]): Unit = {
-      def inScope(sc: Seq[Class[_]]): Boolean = sc.contains(scope)
+    def overwrite[T: TypeTag](tag: TypeTag[T], value: T, scope: ScopeType): Unit = {
+      def inScope(sc: Seq[ScopeType]): Boolean = sc.contains(scope)
 
       val tipe = typeOf[T]
 
@@ -40,11 +42,11 @@ object InjectableSet {
     * @tparam T
     * @return
     */
-  def toInjectly[T: TypeTag](tag: TypeTag[T], value: T, stype: Class[_]): Injectable[T] = {
+  def toInjectly[T: TypeTag](tag: TypeTag[T], value: T, stype: ScopeType): Injectable[T] = {
     new Injectable[T] {
       val tipe: Type = tag.tpe
       val applier: T = value
-      val scope: ListBuffer[Class[_]] = ListBuffer(stype)
+      val scope: ListBuffer[ScopeType] = ListBuffer(stype)
     }
   }
 }
