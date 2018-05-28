@@ -5,11 +5,11 @@ import com.giitan.injector.{AutoInject, Injector}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 object AutoInjectTest {
-  object AutoVariable extends AutoVariable {
+  object AutoVariable extends AutoInject[AutoVariable] with AutoVariable {
     override def test: String = "BBB"
   }
 
-  trait AutoVariable extends AutoInject[AutoVariable] {
+  trait AutoVariable {
     def test: String = "AAA"
   }
 }
