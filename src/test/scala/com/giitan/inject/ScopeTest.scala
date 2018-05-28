@@ -2,7 +2,7 @@ package com.giitan.inject
 
 import com.giitan.exception.InjectableDefinitionException
 import com.giitan.inject.ScopeTest._
-import com.giitan.injector.Injector
+import com.giitan.injector.{AutoInject, Injector}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 object ScopeTest {
@@ -25,6 +25,14 @@ object ScopeTest {
   object Named2 extends Named {
     def name = 2
   }
+
+  object AutoVariable2 extends AutoVariable2 {
+    override def test: String = "BBB"
+  }
+
+  trait AutoVariable2 extends AutoInject[AutoVariable2] {
+    def test: String = "AAA"
+  }
 }
 
 class ScopeTest extends WordSpec with Matchers {
@@ -41,14 +49,14 @@ class ScopeTest extends WordSpec with Matchers {
 
       object ExecuteB extends InjectorB {
         def test(): Assertion = {
-          inject[A] shouldBe B
+          inject[A].provide shouldBe B
         }
       }
 
       object ExecuteY extends InjectorY {
         def test(): Assertion = {
           try {
-            inject[A]
+            inject[A].provide
             throw new Exception("Do not be successful.")
           } catch {
             case _: InjectableDefinitionException => succeed
@@ -58,6 +66,28 @@ class ScopeTest extends WordSpec with Matchers {
 
       ExecuteB.test()
       ExecuteY.test()
+    }
+
+    "Override reference without lazy define." in {
+      trait OverrideInject extends Injector {
+        depends[AutoVariable2](
+          new AutoVariable2 {
+            override def test: String = "CCC"
+          }
+        )
+      }
+
+      object ExecuteTest extends Injector {
+        private val x: AutoVariable2 = inject[AutoVariable2]
+
+        def execute = x.test shouldBe "CCC"
+      }
+
+      object Runner extends OverrideInject {
+        def run: Assertion = ExecuteTest.execute
+      }
+
+      Runner.run
     }
   }
 }

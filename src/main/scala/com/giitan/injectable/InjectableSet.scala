@@ -24,7 +24,7 @@ object InjectableSet {
       val tipe = typeOf[T]
 
       v.find(r => {
-        r.tipe == tipe && inScope(r.scope)
+        r.tipe =:= tipe && inScope(r.scope)
       }) match {
         case Some(x) => v -= x
         case _ =>
