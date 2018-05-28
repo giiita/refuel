@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "0.8.0"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.0.0"
 ````
 
 ## Examples
@@ -13,15 +13,17 @@ libraryDependencies += "com.github.giiita" %% "scaladia" % "0.8.0"
 ### The simplest Injection
 
 ```
-object A extends A with AutoInject[A]
+object A extends AutoInject[A]
 
-trait A
+trait A {
+  def toString: String = "TEST"
+}
 ```
 
 ```
 object TestA extends Injector {
   def test = {
-    println(inject[A]) // B
+    println(inject[A].toString) // "TEST"
   }
 }
 ```
@@ -32,16 +34,17 @@ object TestA extends Injector {
 ```
 object A extends AutoInject[A]
 
-trait A
+trait A {
+  def toString: String = "TEST"
+}
 ```
 
 ```
 object TestA extends Injector {
-  // If you need to replace later, you need to add "lazy".
-  private[this] lazy val a: A = inject[A]
+  private[this] val a: A = inject[A]
 
   def test = {
-    println(inject[A]) // B
+    println(a.toString) // TEST
   }
 }
 ```
@@ -59,7 +62,7 @@ Even if you set injection settings other than self type, it may not initialize t
 
 
 
-AutoInject[T]を継承したクラスは、DIコンテナの初期化時に自動的に登録されます。<br/>
+AutoInject[T]を継承したオブジェクト Tは、DIコンテナの初期化時に自動的に登録されます。<br/>
 Scaladiaのstatic initializerから見たスレッドのカレントクラスローダーから依存関係を解決します。<br/>
 ただし、object定義を自動注入する場合、トップレベルなど、静的にアクセスできる階層に定義しなければなりません。<br/>
 AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
@@ -67,6 +70,31 @@ AutoInjectorでは、同じタイプの複数の依存関係が登録されて�
 AutoInjectで注入した設定をInjectorで上書きすることができます。
 AutoInjectは自己タイプを注入するためのインターフェースです。
 
+### Override dependency
+
+```
+object A extends AutoInject[A]
+
+trait A {
+  def toString: String = "TEST"
+}
+```
+
+```
+object TestA extends Injector {
+  private[this] val a: A = inject[A]
+
+  depends[A] {
+    new A {
+      override def toString: String = "OVERRIDE"
+    }
+  }
+
+  def test = {
+    println(a.toString) // OVERRIDE
+  }
+}
+```
 
 ### Custom usage
 

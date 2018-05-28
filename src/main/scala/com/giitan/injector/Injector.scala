@@ -2,6 +2,7 @@ package com.giitan.injector
 
 import com.giitan.box.Container
 import com.giitan.container._
+import com.giitan.injectable.StoredDependency
 import com.giitan.scope.Scope
 
 import scala.reflect.ClassTag
@@ -16,7 +17,7 @@ trait Injector {
     * @tparam T Injectable type.
     * @return
     */
-  def inject[T: TypeTag: ClassTag]: T = {
+  def inject[T: TypeTag: ClassTag]: StoredDependency[T] = {
     implicitly[Container].find(typeTag[T], me)
   }
 
@@ -48,4 +49,8 @@ trait Injector {
     FunctIndexer.indexing(typeTag[X], v, me)
     Scope[X].acceptedGlobal()
   }
+
+  import scala.language.implicitConversions
+
+  implicit def provide[X](variable: StoredDependency[X]): X = variable.provide
 }

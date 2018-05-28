@@ -3,7 +3,7 @@ package com.giitan
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.box.{Container, ScaladiaClassLoader}
 import com.giitan.exception.InjectableDefinitionException
-import com.giitan.injectable.Injectable
+import com.giitan.injectable.{Injectable, StoredDependency}
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
 import com.giitan.implicits._
@@ -32,26 +32,30 @@ package object container {
       * @tparam S
       * @return
       */
-    private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T = {
+    private[giitan] def find[T: ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T] = {
+      new StoredDependency[T] {
+        protected val dependencyGet: () => T = () => {
+          val callerType: ScopeType = scope.getClass
 
-      val callerType: ScopeType = scope.getClass
+          def inScope(sc: Seq[ScopeType]): Boolean = sc.contains(callerType)
 
-      def inScope(sc: Seq[ScopeType]): Boolean = sc.contains(callerType)
-      def globalScope(sc: Seq[ScopeType]): Boolean = sc.isEmpty
+          def globalScope(sc: Seq[ScopeType]): Boolean = sc.isEmpty
 
-      def search(tipe: Type): Option[T] =
-        (v.find(r => r.tipe == tipe && inScope(r.scope)) or v.find(r => r.tipe == tipe && globalScope(r.scope))) >> (_.applier.asInstanceOf[T])
+          def search(tipe: Type): Option[T] =
+            (v.find(r => r.tipe =:= tipe && inScope(r.scope)) or v.find(r => r.tipe =:= tipe && globalScope(r.scope))).map(_.applier.asInstanceOf[T])
 
-      val tipe = tag.tpe
+          val tipe = tag.tpe
 
-      search(tipe) match {
-        case Some(x) => x
-        case None    =>
+          search(tipe) match {
+            case Some(x) => x
+            case None =>
 
-          AutomaticContainerInitializer.initialize(tag)
-          search(tipe) >>> new InjectableDefinitionException(
-            s"$tipe or internal dependencies injected failed."
-          )
+              AutomaticContainerInitializer.initialize(tag)
+              search(tipe) >>> new InjectableDefinitionException(
+                s"$tipe or internal dependencies injected failed."
+              )
+          }
+        }
       }
     }
 
@@ -74,7 +78,7 @@ package object container {
       */
     private[giitan] def globaly(typTag: Type): Unit = {
       v.collect {
-        case x if x.tipe == typTag => x
+        case x if x.tipe =:= typTag => x
       }.foreach(r => {
         if (r.scope.isEmpty) v -= r
         else r.scope.clear()
@@ -87,9 +91,9 @@ package object container {
       * @param targetType Dependency object type.
       */
     private[giitan] def appendScope(typeTag: ScopeType, targetType: Type): Unit = {
-      v.find(_.tipe == targetType) match {
+      v.find(_.tipe =:= targetType) match {
         case Some(ij) => ij += typeTag
-        case None     => throw new InjectableDefinitionException(s"Uninjectable object. ${targetType.baseClasses.head}")
+        case None => throw new InjectableDefinitionException(s"Uninjectable object. ${targetType.baseClasses.head}")
       }
     }
   }

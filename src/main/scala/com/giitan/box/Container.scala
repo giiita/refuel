@@ -1,7 +1,7 @@
 package com.giitan.box
 
 import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
-import com.giitan.injectable.Injectable
+import com.giitan.injectable.{Injectable, StoredDependency}
 import com.giitan.injector.Injector
 import com.giitan.scope.Scope.ScopeType
 
@@ -26,7 +26,7 @@ private[giitan] trait Container {
     * @tparam S
     * @return
     */
-  private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): T
+  private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T]
 
   /**
     * Regist dependencies.

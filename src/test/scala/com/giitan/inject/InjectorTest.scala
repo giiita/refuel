@@ -1,10 +1,10 @@
 package com.giitan.inject
 
-import com.giitan.inject.IntectorTest._
+import com.giitan.inject.InjectorTest._
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
-object IntectorTest {
+object InjectorTest {
   trait A
   object B extends A
   object C extends A
@@ -37,7 +37,7 @@ class InjectorTest extends WordSpec with Matchers { me =>
 
       object Execute extends InjectorB {
         def test(): Assertion = {
-          inject[A] shouldBe B
+          inject[A].provide shouldBe B
         }
       }
 
@@ -55,13 +55,13 @@ class InjectorTest extends WordSpec with Matchers { me =>
 
       object ExecuteB extends InjectorB {
         def test(): Assertion = {
-          inject[A] shouldBe B
+          inject[A].provide shouldBe B
         }
       }
 
       object ExecuteY extends InjectorY {
         def test(): Assertion = {
-          inject[A] shouldBe B
+          inject[A].provide shouldBe B
         }
       }
 
