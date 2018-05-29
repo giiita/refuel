@@ -5,7 +5,8 @@ import java.io.File
 import java.net.{JarURLConnection, URL}
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.injector.AutoInjector
+import com.giitan.exception.StaticInitializationException
+import com.giitan.injector.AutoInject
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
@@ -64,7 +65,7 @@ object ScaladiaClassLoader {
             case file if isClassFile(file) =>
               try {
                 val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
-                if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
+                if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
               } catch {
                 case _: Throwable => None// class load failed.
               }
@@ -92,7 +93,7 @@ object ScaladiaClassLoader {
                   if (resourceNameToPackageName(entry.getName).startsWith(packageName) && isClassFile(entry)) {
                     try {
                       val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
-                      if (classOf[AutoInjector].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
+                      if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
                     } catch {
                       case _: Throwable => None// class load failed.
                     }
@@ -124,9 +125,9 @@ object ScaladiaClassLoader {
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         try {
-          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance
+          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance.asInstanceOf[AutoInject[_]].indexing()
         } catch {
-          case e: Throwable => logger.warn(s"${clazz.getSimpleName} initialize failed. $e")
+          case e: Throwable => throw new StaticInitializationException(s"${clazz.getSimpleName} initialize failed.", e)
         }
       }
     }

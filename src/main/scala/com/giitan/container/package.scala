@@ -8,6 +8,7 @@ import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
 import com.giitan.implicits._
 import com.giitan.scope.Scope.ScopeType
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
@@ -16,6 +17,8 @@ import scala.reflect.runtime.universe._
 
 package object container {
   implicit val container: Container = new Container {
+
+    val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
     /* Injectable object mapper. */
     val v: ListBuffer[Injectable[_]] = ListBuffer.empty[Injectable[_]]
@@ -41,18 +44,18 @@ package object container {
 
           def globalScope(sc: Seq[ScopeType]): Boolean = sc.isEmpty
 
-          def search(tipe: Type): Option[T] =
-            (v.find(r => r.tipe =:= tipe && inScope(r.scope)) or v.find(r => r.tipe =:= tipe && globalScope(r.scope))).map(_.applier.asInstanceOf[T])
+          def search(tipe: Type): Option[T] = v.synchronized {
+            (v.find(r => r.tipe =:= tipe) or v.find(r => r.tipe =:= tipe && globalScope(r.scope))).map(_.applier.asInstanceOf[T])
+          }
 
           val tipe = tag.tpe
 
           search(tipe) match {
             case Some(x) => x
             case None =>
-
               AutomaticContainerInitializer.initialize(tag)
               search(tipe) >>> new InjectableDefinitionException(
-                s"$tipe or internal dependencies injected failed."
+                s"""$tipe or internal dependencies injected failed.""".stripMargin
               )
           }
         }

@@ -1,6 +1,7 @@
 package com.giitan.injectable
 
 trait StoredDependency[X] {
+  private var lazyProvided: Option[X] = None
   protected val dependencyGet: () => X
 
   /**
@@ -8,5 +9,13 @@ trait StoredDependency[X] {
     *
     * @return
     */
-  def provide: X = dependencyGet()
+  def provide: X = lazyProvided getOrElse {
+    lazyProvided.synchronized {
+      lazyProvided getOrElse {
+        val module = dependencyGet()
+        lazyProvided = Some(module)
+        module
+      }
+    }
+  }
 }
