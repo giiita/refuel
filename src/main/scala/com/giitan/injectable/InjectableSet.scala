@@ -1,12 +1,16 @@
 package com.giitan.injectable
 
 import com.giitan.scope.Scope.ScopeType
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
 
 object InjectableSet {
+
+  val logger: Logger = LoggerFactory.getLogger(this.getClass)
+
   implicit class InjectableList(v: ListBuffer[Injectable[_]]) {
     /**
       * Append dependencies object.
