@@ -45,7 +45,7 @@ package object container {
           def globalScope(sc: Seq[ScopeType]): Boolean = sc.isEmpty
 
           def search(tipe: Type): Option[T] = v.synchronized {
-            (v.find(r => r.tipe =:= tipe) or v.find(r => r.tipe =:= tipe && globalScope(r.scope))).map(_.applier.asInstanceOf[T])
+            (v.find(r => r.tipe =:= tipe && inScope(r.scope)) or v.find(r => r.tipe =:= tipe && globalScope(r.scope))).map(_.applier.asInstanceOf[T])
           }
 
           val tipe = tag.tpe
