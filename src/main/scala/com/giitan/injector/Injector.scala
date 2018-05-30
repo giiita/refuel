@@ -31,7 +31,7 @@ trait Injector {
     * @return
     */
   def narrow[X: TypeTag](v: X): Scope[X] = {
-    FunctIndexer.indexing(typeTag[X], v)
+    inject[Indexer].indexing(typeTag[X], v)
     Scope[X].accept(me)
   }
 
@@ -46,7 +46,7 @@ trait Injector {
     * @return
     */
   def depends[X: TypeTag](v: X): Unit = {
-    FunctIndexer.indexing(typeTag[X], v)
+    inject[Indexer].indexing(typeTag[X], v)
   }
 
   import scala.language.implicitConversions
