@@ -5,7 +5,7 @@ import com.giitan.injector.{AutoInject, Injector}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 object AutoInjectTest {
-  object AutoVariable extends AutoInject[AutoVariable] with AutoVariable {
+  object AutoVariable extends AutoVariable with AutoInject[AutoVariable] {
     override def test: String = "BBB"
   }
 
