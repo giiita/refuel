@@ -19,15 +19,19 @@ object ScaladiaClassLoader {
   private[this] def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
 
   private[this] def isClassFile(entry: JarEntry): Boolean = isClassFile(entry.getName)
+
   private[this] def isClassFile(file: File): Boolean = file.isFile && isClassFile(file.getName)
+
   private[this] def isClassFile(filePath: String): Boolean = filePath.endsWith(".class")
 
   private[this] def resolvePackage(packageName: String): String = if (packageName.isEmpty) "" else s"$packageName."
 
   private def resourceNameToClassName(resourceName: String): String =
     pathToClassName(resourceNameToPackageName(resourceName))
+
   private def resourceNameToPackageName(resourceName: String): String =
     resourceName.replace('/', '.')
+
   private def packageNameToResourceName(packageName: String): String =
     packageName.replace('.', '/')
 
@@ -50,7 +54,7 @@ object ScaladiaClassLoader {
 
     resources.or(_ => Iterator(new URL(paths))).map({
       case null => RichClassCrowd()
-      case url  => findClassesWithFile(url, rootPackageName)
+      case url => findClassesWithFile(url, rootPackageName)
     }) match {
       case x if x.isEmpty => RichClassCrowd()
       case x => x.reduceLeft(_ +++ _)
@@ -67,7 +71,7 @@ object ScaladiaClassLoader {
                 val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
                 if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
               } catch {
-                case _: Throwable => None// class load failed.
+                case _: Throwable => None // class load failed.
               }
             case directory if directory.isDirectory =>
               findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
@@ -95,7 +99,7 @@ object ScaladiaClassLoader {
                       val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
                       if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
                     } catch {
-                      case _: Throwable => None// class load failed.
+                      case _: Throwable => None // class load failed.
                     }
                   } else None
                 }).flatten.toList
@@ -119,40 +123,30 @@ object ScaladiaClassLoader {
 
   case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
 
-    private[this] def fire[T](clazz: Class[T]): Unit = {
+    private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
       drop(clazz)
 
       val mirror = runtimeMirror(classLoader)
       if (clazz.getName.trim.endsWith("$")) {
         try {
-          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance.asInstanceOf[AutoInject[_]].indexing()
+          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance.asInstanceOf[AutoInject[T]].registForContainer[T]
         } catch {
           case e: Throwable => throw new StaticInitializationException(s"${clazz.getSimpleName} initialize failed.", e)
         }
       }
     }
 
-    def initialize[T: ClassTag](tag: TypeTag[T]): Unit = {
+    def initialize[T: TypeTag : ClassTag]: Unit = {
       val target = classTag[T].runtimeClass
       value.collect {
-        case x if target.isAssignableFrom(x) => fire(x)
+        case x: Class[T] if target.isAssignableFrom(x) => fire(x)
       }
-    }
-
-    def initialize(): Unit = {
-      def loop(looped: ListBuffer[Class[_]]): Unit = {
-        looped.result() match {
-          case Nil =>
-          case _ =>
-            fire(looped.head)
-            loop(value)
-        }
-      }
-      loop(value)
     }
 
     def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++= next.value)
+
     def drop[T](dropClass: Class[T]): Unit = value -= dropClass
   }
+
 }
 

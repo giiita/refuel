@@ -12,10 +12,10 @@ trait Injectable[T] {
   // Injection value.
   val applier: T
   // Accessible type.
-  val scope: ListBuffer[ScopeType]
+  val scope: ListBuffer[ScopeType] = ListBuffer.empty
 
   /**
-    *  Append accessible type.
+    * Append accessible type.
     */
   def +=(c: ScopeType): Injectable[T] = {
     scope += c
@@ -26,4 +26,21 @@ trait Injectable[T] {
     * Clear accessible type.
     */
   def clear: Unit = this.scope.clear()
+
+  /**
+    * Be able to access global scope.
+    *
+    * @return
+    */
+  def isGlobaly: Boolean = scope.isEmpty
+
+  /**
+    * Be able to access request type.
+    *
+    * @param request Requesting type.
+    * @return
+    */
+  def canAccess(request: ScopeType): Boolean = scope.exists { r =>
+    r.isAssignableFrom(request)
+  }
 }
