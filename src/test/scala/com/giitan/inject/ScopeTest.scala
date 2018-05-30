@@ -89,5 +89,21 @@ class ScopeTest extends WordSpec with Matchers {
 
       Runner.run
     }
+
+    "SubType scope accessible." in {
+      trait InjectorB extends Injector {
+        narrow[A](B)
+      }
+
+      trait CushionType extends InjectorB
+
+      object ExecuteB extends CushionType {
+        def test(): Assertion = {
+          inject[A].provide shouldBe B
+        }
+      }
+
+      ExecuteB.test()
+    }
   }
 }

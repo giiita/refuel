@@ -1,12 +1,17 @@
 package com.giitan.injector
 
-import com.giitan.container.FunctIndexer
-import com.giitan.scope.Scope
+import com.giitan.container.Indexer
+
 import scala.reflect.runtime.universe._
 
-class AutoInject[X: TypeTag] extends Injector { me: X =>
-  private[giitan] final def indexing(): Unit = {
-    FunctIndexer.indexing(typeTag[X], me, me)
-    Scope[X].acceptedGlobal()
+trait AutoInject[X] extends Injector { me: X =>
+
+  /**
+    * Regist for DI container.
+    *
+    * @tparam T
+    */
+  private[giitan] final def registForContainer[T: TypeTag]: Unit = {
+    inject[Indexer].indexing[T](typeTag[T], me.asInstanceOf[T])
   }
 }

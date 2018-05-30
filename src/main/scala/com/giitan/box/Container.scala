@@ -13,30 +13,29 @@ private[giitan] trait Container {
   /**
     * Injectable object mapper.
     */
-  val v: ListBuffer[Injectable[_]]
+  val container: ListBuffer[Injectable[_]]
 
   private[giitan] val automaticDependencies: RichClassCrowd
 
   /**
     * Search accessible dependencies.
     *
-    * @param tag Dependency object typed tag.
+    * @param tag   Dependency object typed tag.
     * @param scope Typed objects to be accessed.
     * @tparam T
     * @tparam S
     * @return
     */
-  private[giitan] def find[T: ClassTag, S <: Injector: TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T]
+  private[giitan] def find[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T]
 
   /**
     * Regist dependencies.
     *
-    * @param tag Dependency object typed tag.
+    * @param tag   Dependency object typed tag.
     * @param value Dependency object.
-    * @param scope Typed objects to be accessed.
     * @tparam T
     */
-  private[giitan] def indexing[T: TypeTag](tag: TypeTag[T], value: T, scope: ScopeType): Unit
+  private[giitan] def indexing[T: TypeTag](tag: TypeTag[T], value: T): Unit
 
   /**
     * Condense the accessible type.
