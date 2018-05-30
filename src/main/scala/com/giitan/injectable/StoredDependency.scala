@@ -9,13 +9,11 @@ trait StoredDependency[X] {
     *
     * @return
     */
-  def provide: X = lazyProvided getOrElse {
-    lazyProvided.synchronized {
-      lazyProvided getOrElse {
-        val module = dependencyGet()
-        lazyProvided = Some(module)
-        module
-      }
+  def provide: X = lazyProvided.synchronized {
+    lazyProvided getOrElse {
+      val module = dependencyGet()
+      lazyProvided = Some(module)
+      module
     }
   }
 }
