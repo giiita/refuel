@@ -116,6 +116,7 @@ object ScaladiaClassLoader {
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   object RichClassCrowd {
+
     def apply(value: List[Class[_]]): RichClassCrowd = {
       RichClassCrowd(new ListBuffer() ++= value)
     }
@@ -136,10 +137,17 @@ object ScaladiaClassLoader {
       }
     }
 
+    def asType[X: TypeTag](x: Class[X]): Type = typeOf[X]
+
     def initialize[T: TypeTag : ClassTag]: Unit = {
       val target = classTag[T].runtimeClass
       value.collect {
-        case x: Class[T] if target.isAssignableFrom(x) => fire(x)
+        case x if target.isAssignableFrom(x) /** && asType(x) =:= typeOf[T] */ => {
+          //println("ME    : " + x.)
+          //println("LEFT  : " + asType(x))
+          println("RIGHT : " + typeOf[T])
+          fire(x.asInstanceOf[Class[T]])
+        }
       }
     }
 
