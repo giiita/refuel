@@ -3,37 +3,14 @@ package com.giitan.box
 import scala.collection.JavaConverters._
 import java.io.File
 import java.net.{JarURLConnection, URL}
-import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.exception.StaticInitializationException
-import com.giitan.injector.AutoInject
+import com.giitan.loader.LoadableArchives._
+import com.giitan.loader.RichClassCrowds.ClassCrowds
+import com.giitan.loader.StringURIConvertor._
 import org.slf4j.{Logger, LoggerFactory}
-
-import scala.collection.mutable.ListBuffer
-import scala.reflect._
-import scala.reflect.runtime.universe._
 
 object ScaladiaClassLoader {
   private[giitan] val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
-
-  private[this] def pathToClassName(path: String): String = path.substring(0, path.length - ".class".length)
-
-  private[this] def isClassFile(entry: JarEntry): Boolean = isClassFile(entry.getName)
-
-  private[this] def isClassFile(file: File): Boolean = file.isFile && isClassFile(file.getName)
-
-  private[this] def isClassFile(filePath: String): Boolean = filePath.endsWith(".class")
-
-  private[this] def resolvePackage(packageName: String): String = if (packageName.isEmpty) "" else s"$packageName."
-
-  private def resourceNameToClassName(resourceName: String): String =
-    pathToClassName(resourceNameToPackageName(resourceName))
-
-  private def resourceNameToPackageName(resourceName: String): String =
-    resourceName.replace('/', '.')
-
-  private def packageNameToResourceName(packageName: String): String =
-    packageName.replace('.', '/')
 
   implicit class IterateUrl(value: Iterator[URL]) {
     def or(next: Unit => Iterator[URL]): Iterator[URL] =
@@ -44,117 +21,35 @@ object ScaladiaClassLoader {
       }
   }
 
-  def findClasses(rootPackageName: String = ""): RichClassCrowd = {
-    val resourceName = packageNameToResourceName(rootPackageName)
-
-    val resources = classLoader.getResources(resourceName).asScala
-
-    val thisPackage = packageNameToResourceName(this.getClass.getPackage.getName)
+  def findClasses(rootPackageName: String = ""): ClassCrowds = {
+    val thisPackage = this.getClass.getPackage.getName.dotToSlash
     val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
 
-    resources.or(_ => Iterator(new URL(paths))).map({
-      case null => RichClassCrowd()
+    classLoader.getResources(rootPackageName.dotToSlash).asScala.or(_ => Iterator(new URL(paths))).map({
+      case null => ClassCrowds()
       case url => findClassesWithFile(url, rootPackageName)
     }) match {
-      case x if x.isEmpty => RichClassCrowd()
+      case x if x.isEmpty => ClassCrowds()
       case x => x.reduceLeft(_ +++ _)
     }
   }
 
-  def findClassesWithFile(x: URL, rootPackageName: String): RichClassCrowd = x match {
-    case url if url.getProtocol == "file" =>
-      def findClassesWithFileInner(packageName: String, dir: File): List[Class[_]] = {
-        dir.list.flatMap(path => {
-          new File(dir, path) match {
-            case file if isClassFile(file) =>
-              try {
-                val classType = classLoader.loadClass(resolvePackage(packageName) + pathToClassName(file.getName))
-                if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
-              } catch {
-                case _: Throwable => None // class load failed.
-              }
-            case directory if directory.isDirectory =>
-              findClassesWithFileInner(resolvePackage(packageName) + directory.getName, directory)
-            case _ => None
-          }
-        }).toList
-      }
-
-      RichClassCrowd(findClassesWithFileInner(rootPackageName, new File(x.getFile)))
+  def findClassesWithFile(x: URL, rootPackageName: String): ClassCrowds = x match {
+    case url if url.getProtocol == "file" => new File(x.getFile).classCrowdEntries(rootPackageName)
     case url if url.getProtocol == "jar" =>
-      def manageJar[T](jarFile: JarFile)(body: JarFile => T): T = try {
-        body(jarFile)
-      } finally {
-        jarFile.close()
-      }
 
-      def findClassesWithJarFileInner(packageName: String): RichClassCrowd =
+      def findClassesWithJarFileInner(packageName: String): ClassCrowds =
         url.openConnection match {
-          case jarURLConnection: JarURLConnection =>
-            manageJar(jarURLConnection.getJarFile)(jarFile =>
-              RichClassCrowd(
-                jarFile.entries.asScala.map(entry => {
-                  if (resourceNameToPackageName(entry.getName).startsWith(packageName) && isClassFile(entry)) {
-                    try {
-                      val classType = classLoader.loadClass(resourceNameToClassName(entry.getName))
-                      if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface) Some(classType) else None
-                    } catch {
-                      case _: Throwable => None // class load failed.
-                    }
-                  } else None
-                }).flatten.toList
-              )
-            )
-          case _ => RichClassCrowd()
+          case jarURLConnection: JarURLConnection => jarURLConnection.getJarFile.classCrowdEntries(packageName)
+          case _ => ClassCrowds()
         }
 
       findClassesWithJarFileInner(rootPackageName)
-    case _ => RichClassCrowd()
+    case _ => ClassCrowds()
   }
 
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
-
-  object RichClassCrowd {
-
-    def apply(value: List[Class[_]]): RichClassCrowd = {
-      RichClassCrowd(new ListBuffer() ++= value)
-    }
-  }
-
-  case class RichClassCrowd(value: ListBuffer[Class[_]] = ListBuffer.empty) {
-
-    private[this] def fire[T: TypeTag](clazz: Class[T]): Unit = {
-      drop(clazz)
-
-      val mirror = runtimeMirror(classLoader)
-      if (clazz.getName.trim.endsWith("$")) {
-        try {
-          mirror.reflectModule(mirror.staticModule(clazz.getName)).instance.asInstanceOf[AutoInject[T]].registForContainer[T]
-        } catch {
-          case e: Throwable => throw new StaticInitializationException(s"${clazz.getSimpleName} initialize failed.", e)
-        }
-      }
-    }
-
-    def asType[X: TypeTag](x: Class[X]): Type = typeOf[X]
-
-    def initialize[T: TypeTag : ClassTag]: Unit = {
-      val target = classTag[T].runtimeClass
-      value.collect {
-        case x if target.isAssignableFrom(x) /** && asType(x) =:= typeOf[T] */ => {
-          //println("ME    : " + x.)
-          //println("LEFT  : " + asType(x))
-          println("RIGHT : " + typeOf[T])
-          fire(x.asInstanceOf[Class[T]])
-        }
-      }
-    }
-
-    def +++(next: RichClassCrowd): RichClassCrowd = RichClassCrowd(value ++= next.value)
-
-    def drop[T](dropClass: Class[T]): Unit = value -= dropClass
-  }
 
 }
 
