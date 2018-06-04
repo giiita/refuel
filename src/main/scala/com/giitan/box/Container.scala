@@ -1,8 +1,8 @@
 package com.giitan.box
 
-import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.injectable.{Injectable, StoredDependency}
 import com.giitan.injector.Injector
+import com.giitan.loader.RichClassCrowds.ClassCrowds
 import com.giitan.scope.Scope.ScopeType
 
 import scala.collection.mutable.ListBuffer
@@ -15,7 +15,7 @@ private[giitan] trait Container {
     */
   val container: ListBuffer[Injectable[_]]
 
-  private[giitan] val automaticDependencies: RichClassCrowd
+  private[giitan] val automaticDependencies: ClassCrowds
 
   /**
     * Search accessible dependencies.
