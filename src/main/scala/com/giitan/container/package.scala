@@ -1,12 +1,12 @@
 package com.giitan
 
-import com.giitan.box.ScaladiaClassLoader.RichClassCrowd
 import com.giitan.box.{Container, ScaladiaClassLoader}
 import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.{Injectable, StoredDependency}
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injector.Injector
 import com.giitan.implicits._
+import com.giitan.loader.RichClassCrowds.ClassCrowds
 import com.giitan.scope.Scope.ScopeType
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -28,7 +28,7 @@ package object container {
       )
     )
 
-    private[giitan] val automaticDependencies: RichClassCrowd =
+    private[giitan] val automaticDependencies: ClassCrowds =
       ScaladiaClassLoader.findClasses()
 
     /**
@@ -53,7 +53,7 @@ package object container {
           search(tipe) match {
             case Some(x) => x
             case None =>
-              AutomaticContainerInitializer.initialize[T]
+              AutomaticContainerInitializer.initialize[T]()
               search(tipe) >>> new InjectableDefinitionException(
                 s"""$tipe or internal dependencies injected failed.""".stripMargin
               )
