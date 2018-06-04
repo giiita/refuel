@@ -20,7 +20,6 @@ object LoadableArchives {
       .staticClass(className)
       .info
 
-    println(className + "\n" + x)
     x.baseType(typeOf[AutoInject[_]].typeSymbol)
   }
 
