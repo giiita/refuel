@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
 private[giitan] object AutomaticContainerInitializer {
-  def initialize[T: TypeTag : ClassTag]: Unit = {
-    implicitly[Container].automaticDependencies.initialize[T]
+  def initialize[T: TypeTag : ClassTag](): Unit = {
+    implicitly[Container].automaticDependencies.initialize[T]()
   }
 }
