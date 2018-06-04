@@ -5,7 +5,7 @@ Scaladia is a lightweight DI container with peripheral tools.
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.1.1"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.2.0"
 ````
 
 ## Examples
@@ -165,6 +165,36 @@ object TestA extends Injector {
   object TestA extends BInjector with CInjector {
     def test = {
       println(inject[A]) // C
+    }
+  }
+```
+
+### It also supports type erase.
+
+```
+  trait A[T]
+  object B extends A[List[String]] with AutoInject[A[List[String]]]
+  object C extends A[List[BigDecimal]] with AutoInject[A[List[BigDecimal]]]
+
+  object TestA extends Injector {
+    def test = {
+      println(inject[A[List[String]]]) // B
+      println(inject[A[List[BigDecimal]]]) // C
+    }
+  }
+```
+
+However, caution is required as types inheriting AnyVal are handled internally as java.lang.Object.
+
+```
+  trait A[T]
+  object B extends A[List[Int]] with AutoInject[A[List[Int]]]
+  object C extends A[List[Double]] with AutoInject[A[List[Double]]]
+
+  object TestA extends Injector {
+    def test = {
+      println(inject[A[List[Int]]]) // C
+      println(inject[A[List[Double]]]) // C
     }
   }
 ```
