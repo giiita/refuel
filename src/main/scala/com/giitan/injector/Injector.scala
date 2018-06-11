@@ -25,14 +25,14 @@ trait Injector {
     * Regist a dependency object.
     * By default, it is only accessible from classes that inherit Injector that injected dependencies.
     * In case of extending it, accept () is performed individually.
+    * After defining the reference source in a narrow sense, "indexing()" does.
     *
     * @param v Injectly object.
     * @tparam X Injectly type
     * @return
     */
   def narrow[X: TypeTag](v: X): Scope[X] = {
-    inject[Indexer].indexing(typeTag[X], v)
-    Scope[X].accept(me)
+    Scope[X](v).accept(me)
   }
 
   /**
