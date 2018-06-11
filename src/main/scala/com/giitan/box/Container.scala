@@ -33,21 +33,8 @@ private[giitan] trait Container {
     *
     * @param tag   Dependency object typed tag.
     * @param value Dependency object.
+    * @param scope Acceptable scopes.
     * @tparam T
     */
-  private[giitan] def indexing[T: TypeTag](tag: TypeTag[T], value: T): Unit
-
-  /**
-    * Condense the accessible type.
-    *
-    * @param typTag Dependency object type.
-    */
-  private[giitan] def globaly(typTag: Type): Unit
-
-  /**
-    * Extend the accessible type.
-    *
-    * @param targetType Dependency object type.
-    */
-  private[giitan] def appendScope(acceptableType: ScopeType, targetType: Type): Unit
+  private[giitan] def indexing[T](tag: TypeTag[T], value: T, scope: Seq[ScopeType]): Unit
 }

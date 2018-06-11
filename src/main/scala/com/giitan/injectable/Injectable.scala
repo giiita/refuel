@@ -2,7 +2,6 @@ package com.giitan.injectable
 
 import com.giitan.scope.Scope.ScopeType
 
-import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 trait Injectable[T] {
@@ -12,20 +11,7 @@ trait Injectable[T] {
   // Injection value.
   val applier: T
   // Accessible type.
-  val scope: ListBuffer[ScopeType] = ListBuffer.empty
-
-  /**
-    * Append accessible type.
-    */
-  def +=(c: ScopeType): Injectable[T] = {
-    scope += c
-    this
-  }
-
-  /**
-    * Clear accessible type.
-    */
-  def clear: Unit = this.scope.clear()
+  val scope: Seq[ScopeType]
 
   /**
     * Be able to access global scope.
@@ -35,12 +21,20 @@ trait Injectable[T] {
   def isGlobaly: Boolean = scope.isEmpty
 
   /**
-    * Be able to access request type.
+    * Be accepted from request type.
     *
     * @param request Requesting type.
     * @return
     */
-  def canAccess(request: ScopeType): Boolean = scope.exists { r =>
+  def isAccepted(request: ScopeType): Boolean = scope.exists { r =>
     r.isAssignableFrom(request)
   }
+
+  /**
+    * Be able to access request type.
+    *
+    * @param request Requesting type
+    * @return
+    */
+  def canAccessMe(request: ScopeType): Boolean = isGlobaly || isAccepted(request)
 }
