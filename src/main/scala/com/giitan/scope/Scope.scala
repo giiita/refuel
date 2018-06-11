@@ -1,26 +1,32 @@
 package com.giitan.scope
 
-import com.giitan.box.Container
 import com.giitan.container._
+import com.giitan.injector.Injector
+import com.giitan.scope.Scope.ScopeType
 
 import scala.reflect._
 import runtime.universe._
+import scala.collection.mutable.ListBuffer
 
 object Scope {
   type ScopeType = Class[_]
 
-  def apply[X: TypeTag]: Scope[X] = new Scope[X] {
-    def tt: Type = typeOf[X]
+  def apply[X: TypeTag](value: X): Scope[X] = new Scope[X] {
+    val tt: TypeTag[X] = typeTag[X]
+    val instance: X = value
   }
 }
 
-trait Scope[X] {
+trait Scope[X] extends Injector {
+
   /**
     * Super class of injected object
     *
     * @return
     */
-  def tt: Type
+  val tt: TypeTag[X]
+  val instance: X
+  val acceptedScope: ListBuffer[ScopeType] = ListBuffer.empty
 
   /**
     * Extend the allowed type.
@@ -31,7 +37,7 @@ trait Scope[X] {
     * @return
     */
   def accept[A: TypeTag](cls: A): Scope[X] = {
-    implicitly[Container].appendScope(cls.getClass, tt)
+    acceptedScope += cls.getClass
     this
   }
 
@@ -43,7 +49,7 @@ trait Scope[X] {
     * @return
     */
   def accept[A: ClassTag]: Scope[X] = {
-    implicitly[Container].appendScope(classTag[A].runtimeClass, tt)
+    acceptedScope += classTag[A].runtimeClass
     this
   }
 
@@ -51,5 +57,12 @@ trait Scope[X] {
     * Allow access to all types.
     * Default this.
     */
-  def acceptedGlobal(): Unit = implicitly[Container].globaly(tt)
+  def acceptedGlobal(): Scope[X] = {
+    this.acceptedScope.clear()
+    this
+  }
+
+  def indexing(): Unit = {
+    inject[Indexer].indexing(tt, instance, this.acceptedScope)
+  }
 }
