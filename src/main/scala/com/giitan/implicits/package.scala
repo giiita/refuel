@@ -1,8 +1,9 @@
 package com.giitan
 
 package object implicits {
+
   /**
-    *　Function group for expanding nested option
+    * 　Function group for expanding nested option
     *
     * @param optoptT Nested option value
     * @tparam T Option type
@@ -145,4 +146,5 @@ package object implicits {
       */
     def <<[A](f1: T => A): A = f1(t)
   }
+
 }
