@@ -17,7 +17,19 @@ trait Injector {
     * @tparam T Injectable type.
     * @return
     */
-  def inject[T: TypeTag: ClassTag]: StoredDependency[T] = {
+  def inject[T: TypeTag : ClassTag]: StoredDependency[T] = {
+    implicitly[Container].find(typeTag[T], me)
+  }
+
+  /**
+    * Inject a dependency object.
+    * If there is no object with access authority, an [[ IllegalAccessException ]] occurs.
+    *
+    * @tparam T Injectable type.
+    * @param clazz Injectable class.
+    * @return
+    */
+  def inject[T: TypeTag : ClassTag](clazz: Class[T]): StoredDependency[T] = {
     implicitly[Container].find(typeTag[T], me)
   }
 
