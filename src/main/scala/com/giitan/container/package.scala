@@ -50,9 +50,11 @@ package object container {
             case Some(x) => x
             case None =>
               AutomaticContainerInitializer.initialize[T]()
-              container.searchAccessibleOne[T](tipe, scope.getClass) >>> new InjectableDefinitionException(
-                s"""$tipe or internal dependencies injected failed.""".stripMargin
-              )
+              container.searchAccessibleOne[T](tipe, scope.getClass) getOrElse {
+                throw new InjectableDefinitionException(
+                  s"""$tipe or internal dependencies injected failed.""".stripMargin
+                )
+              }
           }
         }
       }
