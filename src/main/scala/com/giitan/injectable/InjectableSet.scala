@@ -39,7 +39,7 @@ object InjectableSet {
       */
     def searchAccessibleOne[T](targetType: Type, accessFrom: ScopeType): Option[T] = {
       {
-        v.find(r => r.tipe =:= targetType && r.isAccepted(accessFrom)) or v.find(r => r.tipe =:= targetType && r.isGlobaly)
+        v.find(r => r.tipe =:= targetType && r.isAccepted(accessFrom)) orElse v.find(r => r.tipe =:= targetType && r.isGlobaly)
       }.map(_.applier.asInstanceOf[T])
     }
 

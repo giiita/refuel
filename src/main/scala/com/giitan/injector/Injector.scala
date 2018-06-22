@@ -71,4 +71,11 @@ trait Injector {
     * @return
     */
   implicit def provide[X](variable: StoredDependency[X]): X = variable.provide
+
+  implicit class AnyTIndexable[T](value: T) {
+    def indexing[X >: T: TypeTag]: T = {
+      depends[X](value)
+      value
+    }
+  }
 }
