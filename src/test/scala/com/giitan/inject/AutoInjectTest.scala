@@ -2,20 +2,21 @@ package com.giitan.inject
 
 import com.giitan.inject.AutoInjectTest._
 import com.giitan.injector.{AutoInject, Injector}
+import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 
 object AutoInjectTest {
-
-  object AutoVariable extends AutoVariable with AutoInject[AutoVariable] {
-    override def test: String = "BBB"
-  }
 
   trait AutoVariable {
     def test: String = "AAA"
   }
 
   trait X[A]
+
+  object AutoVariable extends AutoVariable with AutoInject[AutoVariable] {
+    override def test: String = "BBB"
+  }
 
   object Y extends X[List[String]] with AutoInject[X[List[String]]]
 
