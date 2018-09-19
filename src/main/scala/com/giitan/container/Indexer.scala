@@ -1,18 +1,16 @@
 package com.giitan.container
 
-import com.giitan.scope.Scope.ScopeType
-
 import scala.reflect.runtime.universe._
 
-trait Indexer {
+trait Indexer[ST[_]] {
 
   /**
     * Resist dependencies.
     *
-    * @param tag   Dependency object typed tag.
-    * @param value Dependency object.
-    * @param scope Acceptable scopes
+    * @param whatType        Dependency object typed tag.
+    * @param whatObject      Dependency object.
+    * @param whereAccessFrom Acceptable scopes
     * @tparam T
     */
-  def indexing[T](tag: TypeTag[T], value: T, scope: Seq[ScopeType] = Nil): Unit
+  def indexing[T](whatType: TypeTag[T], whatObject: T, whereAccessFrom: Seq[ST[_]] = Nil): Unit
 }
