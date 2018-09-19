@@ -40,7 +40,7 @@ class ScopeTest extends WordSpec with Matchers {
 
     "Out of dynamic scope" in {
       trait InjectorB extends Injector {
-        narrow[A](B).indexing()
+        narrow[A](B).accept(this).indexing()
       }
 
       trait InjectorY extends Injector {
@@ -92,7 +92,7 @@ class ScopeTest extends WordSpec with Matchers {
 
     "SubType scope accessible." in {
       trait InjectorB extends Injector {
-        narrow[A](B).indexing()
+        narrow[A](B).accept(this).indexing()
       }
 
       trait CushionType extends InjectorB
@@ -109,14 +109,17 @@ class ScopeTest extends WordSpec with Matchers {
     "Can access from anything." in new Injector {
 
       object D extends Injector {
-        def test: A = inject[A](this)
+        def test: A = inject[A]
       }
 
       object F extends A
+      object G extends A
 
-      narrowObject[A](F).accept(D).indexing()
+      depends[A](G)
+      narrow[A](F).accept(D).indexing()
 
       D.test shouldBe F
+      inject[A].provide shouldBe G
     }
   }
 }
