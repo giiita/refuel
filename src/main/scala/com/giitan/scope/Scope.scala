@@ -11,6 +11,41 @@ import scala.reflect.runtime.universe._
 object Scope {
   type ClassScope[T] = Class[T]
   type ObjectScope[T] = Wrapper[T]
+
+  def apply[X: TypeTag](value: X): ScopeSet[X] = new ScopeSet[X](
+    new TaggedClassScope[X](value),
+    new TaggedObjectScope[X](value)
+  )
+}
+
+case class ScopeSet[T: TypeTag](classSet: Scope[T, ClassScope], objectSet: Scope[T, ObjectScope]) extends Injector {
+
+  /**
+    c* Index to global container.
+    */
+  def indexing(): Unit = {
+    classSet.indexing()
+    objectSet.indexing()
+  }
+
+  /**
+    * Extend the allowed type.
+    * Only that dynamic class.
+    *
+    * @param cls Allowed object.
+    * @tparam A Allowed type.
+    * @return
+    */
+  def accept[A](cls: A): ScopeSet[T] = copy(objectSet = objectSet.accept(cls))
+
+  /**
+    * Extend the allowed type.
+    * Only that object.
+    *
+    * @tparam A Allowed type.
+    * @return
+    */
+  def accept[A: TypeTag : ClassTag]: ScopeSet[T] = copy(classSet = classSet.accept[A])
 }
 
 trait Scope[X, ST[_]] extends Injector {
@@ -87,7 +122,9 @@ private[giitan] class TaggedClassScope[X: TypeTag](value: X) extends Scope[X, Cl
   }
 
   def indexing(): Unit = {
-    inject[Indexer[ClassScope]].indexing(tt, instance, this.acceptedScope)
+    if (acceptedScope.nonEmpty) {
+      inject[Indexer[ClassScope]].indexing(tt, instance, this.acceptedScope)
+    }
   }
 }
 
@@ -121,6 +158,8 @@ private[giitan] class TaggedObjectScope[X: TypeTag](value: X) extends Scope[X, O
   }
 
   def indexing(): Unit = {
-    inject[Indexer[ObjectScope]].indexing(tt, instance, this.acceptedScope)
+    if (acceptedScope.nonEmpty) {
+      inject[Indexer[ObjectScope]].indexing(tt, instance, this.acceptedScope)
+    }
   }
 }

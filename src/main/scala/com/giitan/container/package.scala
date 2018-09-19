@@ -1,9 +1,8 @@
 package com.giitan
 
 import com.giitan.box.{Container, ScaladiaClassLoader}
-import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.InjectableSet._
-import com.giitan.injectable.{Injectable, InjectableConversion, StoredDependency}
+import com.giitan.injectable.{Injectable, InjectableConversion}
 import com.giitan.injector.Injector
 import com.giitan.loader.RichClassCrowds.ClassCrowds
 import com.giitan.scope.Scope.{ClassScope, ObjectScope}
@@ -33,6 +32,22 @@ package object container {
         Nil
       )
     )
+
+    /**
+      * Search accessible dependencies.
+      *
+      * @param tag   Dependency object typed tag.
+      * @param scope Typed objects to be accessed.
+      * @tparam T
+      * @tparam S
+      * @return
+      */
+    def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ClassScope[S]): Option[T] = {
+      container.searchAccessibleOne[T](tag.tpe, scope) orElse {
+        AutomaticContainerInitializer.initialize[T]()
+        container.searchAccessibleOne[T](tag.tpe, scope)
+      }
+    }
   }
 
   implicit object ObjectTagContainer extends TaggedContainer[ObjectScope] {
@@ -40,6 +55,19 @@ package object container {
       * Injectable object mapper.
       */
     val container: ListBuffer[Injectable[_, ObjectScope]] = ListBuffer()
+
+    /**
+      * Search accessible dependencies.
+      *
+      * @param tag   Dependency object typed tag.
+      * @param scope Typed objects to be accessed.
+      * @tparam T
+      * @tparam S
+      * @return
+      */
+    def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ObjectScope[S]): Option[T] = {
+      container.searchAccessibleOne[T](tag.tpe, scope)
+    }
   }
 
   private[giitan] sealed abstract class TaggedContainer[ST[_] : InjectableConversion] extends Container[ST] {
@@ -57,24 +85,7 @@ package object container {
       * @tparam S
       * @return
       */
-    private[giitan] def find[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ST[S]): StoredDependency[T] = {
-      new StoredDependency[T] {
-        protected val dependencyGet: () => T = () => {
-          val tipe = tag.tpe
-
-          container.searchAccessibleOne[T](tipe, scope) match {
-            case Some(x) => x
-            case None    =>
-              AutomaticContainerInitializer.initialize[T]()
-              container.searchAccessibleOne[T](tipe, scope) getOrElse {
-                throw new InjectableDefinitionException(
-                  s"""$tipe or internal dependencies injected failed.""".stripMargin
-                )
-              }
-          }
-        }
-      }
-    }
+    private[giitan] def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ST[S]): Option[T]
 
     /**
       * Regist dependencies.
