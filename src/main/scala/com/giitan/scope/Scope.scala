@@ -2,22 +2,18 @@ package com.giitan.scope
 
 import com.giitan.container._
 import com.giitan.injector.Injector
-import com.giitan.scope.Scope.ScopeType
+import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 
-import scala.reflect._
-import runtime.universe._
 import scala.collection.mutable.ListBuffer
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
 object Scope {
-  type ScopeType = Class[_]
-
-  def apply[X: TypeTag](value: X): Scope[X] = new Scope[X] {
-    val tt: TypeTag[X] = typeTag[X]
-    val instance: X = value
-  }
+  type ClassScope[T] = Class[T]
+  type ObjectScope[T] = Wrapper[T]
 }
 
-trait Scope[X] extends Injector {
+trait Scope[X, ST[_]] extends Injector {
 
   /**
     * Super class of injected object
@@ -26,7 +22,7 @@ trait Scope[X] extends Injector {
     */
   val tt: TypeTag[X]
   val instance: X
-  val acceptedScope: ListBuffer[ScopeType] = ListBuffer.empty
+  val acceptedScope: ListBuffer[ST[_]] = ListBuffer.empty
 
   /**
     * Extend the allowed type.
@@ -36,7 +32,44 @@ trait Scope[X] extends Injector {
     * @tparam A Allowed type.
     * @return
     */
-  def accept[A: TypeTag](cls: A): Scope[X] = {
+  def accept[A](cls: A): Scope[X, ST]
+
+  /**
+    * Extend the allowed type.
+    * Only that type.
+    *
+    * @tparam A Allowed type.
+    * @return
+    */
+  def accept[A: TypeTag : ClassTag]: Scope[X, ST]
+
+  /**
+    * Allow access to all types.
+    * Default this.
+    */
+  def acceptedGlobal(): Scope[X, ST] = {
+    this.acceptedScope.clear()
+    this
+  }
+
+  def indexing(): Unit
+}
+
+case class Wrapper[T](v: T)
+
+private[giitan] class TaggedClassScope[X: TypeTag](value: X) extends Scope[X, ClassScope] {
+  val tt: TypeTag[X] = typeTag[X]
+  val instance: X = value
+
+  /**
+    * Extend the allowed type.
+    * Only that dynamic class.
+    *
+    * @param cls Allowed object.
+    * @tparam A Allowed type.
+    * @return
+    */
+  def accept[A](cls: A): Scope[X, ClassScope] = {
     acceptedScope += cls.getClass
     this
   }
@@ -48,21 +81,46 @@ trait Scope[X] extends Injector {
     * @tparam A Allowed type.
     * @return
     */
-  def accept[A: ClassTag]: Scope[X] = {
+  def accept[A: TypeTag : ClassTag]: Scope[X, ClassScope] = {
     acceptedScope += classTag[A].runtimeClass
     this
   }
 
+  def indexing(): Unit = {
+    inject[Indexer[ClassScope]].indexing(tt, instance, this.acceptedScope)
+  }
+}
+
+private[giitan] class TaggedObjectScope[X: TypeTag](value: X) extends Scope[X, ObjectScope] {
+  val tt: TypeTag[X] = typeTag[X]
+  val instance: X = value
+
   /**
-    * Allow access to all types.
-    * Default this.
+    * Extend the allowed type.
+    * Only that dynamic class.
+    *
+    * @param cls Allowed object.
+    * @tparam A Allowed type.
+    * @return
     */
-  def acceptedGlobal(): Scope[X] = {
-    this.acceptedScope.clear()
+  def accept[A](cls: A): Scope[X, ObjectScope] = {
+    acceptedScope += Wrapper(cls)
+    this
+  }
+
+  /**
+    * Extend the allowed type.
+    * Only that type.
+    *
+    * @tparam A Allowed type.
+    * @return
+    */
+  def accept[A: TypeTag : ClassTag]: Scope[X, ObjectScope] = {
+    acceptedScope += Wrapper(inject[A].provide)
     this
   }
 
   def indexing(): Unit = {
-    inject[Indexer].indexing(tt, instance, this.acceptedScope)
+    inject[Indexer[ObjectScope]].indexing(tt, instance, this.acceptedScope)
   }
 }
