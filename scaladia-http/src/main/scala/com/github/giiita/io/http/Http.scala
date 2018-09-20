@@ -7,7 +7,6 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 object Http extends Injector {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
@@ -38,11 +37,11 @@ object Http extends Injector {
     *
     *   val result: FutureSearch.Response =
     *     http[GET](s"http://localhost:80/?${requets.asUrl}")
-      *     .header("auth", "abcde")
-      *     .deserializing[ResponseType]
-      *     .map(_.value)
-      *     .flatMap(FutureSearch.byValue)
-      *     .run
+    *     .header("auth", "abcde")
+    *     .deserializing[ResponseType]
+    *     .map(_.value)
+    *     .flatMap(FutureSearch.byValue)
+    *     .run
     * }}}
     *
     * @param urlString Request url
@@ -80,17 +79,15 @@ private object HttpBuilderTask extends Injector {
     * @tparam R Return type.
     * @return
     */
-  private def retryRequest[R](retry: Int = 1)(func: => Future[R]): Future[R] = {
-    func.transform {
-      case Success(x)                   =>
-        Success(Future(x))
-      case Failure(x) if retry >= RETRY =>
+  private final def retryRequest[R](retry: Int = 1)(func: => Future[R]): Future[R] = {
+    func.recoverWith {
+      case x if retry >= RETRY =>
         logger.error(s"Request retry failed.", x)
-        Failure(x)
-      case Failure(x)                   =>
+        throw x
+      case x                   =>
         logger.warn(s"Request retry failed. ${x.getMessage}")
-        Try(retryRequest(retry + 1)(func))
-    }.flatten
+        retryRequest(retry + 1)(func)
+    }
   }
 }
 
@@ -126,12 +123,14 @@ sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends 
     * @return
     */
   def deserializing[T]: HttpRunner[T] = new HttpRunner[T](
-    () => HttpBuilderTask.retryRequest() {
-      val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
-      cli(request.OK(as.String)).map { x =>
-        cli.client.close()
-        x
-      }.map(deserialize)
+    new HttpResultTask[T] {
+      def execute(): Future[T] = HttpBuilderTask.retryRequest() {
+        val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
+        cli(request.OK(as.String)).map { x =>
+          cli.client.close()
+          x
+        }.map(deserialize)
+      }
     }
   )
 }
@@ -144,7 +143,18 @@ sealed class HttpRunner[T](request: HttpResultTask[T]) extends JacksonParser {
     * @tparam R Synthesize return type.
     * @return
     */
-  def map[R](func: T => R): HttpRunner[R] = new HttpRunner(() => run.map(func))
+  def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
+    new HttpResultTask[R] {
+      def execute(): Future[R] = run.map(func)
+    }
+  )
+
+  /**
+    * Execute future functions.
+    *
+    * @return
+    */
+  def run: Future[T] = request.execute()
 
   /**
     * To flatten synthesize.
@@ -153,14 +163,11 @@ sealed class HttpRunner[T](request: HttpResultTask[T]) extends JacksonParser {
     * @tparam R Synthesize return type.
     * @return
     */
-  def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner(() => run.flatMap(func))
-
-  /**
-    * Execute future functions.
-    *
-    * @return
-    */
-  def run: Future[T] = request.execute()
+  def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
+    new HttpResultTask[R] {
+      def execute(): Future[R] = run.flatMap(func)
+    }
+  )
 }
 
 trait HttpResultTask[T] extends JacksonParser {

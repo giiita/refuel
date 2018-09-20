@@ -16,7 +16,13 @@ lazy val assemblySettings = Seq(
   scalacOptions in Test ++= Seq("-Yrangepos", "-Xlint", "-deprecation", "-unchecked", "-feature"),
   releaseCrossBuild := true,
   crossScalaVersions := Seq("2.11.12", "2.12.4"),
-  licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
+  licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
+  assemblyMergeStrategy in assembly := {
+    case PathList(ps@_*) if ps.last endsWith ".class"      => MergeStrategy.first
+    case PathList(ps@_*) if ps.last endsWith "BUILD"       => MergeStrategy.first
+    case PathList(ps@_*) if ps.last endsWith ".properties" => MergeStrategy.first
+    case ps                                                => (assemblyMergeStrategy in assembly).value(ps)
+  }
 )
 
 releaseProcess := Seq[ReleaseStep](
