@@ -16,7 +16,7 @@ developers := List(
   Developer(
     id="giiita",
     name="Giita",
-    email="omarun_inori@yahoo.co.jp",
+    email="r.takagi4263@gmail.com",
     url=url("https://github.com/giiita")
   )
 )
