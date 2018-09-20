@@ -2,7 +2,6 @@ package com.giitan.inject
 
 import com.giitan.inject.AutoInjectTest._
 import com.giitan.injector.{AutoInject, Injector}
-import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
 
