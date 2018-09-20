@@ -22,7 +22,7 @@ object Container {
       * @tparam S
       * @return
       */
-    private[giitan] def find[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T] = new Reflector(tag, scope)
+    private[giitan] def find[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S): StoredDependency[T] = Reflector(tag, scope)
   }
 
 }
