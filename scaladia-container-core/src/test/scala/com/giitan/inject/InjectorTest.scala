@@ -1,21 +1,28 @@
 package com.giitan.inject
 
-import com.giitan.inject.InjectorTest._
+import com.giitan.inject.InjectorTest.{A, _}
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
+import scala.util.{Failure, Success, Try}
+
 object InjectorTest {
+
   trait A
-  object B extends A
-  object C extends A
 
   trait X
-  object Y extends X
-  object Z extends X
 
   trait Named {
     def name: Int
   }
+
+  object B extends A
+
+  object C extends A
+
+  object Y extends X
+
+  object Z extends X
 
   object Named1 extends Named {
     def name = 1
@@ -24,9 +31,16 @@ object InjectorTest {
   object Named2 extends Named {
     def name = 2
   }
+
 }
 
-class InjectorTest extends WordSpec with Matchers { me =>
+object InjectorTest_RECOVER_CASE {
+  trait A
+  object B extends A
+}
+
+class InjectorTest extends WordSpec with Matchers {
+  me =>
 
   "Injector test" should {
 
@@ -67,6 +81,21 @@ class InjectorTest extends WordSpec with Matchers { me =>
 
       ExecuteB.test()
       ExecuteY.test()
+    }
+
+    "Un recovery injection" in new Injector {
+      Try {
+        inject[InjectorTest_RECOVER_CASE.A].provide
+      } match {
+        case Success(_) => fail()
+        case Failure(_) => succeed
+      }
+    }
+
+    "Recovery injection" in new Injector {
+      inject[InjectorTest_RECOVER_CASE.A].recover {
+        case _ => InjectorTest_RECOVER_CASE.B
+      }.provide shouldBe InjectorTest_RECOVER_CASE.B
     }
   }
 }
