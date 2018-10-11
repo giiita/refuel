@@ -1,6 +1,6 @@
 sonatypeProfileName := "com.github.giiita"
 
-homepage := Some(url("https://github.com/giiita/scaladia"))
+homepage := Some(url("https://github.com/giiita/scaladia/tree/master/scaladia-container-core"))
 
 licenses := Seq(
   "Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")
