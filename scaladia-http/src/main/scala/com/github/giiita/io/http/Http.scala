@@ -7,6 +7,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 object Http extends Injector {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
@@ -122,14 +123,14 @@ sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends 
     * @tparam T Deserialized type.
     * @return
     */
-  def deserializing[T]: HttpRunner[T] = new HttpRunner[T](
+  def deserializing[T: ClassTag]: HttpRunner[T] = new HttpRunner[T](
     new HttpResultTask[T] {
       def execute(): Future[T] = HttpBuilderTask.retryRequest() {
         val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
         cli(request.OK(as.String)).map { x =>
           cli.client.close()
           x
-        }.map(deserialize)
+        }.map(deserialize[T])
       }
     }
   )
