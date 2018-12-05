@@ -22,22 +22,22 @@ lazy val assemblySettings = Seq(
     case PathList(ps@_*) if ps.last endsWith "BUILD"       => MergeStrategy.first
     case PathList(ps@_*) if ps.last endsWith ".properties" => MergeStrategy.first
     case ps                                                => (assemblyMergeStrategy in assembly).value(ps)
-  }
+  },
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("+publishSigned"),
+    setNextVersion,
+    commitNextVersion,
+    ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
+  )
 )
 
-releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  runTest,
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  releaseStepCommandAndRemaining("+publishSigned"),
-  setNextVersion,
-  commitNextVersion,
-  ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
-)
 lazy val root = project.in(file("."))
   .dependsOn(
     scaladiaInjectorCore,
