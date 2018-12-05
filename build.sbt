@@ -39,10 +39,6 @@ releaseProcess := Seq[ReleaseStep](
   ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
 )
 lazy val root = project.in(file("."))
-  .aggregate(
-    scaladiaInjectorCore,
-    scaladiaHttp
-  )
   .dependsOn(
     scaladiaInjectorCore,
     scaladiaHttp
