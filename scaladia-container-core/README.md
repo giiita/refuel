@@ -3,8 +3,30 @@
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.4.3"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.0"
 ````
+
+## Supports full scanning injection (v1.5.0 ~)
+
+Until now it was a premise to use it with FatJar (sbt-assembly).<br/>
+AutoInjectScan was supported only from the archive that Scaladia package was shipped with.
+However, since v1.5.0, AutoInjectScan is possible anywhere in the classpath.
+In order to do that, you need to write a configuration file.
+
+- src/main/resources/reference.conf
+```
+scaladia {
+  fullscan = true
+  whitelist = ["scaladia", "-mycompany-lib"]
+}
+```
+
+
+If fullscan is set to true, all AutoInjects in the classpath will be loaded.<br/>
+For whitelist, set loadable archives name (broad match).<br/>
+If you omit the whitelist, you will load archives such as jre and scala-lang, so the performance immediately after starting Application will degrade.<br/>
+Even if fullscan is false, AutoInject of the current class loader will be loaded.
+
 
 ## Examples
 
