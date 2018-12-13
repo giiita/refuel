@@ -3,7 +3,7 @@
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.4.3"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.0"
 ````
 
 ## Examples
