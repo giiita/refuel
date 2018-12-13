@@ -32,8 +32,6 @@ lazy val assemblySettings = Seq(
     commitReleaseVersion,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
-    setNextVersion,
-    commitNextVersion,
     ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
   )
 )
