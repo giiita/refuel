@@ -3,7 +3,6 @@ package com.giitan.box
 import com.giitan.container.{ContainerMaster, Reflector}
 import com.giitan.injectable.{Injectable, StoredDependency}
 import com.giitan.injector.Injector
-import com.giitan.loader.RichClassCrowds.ClassCrowds
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
@@ -32,7 +31,6 @@ private[giitan] trait Container[ST[_]] {
     * Injectable object mapper.
     */
   val container: ListBuffer[Injectable[_, ST]]
-  private[giitan] val automaticDependencies: ClassCrowds
 
   /**
     * Search accessible dependencies.

@@ -56,6 +56,7 @@ lazy val scaladiaInjectorCore = (project in file("scaladia-container-core"))
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.2",
       "org.scala-lang" % "scala-reflect" % "2.12.4",
       "org.slf4j" % "slf4j-api" % "1.7.25",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test
