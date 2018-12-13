@@ -74,8 +74,6 @@ package object container {
 
     val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-    private[giitan] val automaticDependencies: ClassCrowds = ScaladiaClassLoader.findClasses()
-
     /**
       * Search accessible dependencies.
       *
@@ -102,4 +100,7 @@ package object container {
     }
   }
 
+  private[giitan] object TaggedContainer {
+    val automaticDependencies: ClassCrowds = ScaladiaClassLoader.findClasses()
+  }
 }
