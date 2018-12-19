@@ -9,12 +9,13 @@ import com.giitan.loader.RichClassCrowds.ClassCrowds
 import com.giitan.loader.StringURIConvertor._
 import org.slf4j.LoggerFactory
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 object ScaladiaClassLoader {
+  private val URL_CLASSLOADER_DEPTH_LIMIT = 5
   private val logger = LoggerFactory.getLogger(getClass)
-  private[giitan] val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
+  private[giitan] val classLoader: ClassLoader = getClass.getClassLoader
 
   implicit class IterateUrl(value: Iterator[URL]) {
     def or(next: Unit => Iterator[URL]): Iterator[URL] =
@@ -26,15 +27,8 @@ object ScaladiaClassLoader {
   }
 
   private[giitan] def findClasses(rootPackageName: String = ""): ClassCrowds = {
-    Try {
-      accessibleProtocolResolve(classLoader.asInstanceOf[URLClassLoader].getURLs.toList)
-    }
-      .orElse {
-        Try {
-          accessibleProtocolResolve(classLoader.getParent.asInstanceOf[URLClassLoader].getURLs.toList)
-        }
-      }
-      .getOrElse(Nil)
+
+    accessibleProtocolResolve(getUrlClassloader(classLoader).fold[List[URL]](Nil)(_.getURLs.toList))
       .scanAccepted(classLoader.getResources(rootPackageName.dotToSlash).asScala.toList)
       .distinct
       .map(findClassesWithFile(_, rootPackageName)) match {
@@ -62,6 +56,7 @@ object ScaladiaClassLoader {
 
   /**
     * Resolve url protocol.
+    *
     * @param v urls
     * @return
     */
@@ -69,6 +64,17 @@ object ScaladiaClassLoader {
     v.map {
       case url if url.getPath.endsWith(".jar") => new URL(s"jar:file:${url.getPath}!/")
       case url                                 => url
+    }
+  }
+
+  @tailrec
+  private final def getUrlClassloader(currentClassLoader: ClassLoader, depth: Int = 0): Option[URLClassLoader] = {
+    val parent = currentClassLoader.getParent
+
+    parent match {
+      case x: URLClassLoader                        => Some(x)
+      case x if depth < URL_CLASSLOADER_DEPTH_LIMIT => getUrlClassloader(x, depth + 1)
+      case _                                        => None
     }
   }
 }
