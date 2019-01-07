@@ -49,27 +49,34 @@ object Http extends Injector {
     * @tparam T Request method type. See [[com.github.giiita.io.http.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpBuilderTask = {
+  def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpRunner[String] = {
     logger.info(s"Setup http request [ $urlString ]")
 
     val setting = inject[HttpRequestSetting].recover {
       case _ => new HttpRequestSetting()
     }
 
-    new HttpBuilderTask(
+    new HttpRunner[String](
       implicitly[MethodType[T]].method(
         setting.globalHeader
           .foldLeft(url(urlString))((x, y) => x.setHeader(y.name, y.value.toString))
           .setBodyEncoding(setting.bodyEncoding)
       ),
-      setting
+      new HttpResultTask[String] {
+        def execute(request: Req): Future[String] = HttpRetryRevolver(setting.retryThreshold).revolving() {
+          val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
+          cli(request.OK(as.String)).map { x =>
+            cli.client.close()
+            x
+          }
+        }
+      }
     )
   }
 }
 
-private object HttpBuilderTask extends Injector {
+private case class HttpRetryRevolver(maxRetry: Int) extends Injector {
 
-  private lazy final val RETRY = 2
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   /**
@@ -80,19 +87,20 @@ private object HttpBuilderTask extends Injector {
     * @tparam R Return type.
     * @return
     */
-  private final def retryRequest[R](retry: Int = 1)(func: => Future[R]): Future[R] = {
+  final def revolving[R](retry: Int = 1)(func: => Future[R]): Future[R] = {
     func.recoverWith {
-      case x if retry >= RETRY =>
+      case x if retry >= maxRetry =>
         logger.error(s"Request retry failed.", x)
         throw x
       case x                   =>
         logger.warn(s"Request retry failed. ${x.getMessage}")
-        retryRequest(retry + 1)(func)
+        revolving(retry + 1)(func)
     }
   }
 }
 
-sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends JacksonParser {
+sealed class HttpRunner[T](request: Req, task: HttpResultTask[T]) extends JacksonParser {
+
   /**
     * Set a request body.
     *
@@ -100,9 +108,9 @@ sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends 
     * @tparam T Request body type.
     * @return
     */
-  def body[T](value: T): HttpBuilderTask = new HttpBuilderTask(
+  def body[X](value: X): HttpRunner[T] = new HttpRunner[T](
     request.setBody(serialize(value)),
-    setting
+    task
   )
 
   /**
@@ -112,9 +120,9 @@ sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends 
     * @param value header value
     * @return
     */
-  def header(key: String, value: String): HttpBuilderTask = new HttpBuilderTask(
+  def header(key: String, value: String): HttpRunner[T] = new HttpRunner[T](
     request.setHeader(key, value),
-    setting
+    task
   )
 
   /**
@@ -123,20 +131,13 @@ sealed class HttpBuilderTask(request: Req, setting: HttpRequestSetting) extends 
     * @tparam T Deserialized type.
     * @return
     */
-  def deserializing[T: ClassTag]: HttpRunner[T] = new HttpRunner[T](
-    new HttpResultTask[T] {
-      def execute(): Future[T] = HttpBuilderTask.retryRequest() {
-        val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
-        cli(request.OK(as.String)).map { x =>
-          cli.client.close()
-          x
-        }.map(deserialize[T])
-      }
+  def deserializing[X: ClassTag]: HttpRunner[X] = new HttpRunner[X](
+    request,
+    new HttpResultTask[X] {
+      def execute(request: Req): Future[X] = run.map(x => deserialize[X](x.toString))
     }
   )
-}
-
-sealed class HttpRunner[T](request: HttpResultTask[T]) extends JacksonParser {
+  
   /**
     * To synthesize.
     *
@@ -145,17 +146,11 @@ sealed class HttpRunner[T](request: HttpResultTask[T]) extends JacksonParser {
     * @return
     */
   def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
+    request,
     new HttpResultTask[R] {
-      def execute(): Future[R] = run.map(func)
+      def execute(request: Req): Future[R] = run.map(func)
     }
   )
-
-  /**
-    * Execute future functions.
-    *
-    * @return
-    */
-  def run: Future[T] = request.execute()
 
   /**
     * To flatten synthesize.
@@ -165,14 +160,22 @@ sealed class HttpRunner[T](request: HttpResultTask[T]) extends JacksonParser {
     * @return
     */
   def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
+    request,
     new HttpResultTask[R] {
-      def execute(): Future[R] = run.flatMap(func)
+      def execute(request: Req): Future[R] = run.flatMap(func)
     }
   )
+
+  /**
+    * Execute future functions.
+    *
+    * @return
+    */
+  def run: Future[T] = task.execute(request)
 }
 
 trait HttpResultTask[T] extends JacksonParser {
-  def execute(): Future[T]
+  def execute(request: Req): Future[T]
 }
 
 object HttpMethod {
