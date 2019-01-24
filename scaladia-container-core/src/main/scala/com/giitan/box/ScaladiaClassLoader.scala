@@ -69,11 +69,9 @@ object ScaladiaClassLoader {
 
   @tailrec
   private final def getUrlClassloader(currentClassLoader: ClassLoader, depth: Int = 0): Option[URLClassLoader] = {
-    val parent = currentClassLoader.getParent
-
-    parent match {
+    currentClassLoader match {
       case x: URLClassLoader                        => Some(x)
-      case x if depth < URL_CLASSLOADER_DEPTH_LIMIT => getUrlClassloader(x, depth + 1)
+      case x if depth < URL_CLASSLOADER_DEPTH_LIMIT => getUrlClassloader(x.getParent, depth + 1)
       case _                                        => None
     }
   }
