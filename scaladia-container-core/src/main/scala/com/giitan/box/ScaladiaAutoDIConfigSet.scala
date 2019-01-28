@@ -42,10 +42,14 @@ private[giitan] object ScaladiaAutoDIConfigSet {
           (isMultiClassPathMode, scanningArchiveWhitelist) match {
             case (true, Nil)                               => optionalUrls
             case (true, whitelist) => optionalUrls.filter(url => whitelist.exists(url.getPath.contains))
-            case _                                         =>
+            case _                                         => Try {
               val thisPackage = this.getClass.getPackage.getName.dotToSlash
               val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
               Seq(new URL(paths))
+            } match {
+              case scala.util.Success(value) => value
+              case _ => Nil
+            }
           }
         }
       } match {
