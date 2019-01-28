@@ -2,6 +2,7 @@ package com.giitan.box
 
 import java.net.URL
 
+import com.giitan.loader.StringURIConvertor._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
@@ -9,8 +10,6 @@ import scala.collection.JavaConverters._
 import scala.util.Try
 
 private[giitan] object ScaladiaAutoDIConfigSet {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
 
   private lazy val SCALADIA_CONFIG_SET_PATH = "scaladia"
   private lazy val LOAD_MULTI_CLASSPATHSET = "fullscan"
@@ -23,26 +22,36 @@ private[giitan] object ScaladiaAutoDIConfigSet {
       configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_WHITELIST").asScala
     }.getOrElse(Nil)
   }
+  private val logger = LoggerFactory.getLogger(this.getClass)
   private val configSet = ConfigFactory.load()
 
   implicit class RichURLList(optionalUrls: List[URL]) {
     /**
       * Add URL to load depending on scan condition.
       *
-      * @param withDefault Default url set.
+      * @param classLoader Target classloader.
       * @return
       */
-    def scanAccepted(withDefault: List[URL]): List[URL] = {
+    def scanAccepted(classLoader: ClassLoader): List[URL] = {
 
       logger.debug(s"Multi classpath loadable : [ $isMultiClassPathMode ] with [ ${scanningArchiveWhitelist.mkString(", ")} ]")
       logger.debug(optionalUrls.map(_.getPath).+:("-- Additional url candidation --").mkString("\n  "))
 
-      withDefault ++ {
-        (isMultiClassPathMode, scanningArchiveWhitelist) match {
-          case (true, Nil) => optionalUrls
-          case (_, whitelist@_) if whitelist.nonEmpty => optionalUrls.filter(url => whitelist.exists(url.getPath.contains))
-          case _ => Nil
+      {
+        classLoader.getResources("").asScala.toList ++ {
+          (isMultiClassPathMode, scanningArchiveWhitelist) match {
+            case (true, Nil)                               => optionalUrls
+            case (true, whitelist) => optionalUrls.filter(url => whitelist.exists(url.getPath.contains))
+            case _                                         =>
+              val thisPackage = this.getClass.getPackage.getName.dotToSlash
+              val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
+              Seq(new URL(paths))
+          }
         }
+      } match {
+        case x =>
+          x.map(_.getPath).foreach(logger.debug)
+          x
       }
     }
   }

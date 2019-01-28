@@ -6,30 +6,19 @@ import java.net.{JarURLConnection, URL, URLClassLoader}
 import com.giitan.box.ScaladiaAutoDIConfigSet._
 import com.giitan.loader.LoadableArchives._
 import com.giitan.loader.RichClassCrowds.ClassCrowds
-import com.giitan.loader.StringURIConvertor._
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
 
 object ScaladiaClassLoader {
   private val URL_CLASSLOADER_DEPTH_LIMIT = 5
   private val logger = LoggerFactory.getLogger(getClass)
-  private[giitan] val classLoader: ClassLoader = getClass.getClassLoader
-
-  implicit class IterateUrl(value: Iterator[URL]) {
-    def or(next: Unit => Iterator[URL]): Iterator[URL] =
-      try {
-        if (value.isEmpty) next() else value
-      } catch {
-        case e: Throwable => throw new UnsupportedOperationException("The Runtime to be loaded must be a Class list or a jar archive.", e)
-      }
-  }
+  private[giitan] val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
 
   private[giitan] def findClasses(rootPackageName: String = ""): ClassCrowds = {
-
-    accessibleProtocolResolve(getUrlClassloader(classLoader).fold[List[URL]](Nil)(_.getURLs.toList))
-      .scanAccepted(classLoader.getResources(rootPackageName.dotToSlash).asScala.toList)
+    val ucl = getUrlClassloader(classLoader)
+    accessibleProtocolResolve(ucl.fold[List[URL]](Nil)(_.getURLs.toList))
+      .scanAccepted(classLoader)
       .distinct
       .map(findClassesWithFile(_, rootPackageName)) match {
       case x if x.isEmpty => ClassCrowds()
