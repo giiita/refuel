@@ -1,15 +1,16 @@
 package com.giitan.lang
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
+import java.time.{Instant, LocalDateTime, ZonedDateTime}
+
+import com.giitan.injector.Injector
 
 import scala.util.matching.Regex
 
-object ScalaTime {
+object ScalaTime extends Injector {
   type DefaultDateType = ZonedDateTime
 
-  lazy val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
-  lazy val GLOBAL_FORMAT: String = "yyyy/M/d H:m:s"
+  private val TZ = inject[RuntimeTZ]
 
   /**
     * Get a current time.
@@ -23,7 +24,7 @@ object ScalaTime {
     */
   def now: ZonedDateTime = ZonedDateTime.now()
 
-  implicit class DateTimeConvertable(value: String) {
+  implicit class StringBs(value: String) {
     /**
       * Convert from arbitrary date string to ZonedDateTime.
       * Supported type is,
@@ -48,18 +49,49 @@ object ScalaTime {
       }
     }.map { x =>
       x.normalize(value)
-      ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), DateTimeFormatter.ofPattern(GLOBAL_FORMAT)), ZONE_ID)
+      ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), ScalaTimeSupport.convertWith), TZ.ZONE_ID)
     } getOrElse(throw new IllegalArgumentException(s"Unexpected datetime format. $value"))
   }
 
-  implicit class StringConvertable(value: ZonedDateTime) {
+  implicit class LocalDateTimeBs(value: LocalDateTime) {
+    /**
+      * Convert to epoch second.
+      *
+      * @return
+      */
+    def toEpochSec: Long = value.toEpochSecond(TZ.ZONE_OFFSET)
+
+    /**
+      * ZonedDateTime convert to string with default date formatter.
+      *
+      * @return
+      */
+    def format(): String  = value.toZonedDateTime.format(TZ.format)
+
+    /**
+      * Convert to ZonedDateTime with default zone id.
+      *
+      * @return
+      */
+    def toZonedDateTime: ZonedDateTime = ZonedDateTime.of(value, TZ.ZONE_ID)
+  }
+
+  implicit class ZonedDateTimeBs(value: ZonedDateTime) {
+
+    /**
+      * ZonedDateTime convert to string with default date formatter.
+      *
+      * @return
+      */
+    def format: String  = value.format(TZ.format)
+
     /**
       * ZonedDateTime convert to string.
       *
       * @param format customized format: default "yyyy/MM/dd HH:mm:ss"
       * @return
       */
-    def format(format: String = GLOBAL_FORMAT): String = DateTimeFormatter.ofPattern(format).format(value)
+    def format(format: String = TZ.DEFAULT_FORMAT): String = DateTimeFormatter.ofPattern(format).format(value)
 
     /**
       * ZonedDateTime to this day, 00:00:00
@@ -96,17 +128,19 @@ object ScalaTime {
     def unixtime: Long = value.toEpochSecond
   }
 
-  implicit class UnixTimeConvertable(value: Long) {
+  implicit class UnixTimeBs(value: Long) {
     /**
       * Unixtime to ZonedDateTime.
       *
       * @return
       */
-    def datetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), ZONE_ID)
+    def datetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), TZ.ZONE_ID)
   }
 }
 
 object ScalaTimeSupport {
+  val convertWith: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m:s")
+
   val DATE_TIME_PATTERN_SET: Seq[DateFormattedPattern] = Seq(
     PatternWithinSymbol,
     PatternWithoutSymbol,
