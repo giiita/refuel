@@ -72,23 +72,23 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
     }
 
     "minToday" in new Context {
-      "2017/08/26 11:33:54".datetime.minToday shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.minToday shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
 
     "minTohour" in new Context {
-      "2017/08/26 11:33:54".datetime.minTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.minTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 0, 0, 0, tz.ZONE_ID)
     }
 
     "maxToday" in new Context {
-      "2017/08/26 11:33:54".datetime.maxToday shouldBe ZonedDateTime.of(2017, 8, 26, 23, 59, 59, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.maxToday shouldBe ZonedDateTime.of(2017, 8, 26, 23, 59, 59, 0, tz.ZONE_ID)
     }
 
     "maxTohour" in new Context {
-      "2017/08/26 11:33:54".datetime.maxTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 59, 59, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.maxTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 59, 59, 0, tz.ZONE_ID)
     }
 
     "unixtime" in new Context {
-      "2017/08/26 11:33:54".datetime.unixtime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID).toEpochSecond
+      "2017/08/26 11:33:54".datetime.unixtime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond
     }
   }
 
