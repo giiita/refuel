@@ -13,6 +13,13 @@ object RuntimeTZ extends RuntimeTZ with AutoInject[RuntimeTZ] {
   override val DEFAULT_FORMAT: String = "yyyy/M/d H:m:s Z"
 }
 
+object AsiaTokyoTZ extends RuntimeTZ {
+  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+  override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
+  override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
+  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+}
+
 /**
   * Runtime timezone settings.
   * By first overwriting, you can change the TimeZone handled by ScalaTime.
