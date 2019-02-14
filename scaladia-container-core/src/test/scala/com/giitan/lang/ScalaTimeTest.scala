@@ -1,11 +1,23 @@
 package com.giitan.lang
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.util.TimeZone
 
 import ScalaTime._
+import com.giitan.injector.Injector
 import org.scalatest.{Matchers, WordSpec}
 
-class ScalaTimeTest extends WordSpec with Matchers {
+class ScalaTimeTest extends WordSpec with Matchers with Injector {
+
+  depends[RuntimeTZ](
+    new RuntimeTZ {
+      override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+      override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
+      override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
+      override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+    }
+  )
+
   "ZonedDateTimeBs" should {
     "parse yyyy/MM/dd HH:mm:ss" in {
       "2017/08/26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID)
