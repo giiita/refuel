@@ -10,49 +10,48 @@ import org.scalatest.{Matchers, WordSpec}
 class ScalaTimeTest extends WordSpec with Matchers with Injector {
 
   trait Context {
-    depends[RuntimeTZ](
-      new RuntimeTZ {
-        override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-        override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
-        override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
-        override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
-      }
-    )
+    protected val tz = new RuntimeTZ {
+      override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+      override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
+      override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
+      override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+    }
+    depends[RuntimeTZ](tz)
   }
 
   "ZonedDateTimeBs" should {
     "parse yyyy/MM/dd HH:mm:ss" in new Context {
-      "2017/08/26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
     }
     "parse yyyyMMddHHmmss" in new Context {
-      "20170826113354".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID)
+      "20170826113354".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
     }
     "parse yyyy/MM/dd" in new Context {
-      "2017/08/26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017/08/26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyyMMdd" in new Context {
-      "20170826".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "20170826".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy/M/d" in new Context {
-      "2017/8/26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017/8/26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy/M/d H" in new Context {
-      "2017/8/26 9".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017/8/26 9".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy-MM-dd HH:mm:ss" in new Context {
-      "2017-08-26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID)
+      "2017-08-26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
     }
     "parse yyyy-MM-dd" in new Context {
-      "2017-08-26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017-08-26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy-M-d" in new Context {
-      "2017-8-26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017-8-26".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy-M-d H" in new Context {
-      "2017-8-26 9".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017-8-26 9".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, tz.ZONE_ID)
     }
     "parse yyyy-M-d HH" in new Context {
-      "2017-8-26 09".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, RuntimeTZ.ZONE_ID)
+      "2017-8-26 09".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, tz.ZONE_ID)
     }
     "parse unexpected" in new Context {
       try {
@@ -95,7 +94,7 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
 
   "UnixTimeBs" should {
     "as" in new Context {
-      ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID).toEpochSecond.datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, RuntimeTZ.ZONE_ID)
+      ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond.datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
     }
   }
 
