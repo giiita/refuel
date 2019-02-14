@@ -41,6 +41,10 @@ lazy val root = project.in(file("."))
     scaladiaContainerCore,
     scaladiaHttp,
     all
+  ).settings(
+    publishArtifact in ThisProject := false,
+    scalaVersion := GLOBAL_SCALA_VERSION,
+    crossScalaVersions := Seq("2.11.12", "2.12.8")
   )
 
 lazy val all = (project in file("scaladia-all"))
