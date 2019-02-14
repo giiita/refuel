@@ -10,7 +10,13 @@ import scala.util.matching.Regex
 object ScalaTime extends Injector {
   type DefaultDateType = ZonedDateTime
 
-  private val TZ = inject[RuntimeTZ]
+  /**
+    * If not setting auto injectable RuntimeTz,
+    * use default RuntimeTZ
+    */
+  private val TZ = inject[RuntimeTZ].recover {
+    case _ => RuntimeTZ
+  }
 
   /**
     * Get a current time.
