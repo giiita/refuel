@@ -4,9 +4,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId, ZoneOffset}
 import java.util.TimeZone
 
-import com.giitan.injector.AutoInject
-
-object RuntimeTZ extends RuntimeTZ with AutoInject[RuntimeTZ] {
+object RuntimeTZ extends RuntimeTZ {
   override val TIME_ZONE: TimeZone = TimeZone.getDefault
   override val ZONE_ID: ZoneId = java.time.ZoneId.systemDefault()
   override val ZONE_OFFSET: ZoneOffset = ZONE_ID.getRules.getOffset(Instant.now())
