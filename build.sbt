@@ -29,7 +29,7 @@ lazy val assemblySettings = Seq(
     runClean,
     runTest,
     // setReleaseVersion,
-    commitReleaseVersion,
+    // commitReleaseVersion,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
     ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
