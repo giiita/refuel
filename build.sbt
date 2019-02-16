@@ -28,7 +28,7 @@ lazy val assemblySettings = Seq(
     inquireVersions,
     runClean,
     runTest,
-    setReleaseVersion,
+    // setReleaseVersion,
     commitReleaseVersion,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
