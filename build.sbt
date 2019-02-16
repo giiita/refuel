@@ -56,7 +56,7 @@ lazy val all = (project in file("scaladia-all"))
   .settings(
     name := "scaladia",
     description := "Scaladia all libraries.",
-    version in ThisProject := "1.5.6"
+    version in ThisProject := "1.5.7"
   )
 
 lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
@@ -71,7 +71,7 @@ lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
       "org.slf4j" % "slf4j-api" % "1.7.25",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test
     ),
-    version in ThisProject := "1.5.6-SNAPSHOT"
+    version in ThisProject := "1.5.6"
   )
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
