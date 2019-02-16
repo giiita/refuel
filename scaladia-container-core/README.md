@@ -3,7 +3,7 @@
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.5"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.7"
 ````
 
 ## Supports full scanning injection (v1.5.0 ~)
