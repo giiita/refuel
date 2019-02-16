@@ -27,32 +27,36 @@ object LoadableArchives {
     def isClassFile: Boolean = file.isFile && file.getName.isClassFile
 
     def classCrowdEntries(packageName: String): ClassCrowds = {
-      ClassCrowds(
-        file.list.to[Seq].map { path =>
-          new File(file, path) match {
-            case x if x.isClassFile =>
-              try {
-                val className = packageName.asParentPackagePrefix + x.getName.ignoreClass
-                val classType = classLoader.loadClass(className)
-                if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface)
-                  ClassCrowds(
-                    ListBuffer(
-                      ClassCrowd(
-                        classType,
-                        asAutoInjectSymbol(className)
+      file.list match {
+        case null => ClassCrowds()
+        case list =>
+          ClassCrowds(
+            list.to[Seq].map { path =>
+              new File(file, path) match {
+                case x if x.isClassFile =>
+                  try {
+                    val className = packageName.asParentPackagePrefix + x.getName.ignoreClass
+                    val classType = classLoader.loadClass(className)
+                    if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface)
+                      ClassCrowds(
+                        ListBuffer(
+                          ClassCrowd(
+                            classType,
+                            asAutoInjectSymbol(className)
+                          )
+                        )
                       )
-                    )
-                  )
-                else ClassCrowds()
-              } catch {
-                case _: Throwable => ClassCrowds()
+                    else ClassCrowds()
+                  } catch {
+                    case _: Throwable => ClassCrowds()
+                  }
+                case directory if directory.isDirectory =>
+                  directory.classCrowdEntries(packageName.asParentPackagePrefix + directory.getName)
+                case _ => ClassCrowds()
               }
-            case directory if directory.isDirectory =>
-              directory.classCrowdEntries(packageName.asParentPackagePrefix + directory.getName)
-            case _ => ClassCrowds()
-          }
-        }.flatMap(_.value)
-      )
+            }.flatMap(_.value)
+          )
+      }
     }
   }
 
