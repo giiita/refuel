@@ -30,6 +30,7 @@ jobs:
           name: Full version build
           command: |
             sbt +clean +compile +test
+          no_output_timeout: 60m
 
       - save_cache:
           paths:
