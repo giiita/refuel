@@ -1,6 +1,7 @@
 package com.giitan
 
 import com.giitan.box.{Container, ScaladiaClassLoader}
+import com.giitan.exception.StaticInitializationException
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injectable.{Injectable, InjectableConversion}
 import com.giitan.injector.Injector
@@ -13,6 +14,7 @@ import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
+import scala.util.Failure
 
 package object container {
 
@@ -44,7 +46,12 @@ package object container {
       */
     def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ClassScope[S]): Option[T] = {
       container.searchAccessibleOne[T](tag.tpe, scope) orElse {
-        AutomaticContainerInitializer.initialize[T]()
+        scala.util.Try {
+          AutomaticContainerInitializer.initialize[T]()
+        } match {
+          case Failure(e) => throw new StaticInitializationException(s"${tag.tpe} initialize failed.", e)
+          case _ =>
+        }
         container.searchAccessibleOne[T](tag.tpe, scope)
       }
     }

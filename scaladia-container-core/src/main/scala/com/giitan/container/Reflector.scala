@@ -21,7 +21,7 @@ case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTa
         implicitly[Container[ClassScope]].search(tag, scope.getClass)
       ) getOrElse {
       throw new InjectableDefinitionException(
-        s"""${tag.tpe} or internal dependencies injected failed.""".stripMargin
+        s"""Cannot found ${tag.tpe} implementation.""".stripMargin
       )
     }
   }

@@ -3,10 +3,10 @@
 ## How to use
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.7"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.6.0"
 ````
 
-## Supports full scanning injection (v1.5.0 ~)
+## Supports full scanning injection (v1.5.0 ~) (Default true from v1.6.0 ~)
 
 Until now it was a premise to use it with FatJar (sbt-assembly).<br/>
 AutoInjectScan was supported only from the archive that Scaladia package was shipped with.
@@ -27,6 +27,7 @@ For whitelist, set loadable archives name (broad match).<br/>
 If you omit the whitelist, you will load archives such as jre and scala-lang, so the performance immediately after starting Application will degrade.<br/>
 Even if fullscan is false, AutoInject of the current class loader will be loaded.
 
+It defaults to `true` from `1.6.0 ~`.
 
 ## Examples
 
@@ -115,6 +116,13 @@ object TestA extends Injector {
   }
 }
 ```
+
+When overwriting with a limited scope in the test, We recommend it.<br>
+```
+narrow[T](new T).accept(this).indexing()
+```
+Overwriting with `depends` and running tests in parallel may unexpectedly overwrite globally.
+
 
 ### Custom usage
 
