@@ -42,6 +42,7 @@ lazy val root = project.in(file("."))
     scaladiaHttp,
     all
   ).settings(
+    publishLocal in ThisProject := {},
     publishArtifact in ThisProject := false,
     scalaVersion := GLOBAL_SCALA_VERSION,
     crossScalaVersions := Seq("2.11.12", "2.12.8")
@@ -56,7 +57,7 @@ lazy val all = (project in file("scaladia-all"))
   .settings(
     name := "scaladia",
     description := "Scaladia all libraries.",
-    version in ThisProject := "1.5.7"
+    version in ThisProject := "1.6.0"
   )
 
 lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
@@ -69,9 +70,10 @@ lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
       "com.typesafe" % "config" % "1.3.2",
       "org.scala-lang" % "scala-reflect" % "2.12.8",
       "org.slf4j" % "slf4j-api" % "1.7.25",
+      "org.slf4j" % "slf4j-simple" % "1.7.25",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test
     ),
-    version in ThisProject := "1.5.6"
+    version in ThisProject := "1.5.7"
   )
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
