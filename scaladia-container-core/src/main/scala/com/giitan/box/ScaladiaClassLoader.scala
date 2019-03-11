@@ -20,6 +20,7 @@ object ScaladiaClassLoader {
     accessibleProtocolResolve(ucl.fold[List[URL]](Nil)(_.getURLs.toList))
       .scanAccepted(classLoader)
       .distinct
+      .par
       .map(findClassesWithFile(_, rootPackageName)) match {
       case x if x.isEmpty => ClassCrowds()
       case x              => x.reduceLeft(_ +++ _)
@@ -29,6 +30,7 @@ object ScaladiaClassLoader {
   private def findClassesWithFile(x: URL, rootPackageName: String): ClassCrowds = {
     logger.debug(s"Injectable set loading from ${x.getProtocol}:${x.getPath}")
     x match {
+      case url if url.getPath.contains(".jdk") => ClassCrowds()
       case url if url.getProtocol == "file" => new File(x.getFile).classCrowdEntries(rootPackageName)
       case url if url.getProtocol == "jar"  =>
 
