@@ -13,7 +13,7 @@ jobs:
 
     environment:
       # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
+      JVM_OPTS: -Xmx5g
       TERM: dumb
 
     steps:
@@ -29,7 +29,8 @@ jobs:
       - run:
           name: Full version build
           command: |
-            sbt +clean +compile +test
+            sbt -mem 4000 +clean +compile +test
+          no_output_timeout: 60m
 
       - save_cache:
           paths:
