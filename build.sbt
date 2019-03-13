@@ -73,7 +73,7 @@ lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
       "org.slf4j" % "slf4j-simple" % "1.7.25",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test
     ),
-    version in ThisProject := "1.5.7"
+    version in ThisProject := "1.5.8-SNAPSHOT"
   )
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))

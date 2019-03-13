@@ -46,11 +46,12 @@ package object container {
       */
     def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ClassScope[S]): Option[T] = {
       container.searchAccessibleOne[T](tag.tpe, scope) orElse {
+
         scala.util.Try {
           AutomaticContainerInitializer.initialize[T]()
         } match {
           case Failure(e) => throw new StaticInitializationException(s"${tag.tpe} initialize failed.", e)
-          case _ =>
+          case _          => logger.debug(s"${tag.tpe} initialize success.")
         }
         container.searchAccessibleOne[T](tag.tpe, scope)
       }
@@ -110,4 +111,5 @@ package object container {
   private[giitan] object TaggedContainer {
     val automaticDependencies: ClassCrowds = ScaladiaClassLoader.findClasses()
   }
+
 }
