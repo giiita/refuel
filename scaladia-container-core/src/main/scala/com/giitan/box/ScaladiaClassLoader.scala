@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 object ScaladiaClassLoader {
   private val URL_CLASSLOADER_DEPTH_LIMIT = 5
   private val logger = LoggerFactory.getLogger(getClass)
-  private[giitan] val classLoader: ClassLoader = Thread.currentThread().getContextClassLoader
+  private[giitan] val classLoader: ClassLoader = getClass.getClassLoader
 
   private[giitan] def findClasses(rootPackageName: String = ""): ClassCrowds = {
     val ucl = getUrlClassloader(classLoader)
