@@ -1,6 +1,6 @@
 # scaladia-container-core
 
-## How to use
+## Usage
 
 ```
 libraryDependencies += "com.github.giiita" %% "scaladia" % "1.6.0"
@@ -49,23 +49,27 @@ object TestA extends Injector {
 }
 ```
 
-### Inject with member of object
+### Constructor dependency injection 
 
 
 ```
 object A extends AutoInject[A]
 
 trait A {
-  def toString: String = "TEST"
+  def exec: String = "TEST"
 }
 ```
 
 ```
 object TestA extends Injector {
-  private[this] val a: A = inject[A]
+  // Need not be lazy val
+  // It is implicitly initialized when accessed for the first time
+  // However, specifying a type is deprecated because it is initialized in the constructor.
+  // ex:) `private val a: A = inject[A]` 
+  private[this] val a = inject[A] // a's type is StoredDependency[A]
 
   def test = {
-    println(a.toString) // TEST
+    println(a.exec) // TEST
   }
 }
 ```
@@ -90,6 +94,27 @@ AutoInjectorでは、同じタイプの複数の依存関係が登録されて�
 その場合、Injectorを使用してください。
 AutoInjectで注入した設定をInjectorで上書きすることができます。
 AutoInjectは自己タイプを注入するためのインターフェースです。
+
+### Testing
+
+When UnitTest parallel execution is enabled, overriding global scope dependencies such as `depends` in a test may result in unexpected overwrites between different threads.<br/>
+Therefore, be careful to use narrowly overriding in unit tests.
+
+```
+class XxxTest extends TestClient with Injector {
+  "Test" should "test-1" in {
+    val targetService = TargetServiceImpl
+    narrow[A](new MockA).accept(targetService).indexing()
+    targetService.exec() // MockA is used for A in targetService
+  }
+  
+  trait Context extends TargetService
+  "Test" should "another case" in new Context {
+    narrow[A](new MockA).accept(this).indexing()
+    exec()
+  }
+}
+```
 
 ### Override dependency
 
