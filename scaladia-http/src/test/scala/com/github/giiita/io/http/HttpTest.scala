@@ -7,30 +7,26 @@ import com.github.giiita.io.http.HttpMethod.GET
 import com.github.giiita.io.http.TestEntity.Jokes
 import org.scalatest._
 
-import scala.util.Success
-
 class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
 
   "Http io test" should {
     case class InnerJokeBody(id: Int,
-                        joke: String,
-                        categories: Seq[String])
+                             joke: String,
+                             categories: Seq[String])
 
-    @JsonIgnoreProperties(ignoreUnknown=true)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     case class InnerJokes(value: InnerJokeBody)
 
     "inner class can not deserialize" in {
-        http[GET]("http://api.icndb.com/jokes/random")
-          .deserializing[InnerJokes]
-          .map { x =>
-            x.value.joke
-          }
-          .run
-        .transform {
-          case scala.util.Success(_) => Success(fail())
-          case scala.util.Failure(e) => Success {
-            e.getMessage startsWith "Can not construct instance of com.github.giiita.io.http.HttpTest$InnerJokeBody$1, problem: null" shouldBe true
-          }
+      http[GET]("http://api.icndb.com/jokes/random")
+        .deserializing[InnerJokes]
+        .map { x =>
+          x.value.joke
+        }
+        .run
+        .map(x => fail(x))
+        .recover {
+          case e => e.getMessage startsWith "Can not construct instance of com.github.giiita.io.http.HttpTest$" shouldBe true
         }
     }
     "deserializing" in {
@@ -68,10 +64,12 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
 }
 
 object TestEntity {
+
   case class JokeBody(id: Int,
                       joke: String,
                       categories: Seq[String])
 
-  @JsonIgnoreProperties(ignoreUnknown=true)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   case class Jokes(value: JokeBody)
+
 }
