@@ -1,8 +1,8 @@
-package com.giitan.box
+package com.giitan.runtime
 
 import java.net.URL
 
-import com.giitan.box.ScaladiaClassLoader.logger
+import com.giitan.runtime.ScaladiaClassLoader.logger
 import com.giitan.loader.StringURIConvertor._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory

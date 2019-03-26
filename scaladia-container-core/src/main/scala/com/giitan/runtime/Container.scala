@@ -1,4 +1,4 @@
-package com.giitan.box
+package com.giitan.runtime
 
 import com.giitan.container.{ContainerMaster, Reflector}
 import com.giitan.injectable.{Injectable, StoredDependency}
@@ -8,7 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
-object Container {
+private[giitan] object Container {
 
   implicit private[giitan] object Master extends ContainerMaster {
 

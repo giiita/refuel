@@ -57,7 +57,7 @@ lazy val all = (project in file("scaladia-all"))
   .settings(
     name := "scaladia",
     description := "Scaladia all libraries.",
-    version in ThisProject := "1.6.1"
+    version in ThisProject := "1.6.2-SNAPSHOT"
   )
 
 lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
@@ -73,7 +73,7 @@ lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
       "org.slf4j" % "slf4j-simple" % "1.7.25",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test
     ),
-    version in ThisProject := "1.5.8"
+    version in ThisProject := "1.5.9-SNAPSHOT"
   )
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
@@ -84,7 +84,8 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
       "org.dispatchhttp" %% "dispatch-core" % "0.14.0",
-      "com.twitter" %% "finatra-http" % "18.4.0"
+      "com.twitter" %% "finatra-http" % "18.4.0",
+      "org.scalatest" %% "scalatest" % "3.0.5" % Test
     ),
     version in ThisProject := "0.0.3"
   )

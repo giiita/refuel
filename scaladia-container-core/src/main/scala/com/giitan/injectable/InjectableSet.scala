@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.runtime.universe._
 
-object InjectableSet {
+private[giitan] object InjectableSet {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
