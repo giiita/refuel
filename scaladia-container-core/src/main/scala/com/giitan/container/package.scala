@@ -1,6 +1,6 @@
 package com.giitan
 
-import com.giitan.box.{Container, ScaladiaClassLoader}
+import com.giitan.runtime.{Container, ScaladiaClassLoader}
 import com.giitan.exception.StaticInitializationException
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injectable.{Injectable, InjectableConversion}
@@ -18,7 +18,7 @@ import scala.util.Failure
 
 package object container {
 
-  implicit object ClassTagContainer extends TaggedContainer[ClassScope] {
+  private[giitan] implicit object ClassTagContainer extends TaggedContainer[ClassScope] {
     /**
       * Injectable object mapper.
       */
@@ -58,7 +58,7 @@ package object container {
     }
   }
 
-  implicit object ObjectTagContainer extends TaggedContainer[ObjectScope] {
+  private[giitan] implicit object ObjectTagContainer extends TaggedContainer[ObjectScope] {
     /**
       * Injectable object mapper.
       */

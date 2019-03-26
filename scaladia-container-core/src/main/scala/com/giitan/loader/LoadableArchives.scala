@@ -3,7 +3,7 @@ package com.giitan.loader
 import java.io.File
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.box.ScaladiaClassLoader.classLoader
+import com.giitan.runtime.ScaladiaClassLoader.classLoader
 import com.giitan.injector.AutoInject
 import com.giitan.loader.RichClassCrowds.ClassCrowds
 import StringURIConvertor._

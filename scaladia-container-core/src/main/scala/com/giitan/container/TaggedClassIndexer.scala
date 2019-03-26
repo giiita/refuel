@@ -1,10 +1,10 @@
 package com.giitan.container
 
 import scala.reflect.runtime.universe._
-import com.giitan.box.Container
+import com.giitan.runtime.Container
 import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 
-object TaggedClassIndexer extends Indexer[ClassScope] {
+private[giitan] object TaggedClassIndexer extends Indexer[ClassScope] {
 
   /**
     * Resist dependencies.
@@ -20,7 +20,7 @@ object TaggedClassIndexer extends Indexer[ClassScope] {
 }
 
 
-object TaggedObjectIndexer extends Indexer[ObjectScope] {
+private[giitan] object TaggedObjectIndexer extends Indexer[ObjectScope] {
 
   /**
     * Resist dependencies.
