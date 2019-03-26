@@ -1,6 +1,6 @@
 package com.giitan.container
 
-import com.giitan.box.Container
+import com.giitan.runtime.Container
 import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.StoredDependency
 import com.giitan.injector.Injector
@@ -11,7 +11,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
 
-case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S, recoverHook: PartialFunction[Throwable, T] = PartialFunction[Throwable, T]{
+private[giitan] case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S, recoverHook: PartialFunction[Throwable, T] = PartialFunction[Throwable, T]{
   e => throw e
 }) extends StoredDependency[T] {
 

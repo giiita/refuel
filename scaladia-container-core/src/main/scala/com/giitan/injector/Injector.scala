@@ -1,6 +1,6 @@
 package com.giitan.injector
 
-import com.giitan.box.Container._
+import com.giitan.runtime.Container._
 import com.giitan.container._
 import com.giitan.injectable.StoredDependency
 import com.giitan.scope.Scope.ClassScope
@@ -41,6 +41,8 @@ trait Injector {
     * By default, it is only accessible from all object.
     * The dependency relationship registered by this will not be overwritten.
     * However, objects registered narrow will be injected preferentially.
+    *
+    * It is recommended to use narrow when overriding from a test with parallel execution enabled.
     *
     * @param v Injectly object.
     * @tparam X Injectly type

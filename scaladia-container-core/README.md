@@ -85,16 +85,6 @@ Currently, AutoInjector is an interface for injecting self type.<br/>
 
 Even if you set injection settings other than self type, it may not initialize to the correct order and may not behave as intended.<br/><br/><br/>
 
-
-
-AutoInject[T]を継承したオブジェクト Tは、DIコンテナの初期化時に自動的に登録されます。<br/>
-Scaladiaのクラスローダーから依存関係を解決します。<br/>
-ただし、object定義を自動注入する場合、静的にアクセスできる階層に定義しなければなりません。(case classなどの場合初期化できません。)<br/>
-AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
-その場合、Injectorを使用してください。
-AutoInjectで注入した設定をInjectorで上書きすることができます。
-AutoInjectは自己タイプを注入するためのインターフェースです。
-
 ### Testing
 
 When UnitTest parallel execution is enabled, overriding global scope dependencies such as `depends` in a test may result in unexpected overwrites between different threads.<br/>

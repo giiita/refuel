@@ -1,9 +1,9 @@
-package com.giitan.box
+package com.giitan.runtime
 
 import java.io.File
 import java.net.{JarURLConnection, URL, URLClassLoader}
 
-import com.giitan.box.ScaladiaAutoDIConfigSet._
+import com.giitan.runtime.ScaladiaAutoDIConfigSet._
 import com.giitan.loader.LoadableArchives._
 import com.giitan.loader.RichClassCrowds.ClassCrowds
 import org.slf4j.LoggerFactory
