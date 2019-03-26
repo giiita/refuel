@@ -11,6 +11,10 @@ object RuntimeTZ extends RuntimeTZ {
   override val DEFAULT_FORMAT: String = "yyyy/M/d H:m:s Z"
 }
 
+/**
+  * When using a fixed time zone
+  * ```object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ] ```
+  */
 class AsiaTokyoTZ extends RuntimeTZ {
   override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
   override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")

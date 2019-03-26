@@ -4,7 +4,7 @@ import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 
 import scala.reflect.runtime.universe._
 
-trait Injectable[T, ST[_]] {
+private[giitan] trait Injectable[T, ST[_]] {
 
   // Registed inject type.
   val tipe: Type
