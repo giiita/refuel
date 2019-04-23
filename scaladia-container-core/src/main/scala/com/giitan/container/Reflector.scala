@@ -1,19 +1,19 @@
 package com.giitan.container
 
-import com.giitan.runtime.Container
 import com.giitan.exception.InjectableDefinitionException
 import com.giitan.injectable.StoredDependency
 import com.giitan.injector.Injector
+import com.giitan.runtime.Container
 import com.giitan.scope.Scope.{ClassScope, ObjectScope}
 import com.giitan.scope.Wrapper
 
-import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
-private[giitan] case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: S, recoverHook: PartialFunction[Throwable, T] = PartialFunction[Throwable, T]{
-  e => throw e
-}) extends StoredDependency[T] {
+private[giitan] case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T],
+                                                                                     scope: S,
+                                                                                     recoverHook: PartialFunction[Throwable, T] = PartialFunction[Throwable, T]{e: Throwable => throw e}) extends StoredDependency[T] {
 
   protected val dependencyGet: () => T = () => {
     implicitly[Container[ObjectScope]].search(tag, Wrapper(scope))
