@@ -65,9 +65,13 @@ object Http extends Injector {
       new HttpResultTask[String] {
         def execute(request: Req): Future[String] = HttpRetryRevolver(setting.retryThreshold).revolving() {
           val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
-          cli(request.OK(as.String)).map { x =>
+          cli.apply(request.OK(as.String)).map { x =>
             cli.client.close()
             x
+          }.recover {
+            case e =>
+              cli.client.close()
+              throw e
           }
         }
       }
