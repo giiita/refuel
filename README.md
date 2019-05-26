@@ -4,7 +4,9 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.giiita/scaladia_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/scaladia_2.12)
 
-Scaladia is a lightweight DI container with peripheral tools.
+Scaladia is a lightweight DI container.<br/>
+Inspired by [Macwire](https://github.com/adamw/macwire)<br/>
+I do not use macro.
 
 ## [scaladia-container-core](https://github.com/giiita/scaladia/tree/master/scaladia-container-core)
 

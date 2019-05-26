@@ -1,6 +1,6 @@
 package com.giitan.loader
 
-import com.giitan.box.ScaladiaClassLoader.classLoader
+import com.giitan.runtime.ScaladiaClassLoader.classLoader
 import com.giitan.exception.StaticInitializationException
 import com.giitan.injector.AutoInject
 
