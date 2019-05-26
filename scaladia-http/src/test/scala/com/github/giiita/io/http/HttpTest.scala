@@ -1,46 +1,75 @@
 package com.github.giiita.io.http
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.giitan.injector.Injector
 import com.github.giiita.io.http.Http._
-import com.github.giiita.io.http.HttpMethod._
-import com.github.giiita.io.http.HttpTest.Test
-import org.scalatest.{AsyncWordSpec, Matchers}
+import com.github.giiita.io.http.HttpMethod.GET
+import com.github.giiita.io.http.TestEntity.Jokes
+import org.scalatest._
 
-object HttpTest {
-  case class Test(name: String,
-                  gender: String,
-                  probability: Int,
-                  count: Int)
-}
+class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
 
-class HttpTest extends AsyncWordSpec with Matchers {
-  "http test" should {
-    "status 302" in {
-      http[POST]("http://hooks.slack.com/test")
+  "Http io test" should {
+    case class InnerJokeBody(id: Int,
+                             joke: String,
+                             categories: Seq[String])
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    case class InnerJokes(value: InnerJokeBody)
+
+    "inner class can not deserialize" in {
+      http[GET]("http://api.icndb.com/jokes/random")
+        .deserializing[InnerJokes]
+        .map { x =>
+          x.value.joke
+        }
         .run
-        .map(_ => fail())
+        .map(x => fail(x))
         .recover {
-          case _ => succeed
+          case e => e.getMessage startsWith "Can not construct instance of com.github.giiita.io.http.HttpTest$" shouldBe true
         }
     }
-
-    "status 200 as string" in {
-      http[GET]("https://api.genderize.io/?name=jon")
-        .run
+    "deserializing" in {
+      http[GET]("http://api.icndb.com/jokes/random")
+        .deserializing[Jokes]
         .map { x =>
-          x shouldBe """{"name":"jon","gender":"male","probability":1,"count":1790}"""
+          x.value.joke
+        }
+        .run
+        .map { result =>
+          println(s"Get joke is [ $result ]")
+          result.length > 0 shouldBe true
         }
     }
-
-    "status 200 as Test" in {
-      http[GET]("https://api.genderize.io/?name=jon")
-        .deserializing[Test]
-        .run
+    "undeserializing" in {
+      http[GET]("http://api.icndb.com/jokes/random")
         .map { x =>
-          x.name shouldBe "jon"
-          x.gender shouldBe "male"
-          x.probability shouldBe 1
-          x.count shouldBe 1790
+          s"Got it [ $x ]"
+        }
+        .run
+        .map { result =>
+          println(result)
+          result.length > 0 shouldBe true
+        }
+    }
+    "through" in {
+      http[GET]("http://api.icndb.com/jokes/random")
+        .run
+        .map { result =>
+          println(result)
+          result.length > 0 shouldBe true
         }
     }
   }
+}
+
+object TestEntity {
+
+  case class JokeBody(id: Int,
+                      joke: String,
+                      categories: Seq[String])
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  case class Jokes(value: JokeBody)
+
 }

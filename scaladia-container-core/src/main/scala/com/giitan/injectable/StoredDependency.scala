@@ -1,6 +1,6 @@
 package com.giitan.injectable
 
-trait StoredDependency[X] {
+private[giitan] trait StoredDependency[X] {
   /**
     * Dependency search function.
     */

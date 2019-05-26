@@ -1,7 +1,8 @@
-package com.giitan.box
+package com.giitan.runtime
 
 import java.net.URL
 
+import com.giitan.runtime.ScaladiaClassLoader.logger
 import com.giitan.loader.StringURIConvertor._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
@@ -14,14 +15,26 @@ private[giitan] object ScaladiaAutoDIConfigSet {
   private lazy val SCALADIA_CONFIG_SET_PATH = "scaladia"
   private lazy val LOAD_MULTI_CLASSPATHSET = "fullscan"
   private lazy val SCANING_ARCHIVE_WHITELIST = "whitelist"
+  private lazy val SCANING_ARCHIVE_BLACKLIST = "blacklist"
+
   private lazy val isMultiClassPathMode: Boolean = Try {
     configSet.getBoolean(s"$SCALADIA_CONFIG_SET_PATH.$LOAD_MULTI_CLASSPATHSET")
-  }.getOrElse(false)
+  }.getOrElse(true)
+
   private lazy val scanningArchiveWhitelist: Seq[String] = {
     Try {
       configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_WHITELIST").asScala
     }.getOrElse(Nil)
   }
+
+  private lazy val scanningArchiveBlacklist: Seq[String] = {
+    Try {
+      configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_BLACKLIST").asScala
+    }.getOrElse(
+      Seq(".jdk")
+    )
+  }
+
   private val logger = LoggerFactory.getLogger(this.getClass)
   private val configSet = ConfigFactory.load()
 

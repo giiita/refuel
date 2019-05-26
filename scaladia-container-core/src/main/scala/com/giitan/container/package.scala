@@ -1,6 +1,7 @@
 package com.giitan
 
-import com.giitan.box.{Container, ScaladiaClassLoader}
+import com.giitan.runtime.{Container, ScaladiaClassLoader}
+import com.giitan.exception.StaticInitializationException
 import com.giitan.injectable.InjectableSet._
 import com.giitan.injectable.{Injectable, InjectableConversion}
 import com.giitan.injector.Injector
@@ -13,10 +14,11 @@ import scala.collection.mutable.ListBuffer
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
+import scala.util.Failure
 
 package object container {
 
-  implicit object ClassTagContainer extends TaggedContainer[ClassScope] {
+  private[giitan] implicit object ClassTagContainer extends TaggedContainer[ClassScope] {
     /**
       * Injectable object mapper.
       */
@@ -44,13 +46,19 @@ package object container {
       */
     def search[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T], scope: ClassScope[S]): Option[T] = {
       container.searchAccessibleOne[T](tag.tpe, scope) orElse {
-        AutomaticContainerInitializer.initialize[T]()
+
+        scala.util.Try {
+          AutomaticContainerInitializer.initialize[T]()
+        } match {
+          case Failure(e) => throw new StaticInitializationException(s"${tag.tpe} initialize failed.", e)
+          case _          => logger.debug(s"${tag.tpe} initialize success.")
+        }
         container.searchAccessibleOne[T](tag.tpe, scope)
       }
     }
   }
 
-  implicit object ObjectTagContainer extends TaggedContainer[ObjectScope] {
+  private[giitan] implicit object ObjectTagContainer extends TaggedContainer[ObjectScope] {
     /**
       * Injectable object mapper.
       */
@@ -103,4 +111,5 @@ package object container {
   private[giitan] object TaggedContainer {
     val automaticDependencies: ClassCrowds = ScaladiaClassLoader.findClasses()
   }
+
 }

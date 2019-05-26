@@ -1,6 +1,6 @@
 # scaladia-http
 
-## How to use
+## Usage
 
 ```
 libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.7"

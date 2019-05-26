@@ -1,12 +1,12 @@
 # scaladia-container-core
 
-## How to use
+## Usage
 
 ```
-libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.7"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.6.0"
 ````
 
-## Supports full scanning injection (v1.5.0 ~)
+## Supports full scanning injection (v1.5.0 ~) (Default true from v1.6.0 ~)
 
 Until now it was a premise to use it with FatJar (sbt-assembly).<br/>
 AutoInjectScan was supported only from the archive that Scaladia package was shipped with.
@@ -27,6 +27,7 @@ For whitelist, set loadable archives name (broad match).<br/>
 If you omit the whitelist, you will load archives such as jre and scala-lang, so the performance immediately after starting Application will degrade.<br/>
 Even if fullscan is false, AutoInject of the current class loader will be loaded.
 
+It defaults to `true` from `1.6.0 ~`.
 
 ## Examples
 
@@ -48,23 +49,27 @@ object TestA extends Injector {
 }
 ```
 
-### Inject with member of object
+### Constructor dependency injection 
 
 
 ```
 object A extends AutoInject[A]
 
 trait A {
-  def toString: String = "TEST"
+  def exec: String = "TEST"
 }
 ```
 
 ```
 object TestA extends Injector {
-  private[this] val a: A = inject[A]
+  // Need not be lazy val
+  // It is implicitly initialized when accessed for the first time
+  // However, specifying a type is deprecated because it is initialized in the constructor.
+  // ex:) `private val a: A = inject[A]` 
+  private[this] val a = inject[A] // a's type is StoredDependency[A]
 
   def test = {
-    println(a.toString) // TEST
+    println(a.exec) // TEST
   }
 }
 ```
@@ -80,15 +85,26 @@ Currently, AutoInjector is an interface for injecting self type.<br/>
 
 Even if you set injection settings other than self type, it may not initialize to the correct order and may not behave as intended.<br/><br/><br/>
 
+### Testing
 
+When UnitTest parallel execution is enabled, overriding global scope dependencies such as `depends` in a test may result in unexpected overwrites between different threads.<br/>
+Therefore, be careful to use narrowly overriding in unit tests.
 
-AutoInject[T]を継承したオブジェクト Tは、DIコンテナの初期化時に自動的に登録されます。<br/>
-Scaladiaのクラスローダーから依存関係を解決します。<br/>
-ただし、object定義を自動注入する場合、静的にアクセスできる階層に定義しなければなりません。(case classなどの場合初期化できません。)<br/>
-AutoInjectorでは、同じタイプの複数の依存関係が登録されている場合、どちらが注入されるかは保証されません。
-その場合、Injectorを使用してください。
-AutoInjectで注入した設定をInjectorで上書きすることができます。
-AutoInjectは自己タイプを注入するためのインターフェースです。
+```
+class XxxTest extends TestClient with Injector {
+  "Test" should "test-1" in {
+    val targetService = TargetServiceImpl
+    narrow[A](new MockA).accept(targetService).indexing()
+    targetService.exec() // MockA is used for A in targetService
+  }
+  
+  trait Context extends TargetService
+  "Test" should "another case" in new Context {
+    narrow[A](new MockA).accept(this).indexing()
+    exec()
+  }
+}
+```
 
 ### Override dependency
 
@@ -115,6 +131,13 @@ object TestA extends Injector {
   }
 }
 ```
+
+When overwriting with a limited scope in the test, We recommend it.<br>
+```
+narrow[T](new T).accept(this).indexing()
+```
+Overwriting with `depends` and running tests in parallel may unexpectedly overwrite globally.
+
 
 ### Custom usage
 
@@ -217,4 +240,31 @@ However, caution is required as types inheriting AnyVal are handled internally a
       println(inject[A[List[Double]]]) // C
     }
   }
+```
+
+## Utilities
+
+### [ScalaTime](https://github.com/giiita/scaladia/blob/master/scaladia-container-core/src/main/scala/com/giitan/lang/ScalaTime.scala)
+
+```
+import com.giitan.lang.ScalaTime._
+```
+Supports conversion between various classes and date classes.
+
+```
+"2019-01-01 11:22:33".datetime
+  
+> res0: java.time.ZonedDateTime = 2019-01-01T11:22:33.000+09:00[Asia/Tokyo]
+```
+
+```
+"2019-01-01 11:22:33".datetime.maxToday
+  
+> res0: java.time.ZonedDateTime = 2019-01-01T23:59:59.000+09:00[Asia/Tokyo]
+```
+
+```
+"2019-01-01 11:22:33".datetime.maxToday.minTohour
+  
+> res0: java.time.ZonedDateTime = 2019-01-01T23:00:00.000+09:00[Asia/Tokyo]
 ```
