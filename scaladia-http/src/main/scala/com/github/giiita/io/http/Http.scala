@@ -65,9 +65,13 @@ object Http extends Injector {
       new HttpResultTask[String] {
         def execute(request: Req): Future[String] = HttpRetryRevolver(setting.retryThreshold).revolving() {
           val cli = dispatch.Http(dispatch.Http.defaultClientBuilder.setRequestTimeout(setting.timeout))
-          cli(request.OK(as.String)).map { x =>
+          cli.apply(request.OK(as.String)).map { x =>
             cli.client.close()
             x
+          }.recover {
+            case e =>
+              cli.client.close()
+              throw e
           }
         }
       }
@@ -91,7 +95,9 @@ private case class HttpRetryRevolver(maxRetry: Int) extends Injector {
     func.recoverWith {
       case x if retry >= maxRetry =>
         logger.error(s"Request retry failed.", x)
-        throw x
+        Future {
+          throw x
+        }
       case x                   =>
         logger.warn(s"Request retry failed. ${x.getMessage}")
         revolving(retry + 1)(func)
