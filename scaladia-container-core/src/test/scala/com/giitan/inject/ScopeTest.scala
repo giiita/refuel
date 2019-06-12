@@ -45,7 +45,7 @@ class ScopeTest extends WordSpec with Matchers {
   "Scope test" should {
     "Out of dynamic scope" in {
       trait InjectorB extends Injector {
-        narrow[A](B).accept(this).indexing()
+        narrow[ScopeTest.A](ScopeTest.B).accept(this).indexing()
       }
 
       trait InjectorY extends Injector {
@@ -54,14 +54,14 @@ class ScopeTest extends WordSpec with Matchers {
 
       object ExecuteB extends InjectorB {
         def test(): Assertion = {
-          inject[A].provide shouldBe B
+          inject[ScopeTest.A].provide shouldBe ScopeTest.B
         }
       }
 
       object ExecuteY extends InjectorY {
         def test(): Assertion = {
           try {
-            inject[A].provide
+            inject[ScopeTest.A].provide
             throw new Exception("Do not be successful.")
           } catch {
             case _: InjectableDefinitionException => succeed
@@ -97,14 +97,14 @@ class ScopeTest extends WordSpec with Matchers {
 
     "SubType scope accessible." in {
       trait InjectorB extends Injector {
-        narrow[A](B).accept(this).indexing()
+        narrow[ScopeTest.A](ScopeTest.B).accept(this).indexing()
       }
 
       trait CushionType extends InjectorB
 
       object ExecuteB extends CushionType {
         def test(): Assertion = {
-          inject[A].provide shouldBe B
+          inject[ScopeTest.A].provide shouldBe ScopeTest.B
         }
       }
 
@@ -114,18 +114,18 @@ class ScopeTest extends WordSpec with Matchers {
     "Can access from anything." in new Injector {
 
       object D extends Injector {
-        def test: A = inject[A]
+        def test: ScopeTest.A = inject[ScopeTest.A]
       }
 
-      object F extends A
+      object F extends ScopeTest.A
 
-      object G extends A
+      object G extends ScopeTest.A
 
-      depends[A](G)
-      narrow[A](F).accept(D).indexing()
+      depends[ScopeTest.A](G)
+      narrow[ScopeTest.A](F).accept(D).indexing()
 
       D.test shouldBe F
-      inject[A].provide shouldBe G
+      inject[ScopeTest.A].provide shouldBe G
     }
 
   }

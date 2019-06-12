@@ -13,6 +13,10 @@ object Http extends Injector {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
+  private val setting = inject[HttpRequestSetting].recover {
+    case _ => new HttpRequestSetting()
+  }
+
   implicit class UrlParameters(value: Map[String, Any]) {
     /**
       * Convert to get request string.
@@ -51,10 +55,6 @@ object Http extends Injector {
     */
   def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpRunner[String] = {
     logger.info(s"Setup http request [ $urlString ]")
-
-    val setting = inject[HttpRequestSetting].recover {
-      case _ => new HttpRequestSetting()
-    }
 
     new HttpRunner[String](
       implicitly[MethodType[T]].method(
