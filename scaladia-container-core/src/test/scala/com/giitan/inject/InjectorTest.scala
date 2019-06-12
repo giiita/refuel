@@ -1,6 +1,6 @@
 package com.giitan.inject
 
-import com.giitan.inject.InjectorTest.{A, _}
+import com.giitan.inject.InjectorTest._
 import com.giitan.injector.Injector
 import org.scalatest.{Assertion, Matchers, WordSpec}
 
@@ -8,21 +8,21 @@ import scala.util.{Failure, Success, Try}
 
 object InjectorTest {
 
-  trait A
+  trait AAA
 
-  trait X
+  trait XXX
 
   trait Named {
     def name: Int
   }
 
-  object B extends A
+  object BBB extends AAA
 
-  object C extends A
+  object CCC extends AAA
 
-  object Y extends X
+  object YYY extends XXX
 
-  object Z extends X
+  object ZZZ extends XXX
 
   object Named1 extends Named {
     def name = 1
@@ -35,8 +35,8 @@ object InjectorTest {
 }
 
 object InjectorTest_RECOVER_CASE {
-  trait A
-  object B extends A
+  trait EEE
+  object FFF extends EEE
 }
 
 class InjectorTest extends WordSpec with Matchers {
@@ -46,12 +46,12 @@ class InjectorTest extends WordSpec with Matchers {
 
     "default" in {
       trait InjectorB extends Injector {
-        depends[A](B)
+        depends[InjectorTest.AAA](InjectorTest.BBB)
       }
 
       object Execute extends InjectorB {
         def test(): Assertion = {
-          inject[A].provide shouldBe B
+          inject[InjectorTest.AAA].provide shouldBe InjectorTest.BBB
         }
       }
 
@@ -60,22 +60,22 @@ class InjectorTest extends WordSpec with Matchers {
 
     "Be full access." in {
       trait InjectorB extends Injector {
-        depends[A](B)
+        depends[InjectorTest.AAA](InjectorTest.BBB)
       }
 
       trait InjectorY extends Injector {
-        depends[X](Y)
+        depends[XXX](YYY)
       }
 
       object ExecuteB extends InjectorB {
         def test(): Assertion = {
-          inject[A].provide shouldBe B
+          inject[AAA].provide shouldBe BBB
         }
       }
 
       object ExecuteY extends InjectorY {
         def test(): Assertion = {
-          inject[A].provide shouldBe B
+          inject[AAA].provide shouldBe BBB
         }
       }
 
@@ -85,7 +85,7 @@ class InjectorTest extends WordSpec with Matchers {
 
     "Un recovery injection" in new Injector {
       Try {
-        inject[InjectorTest_RECOVER_CASE.A].provide
+        inject[InjectorTest_RECOVER_CASE.EEE].provide
       } match {
         case Success(_) => fail()
         case Failure(_) => succeed
@@ -93,9 +93,9 @@ class InjectorTest extends WordSpec with Matchers {
     }
 
     "Recovery injection" in new Injector {
-      inject[InjectorTest_RECOVER_CASE.A].recover {
-        case _ => InjectorTest_RECOVER_CASE.B
-      }.provide shouldBe InjectorTest_RECOVER_CASE.B
+      inject[InjectorTest_RECOVER_CASE.EEE].recover {
+        case _ => InjectorTest_RECOVER_CASE.FFF
+      }.provide shouldBe InjectorTest_RECOVER_CASE.FFF
     }
   }
 }
