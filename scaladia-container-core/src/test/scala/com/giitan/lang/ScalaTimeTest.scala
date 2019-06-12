@@ -7,10 +7,12 @@ import ScalaTime._
 import com.giitan.injector.Injector
 import org.scalatest.{Matchers, WordSpec}
 
+import scala.util.{Failure, Try}
+
 class ScalaTimeTest extends WordSpec with Matchers with Injector {
 
   trait Context {
-    protected val tz = new RuntimeTZ {
+    protected val tz: RuntimeTZ = new RuntimeTZ {
       override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
       override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
       override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
@@ -54,10 +56,10 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
       "2017-8-26 09".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 9, 0, 0, 0, tz.ZONE_ID)
     }
     "parse unexpected" in new Context {
-      try {
+      Try {
         "2017826".datetime
-      } catch {
-        case e: IllegalArgumentException => e.getMessage shouldBe "Unexpected datetime format. 2017826"
+      } match {
+        case Failure(e: IllegalArgumentException) => e.getMessage shouldBe "Unexpected datetime format. 2017826"
         case _ => fail()
       }
     }
