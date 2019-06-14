@@ -1,8 +1,7 @@
 package com.giitan.lang
 
 import scala.annotation.tailrec
-import scala.collection.GenIterable
-import scala.collection.parallel.ParSeq
+import scala.collection.immutable.Iterable
 
 object ScalaCollection {
 
@@ -14,7 +13,7 @@ object ScalaCollection {
     * @tparam T Object type.
     * @tparam C Sequence type.
     */
-  class CollectableFunctions[T, C <: GenIterable[T]](collectionT: C) {
+  class CollectableFunctions[T, C <: Iterable[T]](collectionT: C) {
 
     /**
       * Create keymap with ID.
@@ -25,7 +24,7 @@ object ScalaCollection {
       */
     def wrapIdentity[X](identity: T => X): Map[X, T] = {
       for {
-        (x, Seq(r, _*)) <- collectionT.groupBy(identity).to[Seq]
+        (x, Seq(r, _*)) <- collectionT.groupBy(identity).toSeq
       } yield x -> r
     }.toMap
 
@@ -41,11 +40,11 @@ object ScalaCollection {
         c <- seqC if matching(t, b, c)
       } yield KeyValue(t, c)
 
-      result.groupBy(_.key).map(r => {
+      result.groupBy(_.key).toSeq.map(r => {
         val (groupedKey, values) = r
 
-        applier(groupedKey, values.map(_.value).to[Seq])
-      }).to[Seq]
+        applier(groupedKey, values.map(_.value).toSeq)
+      })
     }
 
     /**
@@ -59,7 +58,7 @@ object ScalaCollection {
       * @tparam X
       * @return
       */
-    def sliceDevideBy[X](size: Int)(func: GenIterable[T] => X): Seq[X] = {
+    def sliceDevideBy[X](size: Int)(func: Iterable[T] => X): Seq[X] = {
       val split = collectionT.size / size + 1
       sliceWith(_.splitAt(split))(func)
     }
@@ -72,12 +71,12 @@ object ScalaCollection {
       * @tparam X
       * @return
       */
-    def sliceAt[X](size: Int)(func: GenIterable[T] => X): Seq[X] =
+    def sliceAt[X](size: Int)(func: Iterable[T] => X): Seq[X] =
       sliceWith(_.splitAt(size))(func)
 
     @tailrec
-    final def sliceWith[X](splitter: GenIterable[T] => (GenIterable[T], GenIterable[T]))
-                          (func: GenIterable[T] => X, result: SliceSteps[X] = SliceSteps[X](collectionT)): Seq[X] = {
+    final def sliceWith[X](splitter: Iterable[T] => (Iterable[T], Iterable[T]))
+                          (func: Iterable[T] => X, result: SliceSteps[X] = SliceSteps[X](collectionT)): Seq[X] = {
       if (result.next.isEmpty) result.result
       else
         splitter(result.next.seq) match {
@@ -85,13 +84,12 @@ object ScalaCollection {
         }
     }
 
-    case class SliceSteps[X](next: GenIterable[T], result: Seq[X] = Nil)
+    case class SliceSteps[X](next: Iterable[T], result: Seq[X] = Nil)
 
   }
 
-  implicit class GenIterableFunctions[T](collectionT: GenIterable[T]) extends CollectableFunctions[T, GenIterable[T]](collectionT)
+  implicit class GenIterableFunctions[T](collectionT: Iterable[T]) extends CollectableFunctions[T, Iterable[T]](collectionT)
 
   implicit class SeqFunctions[T](collectionT: Seq[T]) extends CollectableFunctions[T, Seq[T]](collectionT)
 
-  implicit class ParFunctions[T](collectionT: ParSeq[T]) extends CollectableFunctions[T, ParSeq[T]](collectionT)
 }

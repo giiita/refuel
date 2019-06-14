@@ -8,6 +8,8 @@ import com.giitan.loader.LoadableArchives._
 import com.giitan.loader.RichClassCrowds.ClassCrowds
 import org.slf4j.LoggerFactory
 
+import scala.collection.parallel.CollectionConverters._
+
 import scala.annotation.tailrec
 
 object ScaladiaClassLoader {
