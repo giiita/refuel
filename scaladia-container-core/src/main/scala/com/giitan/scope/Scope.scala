@@ -123,7 +123,7 @@ private[giitan] class TaggedClassScope[X: TypeTag](value: X) extends Scope[X, Cl
 
   def indexing(): Unit = {
     if (acceptedScope.nonEmpty) {
-      inject[Indexer[ClassScope]].indexing(tt, instance, this.acceptedScope)
+      inject[Indexer[ClassScope]].indexing(tt, instance, this.acceptedScope.toSeq)
     }
   }
 }
@@ -159,7 +159,7 @@ private[giitan] class TaggedObjectScope[X: TypeTag](value: X) extends Scope[X, O
 
   def indexing(): Unit = {
     if (acceptedScope.nonEmpty) {
-      inject[Indexer[ObjectScope]].indexing(tt, instance, this.acceptedScope)
+      inject[Indexer[ObjectScope]].indexing(tt, instance, this.acceptedScope.toSeq)
     }
   }
 }

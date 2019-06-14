@@ -36,7 +36,7 @@ private[giitan] object InjectableSet {
       */
     def searchAccessibles[T](targetType: Type, accessFrom: Seq[ST[_]]): Seq[Injectable[_, ST]] =
       for {
-        injectable <- v
+        injectable <- v.toSeq
         if injectable.tipe =:= targetType
         if (accessFrom.isEmpty && injectable.isGlobaly) || (accessFrom.nonEmpty && accessFrom.exists(x => injectable.isAccepted(x)))
       } yield injectable

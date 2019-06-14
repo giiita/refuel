@@ -3,15 +3,14 @@ package com.giitan.loader
 import java.io.File
 import java.util.jar.{JarEntry, JarFile}
 
-import com.giitan.runtime.ScaladiaClassLoader.classLoader
 import com.giitan.injector.AutoInject
 import com.giitan.loader.RichClassCrowds.ClassCrowds
-import StringURIConvertor._
+import com.giitan.loader.StringURIConvertor._
+import com.giitan.runtime.ScaladiaClassLoader.classLoader
 
-import scala.collection.JavaConverters._
-import scala.reflect._
-import runtime.universe._
-import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
+
+import scala.reflect.runtime.universe._
 
 object LoadableArchives {
 
@@ -31,15 +30,15 @@ object LoadableArchives {
         case null => ClassCrowds()
         case list =>
           ClassCrowds(
-            list.to[Seq].map { path =>
+            list.toSeq.map { path =>
               new File(file, path) match {
-                case x if x.isClassFile =>
+                case x if x.isClassFile                 =>
                   try {
                     val className = packageName.asParentPackagePrefix + x.getName.ignoreClass
                     val classType = classLoader.loadClass(className)
                     if (classOf[AutoInject[_]].isAssignableFrom(classType) && !classType.isInterface)
                       ClassCrowds(
-                        ListBuffer(
+                        Seq(
                           ClassCrowd(
                             classType,
                             asAutoInjectSymbol(className)
@@ -52,7 +51,7 @@ object LoadableArchives {
                   }
                 case directory if directory.isDirectory =>
                   directory.classCrowdEntries(packageName.asParentPackagePrefix + directory.getName)
-                case _ => ClassCrowds()
+                case _                                  => ClassCrowds()
               }
             }.flatMap(_.value)
           )
@@ -89,4 +88,5 @@ object LoadableArchives {
       )
     }
   }
+
 }

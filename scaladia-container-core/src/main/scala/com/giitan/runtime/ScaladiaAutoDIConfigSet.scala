@@ -2,7 +2,6 @@ package com.giitan.runtime
 
 import java.net.URL
 
-import com.giitan.runtime.ScaladiaClassLoader.logger
 import com.giitan.loader.StringURIConvertor._
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
@@ -23,13 +22,13 @@ private[giitan] object ScaladiaAutoDIConfigSet {
 
   private lazy val scanningArchiveWhitelist: Seq[String] = {
     Try {
-      configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_WHITELIST").asScala
+      configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_WHITELIST").asScala.toSeq
     }.getOrElse(Nil)
   }
 
   private lazy val scanningArchiveBlacklist: Seq[String] = {
     Try {
-      configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_BLACKLIST").asScala
+      configSet.getStringList(s"$SCALADIA_CONFIG_SET_PATH.$SCANING_ARCHIVE_BLACKLIST").asScala.toSeq
     }.getOrElse(
       Seq(".jdk")
     )
@@ -53,15 +52,15 @@ private[giitan] object ScaladiaAutoDIConfigSet {
       {
         classLoader.getResources("").asScala.toList ++ {
           (isMultiClassPathMode, scanningArchiveWhitelist) match {
-            case (true, Nil)                               => optionalUrls
+            case (true, Nil)       => optionalUrls
             case (true, whitelist) => optionalUrls.filter(url => whitelist.exists(url.getPath.contains))
-            case _                                         => Try {
+            case _                 => Try {
               val thisPackage = this.getClass.getPackage.getName.dotToSlash
               val paths = "jar:" + classLoader.getResource(thisPackage).getPath.replace(thisPackage, "")
               Seq(new URL(paths))
             } match {
               case scala.util.Success(value) => value
-              case _ => Nil
+              case _                         => Nil
             }
           }
         }

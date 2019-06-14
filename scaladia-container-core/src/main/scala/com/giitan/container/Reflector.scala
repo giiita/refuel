@@ -11,9 +11,14 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success}
 
+private[giitan] object Reflector {
+  def defaultRecoverHook[T]: PartialFunction[Throwable, T] = {
+    case e => throw e
+  }
+}
 private[giitan] case class Reflector[T: TypeTag : ClassTag, S <: Injector : TypeTag](tag: TypeTag[T],
                                                                                      scope: S,
-                                                                                     recoverHook: PartialFunction[Throwable, T] = PartialFunction[Throwable, T]{e: Throwable => throw e}) extends StoredDependency[T] {
+                                                                                     recoverHook: PartialFunction[Throwable, T] = Reflector.defaultRecoverHook) extends StoredDependency[T] {
 
   protected val dependencyGet: () => T = () => {
     implicitly[Container[ObjectScope]].search(tag, Wrapper(scope))

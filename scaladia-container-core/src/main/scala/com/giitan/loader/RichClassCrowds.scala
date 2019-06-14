@@ -13,7 +13,7 @@ import runtime.universe._
 object RichClassCrowds {
   object ClassCrowds {
     def apply(request: Seq[ClassCrowd[_]]): ClassCrowds = new ClassCrowds(
-      request.to
+      ListBuffer.from(request)
     )
   }
 
