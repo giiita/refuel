@@ -1,14 +1,19 @@
 package com.github.giiita.io
 
-import com.github.giiita.io.http.HttpMethod.{DELETE, GET, POST, PUT}
-import dispatch.Req
+import akka.http.scaladsl.model.HttpMethods
+import com.github.giiita.io.http.HttpMethod._
 
 package object http {
 
-  class MethodType[T <: HttpMethod.Method](val method: Req => Req)
+  class MethodType[T](val method: akka.http.scaladsl.model.HttpMethod)
 
-  implicit case object GET extends MethodType[GET](_.GET)
-  implicit case object PUT extends MethodType[PUT](_.PUT)
-  implicit case object POST extends MethodType[POST](_.POST)
-  implicit case object DELETE extends MethodType[DELETE](_.DELETE)
+  implicit case object TRACE extends MethodType[TRACE](HttpMethods.TRACE)
+  implicit case object CONNECT extends MethodType[CONNECT](HttpMethods.CONNECT)
+  implicit case object HEAD extends MethodType[HEAD](HttpMethods.HEAD)
+  implicit case object OPTIONS extends MethodType[OPTIONS](HttpMethods.OPTIONS)
+  implicit case object PATCH extends MethodType[PATCH](HttpMethods.PATCH)
+  implicit case object GET extends MethodType[GET](HttpMethods.GET)
+  implicit case object PUT extends MethodType[PUT](HttpMethods.PUT)
+  implicit case object POST extends MethodType[POST](HttpMethods.POST)
+  implicit case object DELETE extends MethodType[DELETE](HttpMethods.DELETE)
 }

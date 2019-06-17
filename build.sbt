@@ -97,8 +97,12 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     name := "scaladia-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
-      "org.dispatchhttp" % "dispatch-core_2.12" % "0.14.0",
-      "com.twitter" % "finatra-http_2.12" % "19.5.1"
+      "com.typesafe.akka" %% "akka-http" % "10.1.8",
+      "com.typesafe.akka" %% "akka-actor" % "2.5.23",
+      "com.typesafe.akka" %% "akka-stream" % "2.5.23",
+      "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
+      // "com.twitter" % "finatra-http_2.12" % "19.5.1"
     ),
     version in ThisProject := "0.0.6"
   )
