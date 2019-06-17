@@ -89,6 +89,41 @@ lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
     version in ThisProject := "1.5.8"
   )
 
+lazy val scaladiaMacro = (project in file("scaladia-macro"))
+  .settings(assemblySettings)
+  .settings(commonDependencySettings)
+  .settings(
+    name := "scaladia-macro",
+    description := "Lightweight DI container for Scala.",
+    parallelExecution in Test := false,
+    libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.2",
+      "org.scala-lang" % "scala-reflect" % "2.13.0",
+      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "com.softwaremill.macwire" %% "macros" % "2.3.3"
+    ),
+    scalacOptions in Global += "-language:experimental.macros",
+    version in ThisProject := "0.0.1"
+  )
+
+lazy val scaladiaContainer = (project in file("scaladia-container"))
+  .settings(assemblySettings)
+  .settings(commonDependencySettings)
+  .dependsOn(scaladiaMacro)
+  .settings(
+    name := "scaladia-container",
+    description := "Lightweight DI container for Scala.",
+    parallelExecution in Test := false,
+    libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.2",
+      "org.scala-lang" % "scala-reflect" % "2.13.0",
+      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "com.softwaremill.macwire" %% "macros" % "2.3.3"
+    ),
+    scalacOptions in Global += "-language:experimental.macros",
+    version in ThisProject := "0.0.1"
+  )
+
 lazy val scaladiaHttp = (project in file("scaladia-http"))
   .dependsOn(scaladiaContainerCore)
   .settings(assemblySettings)
