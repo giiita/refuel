@@ -1,6 +1,6 @@
 package com.github.giiita.`macro`
 
-import com.github.giiita.injector.AutoInject
+import com.github.giiita.injector.AutoInjectable
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
@@ -11,7 +11,7 @@ class DetectionExtractor[C <: blackbox.Context](c: C) {
 
   def run[T: C#WeakTypeTag](): Vector[C#Symbol] = {
     val nealyPackage = c.weakTypeOf[T].typeSymbol.owner.owner
-    recursivePackageExplore(Vector(nealyPackage), c.symbolOf[AutoInject[_]])
+    recursivePackageExplore(Vector(nealyPackage), c.symbolOf[AutoInjectable])
   }
 
   @tailrec

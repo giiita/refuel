@@ -1,5 +1,6 @@
 package com.github.giiita.injector
 
+import scala.language.experimental.macros
 import com.github.giiita.`macro`.Macro
 import com.github.giiita.provider.Lazy
 
