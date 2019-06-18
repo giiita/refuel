@@ -1,16 +1,17 @@
-package com.github.giiita.injector.testpack
+package com.github.giiita.testpack
 
 import com.github.giiita.injector.AutoInject
 
 object TTT {
 
+  trait MOMO {
+    def test = "TEST"
+  }
+
   object MOMO extends MOMO with AutoInject[String] {
-    println("INITED")
+    println("MOMO INITED")
 
     override def test = "SUCCESS"
   }
 
-  trait MOMO {
-    def test = "TEST"
-  }
 }

@@ -27,4 +27,31 @@ object Macro {
         """)
 
   }
+
+  def pickup_impl[T: c.WeakTypeTag](c: blackbox.Context): c.Tree = {
+    import c.universe._
+    q"""
+       implicitly[T]
+     """
+  }
+
+  def export_impl[T: c.WeakTypeTag](c: blackbox.Context)(value: c.Tree): c.Tree = {
+    import c.universe._
+
+
+    //    val expr = objFullNames.map(name => q"${c.parse(name)}.##").toList
+    //    val res = q"{..$expr}"
+    //    c.Expr(res)
+
+    //      q"""
+    //         implicit val t: ${weakTypeOf[T]} =
+    //        """
+
+    q"""
+       implicit val t: ${weakTypeOf[T]} = $value
+       println("xxxxxx")
+     """
+
+
+  }
 }

@@ -60,7 +60,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
         .run
         .map { result =>
-          println(result)
+           println(result)
           result.length > 0 shouldBe true
         }
     }
