@@ -8,7 +8,7 @@ object TTT {
     def test = "TEST"
   }
 
-  object MOMO extends MOMO with AutoInject[String] {
+  object MOMO extends MOMO with AutoInject[MOMO] {
     println("MOMO INITED")
 
     override def test = "SUCCESS"

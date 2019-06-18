@@ -1,34 +1,22 @@
 package com.github.giiita.container
 
-import com.github.giiita.injector.ContainerMacro
+import com.github.giiita.injector.scope.{OpenScope, Scope}
 
 import scala.collection.mutable.ListBuffer
 
 object Container {
-  import scala.language.implicitConversions
-  implicit def flush[T](value: T): T = {
-    ContainerMacro.export(value)
+
+  val buffer: ListBuffer[Scope[_]] = ListBuffer.empty
+
+  def flush[T](value: T): Unit = buffer.addOne(OpenScope[T](value))
+
+  def get[T, X](from: X): T = buffer.collectFirst {
+    case x: Scope[T] if x.accept(from) => x.value
+  } orElse buffer.collectFirst {
+      case x: Scope[T] if x.accept[X] => x.value
+    } orElse buffer.collectFirst {
+    case x: Scope[T] if x.open => x.value
+  } getOrElse {
+    throw new Exception("Dependencies not found.")
   }
-}
-trait Container {
-
-
-
-  val buffer: ListBuffer[Any] = ListBuffer.empty
-
-  // def pickup[T](symbol: T): Unit = macro pickup_impl[T]
-
-//  def get[T](): T = buffer.collectFirst {
-//    case x: T =>
-//      println(s"FOUND ${x.toString}")
-//      x
-//  }.get
-
-  def get[T](): T = ContainerMacro.pickup[T]
-
-  implicit def flush[T](value: T): T = {
-    ContainerMacro.export(value)
-  }
-
-  case class Provider[T](value: T)
 }
