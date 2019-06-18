@@ -1,5 +1,8 @@
 package com.github.giiita.injector
 
-trait AutoInject[T] extends AutoInjectable with Injector {
-  com.github.giiita.container.Container.flush(this)
+import com.github.giiita.container.Container
+
+trait AutoInject[T] extends AutoInjectable with Injector { me: T =>
+  def exportDIC(): Unit = exportDICindirect()
+  private[this] def exportDICindirect(): Unit = Container.flush[T](me)
 }

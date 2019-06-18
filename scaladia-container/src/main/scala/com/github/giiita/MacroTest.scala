@@ -5,18 +5,8 @@ import com.github.giiita.testpack.TTT.MOMO
 
 object MacroTest extends App with Injector {
   println(
-    inject[MOMO].provide
+    "l " + inject[MOMO].provide
   )
-
-
-
-
-
-
-
-
-
-
 
 
 
