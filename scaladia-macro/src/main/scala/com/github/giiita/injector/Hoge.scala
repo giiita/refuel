@@ -9,7 +9,7 @@ object Hoge {
     }
   }
 
-  type @@[+T, +U]     = T with Seq[U]
+  type @@[+T, +U]     = T with U
 
   case class Basket(blueberry: TagFactory @@ String)
   implicit case object TagFactory extends TagFactory

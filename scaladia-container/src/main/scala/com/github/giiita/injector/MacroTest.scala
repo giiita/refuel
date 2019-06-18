@@ -1,13 +1,11 @@
 package com.github.giiita.injector
 
-import com.github.giiita.injector.Hoge.TagFactory
+import com.github.giiita.injector.testpack.TTT.MOMO
 
-object MacroTest extends App {
+object MacroTest extends App with Injector {
   println(
-    injector.exe[TagFactory]("HUGA")
+    inject[MOMO].provide
   )
-
-
 
 
 }
