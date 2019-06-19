@@ -1,5 +1,6 @@
 package com.github.giiita.container
 
+import com.github.giiita.`macro`.PickupMacro
 import com.github.giiita.injector.scope.InjectableScope
 
 import scala.collection.mutable.ListBuffer
@@ -9,4 +10,6 @@ trait Container {
   def flush[T](value: T, priority: Int)(x: WeakTypeTag[T]): Unit
 
   def getBuffer: ListBuffer[InjectableScope[_]]
+
+  def get[T]: T = macro PickupMacro.pickup_impl[T]
 }

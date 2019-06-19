@@ -1,6 +1,5 @@
 package com.github.giiita.container
 
-import com.github.giiita.`macro`.PickupMacro
 import com.github.giiita.injector.RecoveredInject
 import com.github.giiita.injector.scope.{InjectableScope, OpenScope}
 
@@ -8,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 
 object DefaultContainer extends Container with RecoveredInject[Container] {
 
-  implicit val buffer: ListBuffer[InjectableScope[_]] = ListBuffer.empty
+  val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
 
   import scala.reflect.runtime.universe._
 
@@ -19,5 +18,7 @@ object DefaultContainer extends Container with RecoveredInject[Container] {
 
   def getBuffer: ListBuffer[InjectableScope[_]] = buffer
 
-  def get[T]: T = macro PickupMacro.pickup_impl[T]
+  override def flush[N <: Container](implicit x: WeakTypeTag[N]): Unit = {
+    buffer += OpenScope(this, 0, x.asInstanceOf[WeakTypeTag[Container]])
+  }
 }

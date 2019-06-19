@@ -8,7 +8,7 @@ package object `macro` {
     q"""
          $fire
          new com.github.giiita.provider.Lazy[$tag] {
-           def provide: $tag = com.github.giiita.container.DefaultContainer.get[$tag]
+           def provide: $tag = com.github.giiita.container.IndirectContainerStore.ctn.get[$tag]
          }
         """
   }

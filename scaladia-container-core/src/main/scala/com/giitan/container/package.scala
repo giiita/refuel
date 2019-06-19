@@ -78,7 +78,7 @@ package object container {
     }
   }
 
-  private[giitan] sealed abstract class TaggedContainer[ST[_] : InjectableConversion] extends Container[ST] {
+  private[giitan] sealed abstract class TaggedContainer[ST[_] : InjectableConversion] extends container.Container[ST] {
 
     val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
