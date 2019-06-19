@@ -1,24 +1,24 @@
 package com.github.giiita.container
 
-import com.github.giiita.injector.RecoveredInject
 import com.github.giiita.injector.scope.{InjectableScope, OpenScope}
 
 import scala.collection.mutable.ListBuffer
 
-object DefaultContainer extends Container with RecoveredInject[Container] {
+object DefaultContainer extends StorePublisherContainer {
 
   val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
 
   import scala.reflect.runtime.universe._
 
-  def flush[T](value: T, priority: Int)(x: WeakTypeTag[T]): Unit = {
+  def cache[T](value: T, priority: Int)(x: WeakTypeTag[T]): InjectableScope[T] = {
     println(s"flushing ${x.tpe}")
-    buffer += OpenScope[T](value, priority, x)
+    OpenScope[T](value, priority, x) match {
+      case sc if buffer.contains(sc) => sc
+      case sc =>
+        buffer += sc
+        sc
+    }
   }
 
   def getBuffer: ListBuffer[InjectableScope[_]] = buffer
-
-  override def flush[N <: Container](implicit x: WeakTypeTag[N]): Unit = {
-    buffer += OpenScope(this, 0, x.asInstanceOf[WeakTypeTag[Container]])
-  }
 }

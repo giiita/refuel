@@ -57,11 +57,13 @@ class DetectionExtractor[C <: blackbox.Context](c: C) {
     n match {
       case x if x.isEmpty => result
       case _ =>
-        val (modules, targets) = n.flatMap(_.typeSignature.members).collect {
+        val (modules, targets) = n.map { x =>
+          (None, if (requiredSymbol.forall(x.typeSignature.baseClasses.contains)) Some(x) else None)
+        } ++ n.flatMap(_.typeSignature.members).collect {
           case x if x.isModule =>
-            (x, if (requiredSymbol.forall(x.typeSignature.baseClasses.contains)) Some(x) else None)
+            (Some(x), if (requiredSymbol.forall(x.typeSignature.baseClasses.contains)) Some(x) else None)
         } match {
-          case x => x.map(_._1) -> x.flatMap(_._2)
+          case x => x.flatMap(_._1) -> x.flatMap(_._2)
         }
 
         recursiveModuleExplore(modules, requiredSymbol, result ++ targets)
