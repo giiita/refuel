@@ -10,14 +10,22 @@ class DetectionExtractor[C <: blackbox.Context](c: C) {
   import c.universe._
 
   def run[T: C#WeakTypeTag](): Vector[C#Symbol] = {
-    val nealyPackage = c.weakTypeOf[T].typeSymbol.owner.owner
+    val p = nealyPackage(c.weakTypeOf[T].typeSymbol)
     recursivePackageExplore[T](
-      Vector(nealyPackage),
+      Vector(p),
       Seq(
         c.symbolOf[AutoInjectable],
         c.symbolOf[T]
       )
     )
+  }
+
+  @tailrec
+  private final def nealyPackage(current: Symbol): Symbol = {
+    current.owner match {
+      case x if x.isPackage => x
+      case x => nealyPackage(x)
+    }
   }
 
   @tailrec

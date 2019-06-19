@@ -1,10 +1,10 @@
 package com.github.giiita.injector
 
-import scala.language.experimental.macros
 import com.github.giiita.`macro`.Macro
-import com.github.giiita.provider.Lazy
+import com.github.giiita.provider.{Accessor, Lazy}
 
 trait Injector {
+  me =>
   def inject[T]: Lazy[T] = macro Macro.inject[T]
 
   import scala.language.implicitConversions
@@ -17,4 +17,6 @@ trait Injector {
     * @return
     */
   implicit def provide[X](variable: Lazy[X]): X = variable.provide
+
+  implicit def from: Accessor[_] = Accessor(me)
 }

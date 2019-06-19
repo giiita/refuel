@@ -11,11 +11,12 @@ object Macro {
 
     val detections = new DetectionExtractor[c.type](c).run[T]()
 
-    val expr = detections.map(name => q"${c.parse(name.fullName)}.exportDIC()").toList
+    val expr = detections.map(name => q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]").toList
     c.Expr[Lazy[T]](
       lazyInit(c)(
         c.Expr(q"{..$expr}"),
-        weakTypeOf[T])
+        weakTypeOf[T]
+      )
     )
   }
 }
