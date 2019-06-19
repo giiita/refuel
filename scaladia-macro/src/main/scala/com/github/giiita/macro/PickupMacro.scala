@@ -9,7 +9,7 @@ object PickupMacro {
 
     c.Expr[T] {
       q"""
-         com.github.giiita.container.DefaultContainer.getBuffer.collect {
+         com.github.giiita.container.IndirectContainerStore.ctn.getBuffer.collect {
            case x if x.isSameAs[${weakTypeOf[T]}] => x
          }.sortBy(_.priority).lastOption match {
            case Some(x) => x.value.asInstanceOf[${weakTypeOf[T]}]
