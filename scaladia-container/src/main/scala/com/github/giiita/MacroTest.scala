@@ -5,7 +5,7 @@ import com.github.giiita.testpack.TTT.{MOMO, MUNE}
 
 object MacroTest extends App with Injector {
   println(
-    inject[MOMO].provide
+    inject[MOMO].test
   )
 
   println(
