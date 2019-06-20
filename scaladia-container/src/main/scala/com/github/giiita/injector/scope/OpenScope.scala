@@ -7,5 +7,5 @@ case class OpenScope[T](value: T, priority: Int, x: WeakTypeTag[T]) extends Abst
 
   def acceptedInstance[X](x: Any): Boolean = false
 
-  override def open: Boolean = true
+  override def isOpen: Boolean = true
 }

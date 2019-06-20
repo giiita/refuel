@@ -22,7 +22,7 @@ object TTT {
     override def test = "B"
   }
 
-  object MOMO_C extends AutoInjectCustomPriority[MOMO](Int.MaxValue) with MOMO {
+  object MOMO_C extends AutoInjectCustomPriority[MOMO](Int.MaxValue - 1) with MOMO {
     println("MOMO_C INITED")
 
     override def test = "C"
@@ -44,7 +44,7 @@ object TTT {
     override def test = "BB"
   }
 
-  object MUNE_C extends AutoInjectCustomPriority[MUNE](Int.MaxValue) with MUNE {
+  object MUNE_C extends AutoInjectCustomPriority[MUNE](Int.MaxValue - 1) with MUNE {
     println("MUNE_C INITED")
 
     override def test = "CC"
