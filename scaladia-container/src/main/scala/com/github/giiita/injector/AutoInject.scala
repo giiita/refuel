@@ -10,7 +10,10 @@ trait AutoInject[T] extends AutoInjectable with Injector {
 
   import scala.reflect.runtime.universe._
 
-  private[giiita] def flush[N <: T](implicit x: WeakTypeTag[N]): InjectableScope[T] = {
-    implicitly[Container].createIndexer[T](me, injectionPriority)(x.asInstanceOf[WeakTypeTag[T]]).indexing()
+  private[giiita] def flush[N <: T: WeakTypeTag]: InjectableScope[T] = {
+    implicitly[Container].createIndexer[T](
+      me,
+      injectionPriority
+    )(implicitly[WeakTypeTag[N]].asInstanceOf[WeakTypeTag[T]]).indexing()
   }
 }

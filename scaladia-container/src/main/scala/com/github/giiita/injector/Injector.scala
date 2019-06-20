@@ -3,7 +3,7 @@ package com.github.giiita.injector
 import com.github.giiita.`macro`.Macro
 import com.github.giiita.container.indexer.Indexer
 import com.github.giiita.container.{Container, ContainerStore}
-import com.github.giiita.provider.{Accessor, Lazy}
+import com.github.giiita.provider.{Accessor, Lazy, Tag}
 
 import scala.reflect.runtime.universe._
 
@@ -31,5 +31,5 @@ trait Injector {
 
   implicit def getContainer: Container = implicitly[ContainerStore].ctn
 
-  type `@`[+T, +U]     = T with U
+  type @@[+T, +U] = T with Tag[U]
 }
