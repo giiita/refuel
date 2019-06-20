@@ -21,9 +21,9 @@ private[giitan] case class Reflector[T: TypeTag : ClassTag, S <: Injector : Type
                                                                                      recoverHook: PartialFunction[Throwable, T] = Reflector.defaultRecoverHook) extends StoredDependency[T] {
 
   protected val dependencyGet: () => T = () => {
-    implicitly[container.Container[ObjectScope]].search(tag, Wrapper(scope))
+    implicitly[Container[ObjectScope]].search(tag, Wrapper(scope))
       .orElse(
-        implicitly[container.Container[ClassScope]].search(tag, scope.getClass)
+        implicitly[Container[ClassScope]].search(tag, scope.getClass)
       ) getOrElse {
       throw new InjectableDefinitionException(
         s"""Cannot found ${tag.tpe} implementation.""".stripMargin

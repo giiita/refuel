@@ -1,8 +1,10 @@
 package com.github.giiita.testpack
 
-import com.github.giiita.injector.{AutoInject, AutoInjectCustomPriority, RecoveredInject}
+import com.github.giiita.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
+import com.github.giiita.provider.Tag
+import com.github.giiita.testpack.deeper.MMMMMM
 
-object TTT {
+object TTT extends Injector {
 
   trait HARAMI
 
@@ -10,7 +12,7 @@ object TTT {
     def test = "TEST"
   }
 
-  object MOMO_A extends MOMO with AutoInject[MOMO] {
+  object MOMO_A extends MOMO with Tag[MMMMMM] with AutoInject[MOMO @@ MMMMMM] { me: MOMO @@ MMMMMM =>
     println("MOMO_A INITED")
 
     override def test = "A"

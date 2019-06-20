@@ -1,7 +1,7 @@
 package com.github.giiita
 
 import com.github.giiita.injector.Injector
-import com.github.giiita.testpack.TTT.{MOMO, MUNE, MUNE_A}
+import com.github.giiita.testpack.TTT.{MOMO, MUNE}
 import com.github.giiita.testpack.deeper.MMMMMM
 
 object MacroTest extends App with Injector {
@@ -28,6 +28,6 @@ object MacroTest extends App with Injector {
   }).accept[App].indexing()
 
   println(
-    inject[MOMO @ MMMMMM].test
+    inject[MOMO @@ MMMMMM].test
   )
 }

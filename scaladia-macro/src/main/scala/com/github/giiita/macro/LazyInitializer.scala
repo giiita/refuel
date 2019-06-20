@@ -35,7 +35,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
          $fire
          $mayBeInjection
        } getOrElse {
-         throw new Exception(s"Cannot found" + ${tag.typeSymbol.fullName} + "implementation.")
+         throw new Exception(s"Cannot found " + ${tag.typeSymbol.fullName} + " implementation.")
        }
      """
     }

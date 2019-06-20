@@ -15,7 +15,7 @@ private[giitan] object TaggedClassIndexer extends Indexer[ClassScope] {
     * @tparam T
     */
   def indexing[T](tag: TypeTag[T], value: T, scope: Seq[ClassScope[_]]): Unit = {
-    implicitly[container.Container[ClassScope]].indexing(tag, value, scope)
+    implicitly[Container[ClassScope]].indexing(tag, value, scope)
   }
 }
 
@@ -31,6 +31,6 @@ private[giitan] object TaggedObjectIndexer extends Indexer[ObjectScope] {
     * @tparam T
     */
   def indexing[T](tag: TypeTag[T], value: T, scope: Seq[ObjectScope[_]]): Unit = {
-    implicitly[container.Container[ObjectScope]].indexing(tag, value, scope)
+    implicitly[Container[ObjectScope]].indexing(tag, value, scope)
   }
 }
