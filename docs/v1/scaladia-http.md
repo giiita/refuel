@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-http" % "0.1.0"
+libraryDependencies += "com.github.giiita" %% "scaladia" % "1.5.7"
 ````
 
 ## Examples
@@ -11,7 +11,7 @@ libraryDependencies += "com.phylage" %% "scaladia-http" % "0.1.0"
 ### HTTP Server call
 
 ```
-import com.phylage.scaladia.http.io.Http._
+import com.github.giiita.io.http.Http._
 
 object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject[HttpRequestSetting]
 
@@ -23,7 +23,7 @@ val requets = Map(
 val result: Future[FutureSearch.Response] =
   http[GET](s"http://localhost:80/?${requets.asUrl}")
     .header("auth", "abcde")
-    .as[ResponseType]
+    .deserializing[ResponseType]
     .map(_.value)
     .flatMap(FutureSearch.byValue)
     .run

@@ -1,5 +1,6 @@
 package com.phylage.scaladia
 
+import com.phylage.scaladia.exception.InjectDefinitionException
 import com.phylage.scaladia.injector.Injector.@@
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.phylage.scaladia.provider.{Lazy, Tag}
@@ -148,6 +149,28 @@ object InjectionTest {
     object TestIFImpl_201_TAGA extends TestIF_201 with Tag[TestTagA] with AutoInject[TestIF_201 @@ TestTagA]
     object TestIFImpl_201_TAGB extends TestIF_201 with Tag[TestTagB] with AutoInject[TestIF_201 @@ TestTagB]
   }
+
+  object TEST301 {
+
+    trait TestIF_301
+    trait EX_TestIF_301 extends TestIF_301
+
+    object TestIFImpl_301_AUTO extends TestIF_301 with AutoInject[TestIF_301]
+  }
+
+  object TEST302 {
+
+    trait TestIF_302
+    trait EX_TestIF_302 extends TestIF_302
+
+    object TestIFImpl_301_AUTO extends EX_TestIF_302 with AutoInject[TestIF_302]
+  }
+
+  object TEST303 {
+
+    trait TestIF_303_A
+    trait TestIF_303_B
+  }
 }
 
 class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
@@ -285,6 +308,46 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         case scala.util.Success(_) => fail()
         case scala.util.Failure(exception) => exception.getMessage shouldBe "Cannot found com.phylage.scaladia.injector.Injector.<refinement> implementation."
       }
+    }
+  }
+
+  "Inheritance relationship" should {
+    "pattern 1" in {
+      import TEST301._
+      inject[TestIF_301].provide shouldBe TestIFImpl_301_AUTO
+      Try {
+        inject[EX_TestIF_301].provide shouldBe TestIFImpl_301_AUTO
+      } match {
+        case scala.util.Failure(_: InjectDefinitionException) => succeed
+        case _ => fail()
+      }
+    }
+    "pattern 2" in {
+      import TEST302._
+      inject[TestIF_302].provide shouldBe TestIFImpl_301_AUTO
+      inject[EX_TestIF_302].provide shouldBe TestIFImpl_301_AUTO
+    }
+
+    "type erase" in {
+      import TEST303._
+
+      val r_A = Seq(
+        new TestIF_303_A{},
+        new TestIF_303_A{},
+        new TestIF_303_A{}
+      )
+
+      val r_B = Seq(
+        new TestIF_303_B{},
+        new TestIF_303_B{},
+        new TestIF_303_B{}
+      )
+
+      flush[Seq[TestIF_303_A]](r_A)
+      flush[Seq[TestIF_303_B]](r_B)
+
+      inject[Seq[TestIF_303_A]].provide shouldBe r_A
+      inject[Seq[TestIF_303_B]].provide shouldBe r_B
     }
   }
 }

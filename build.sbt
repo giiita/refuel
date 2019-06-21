@@ -1,6 +1,8 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
+lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
+
 lazy val assemblySettings = Seq(
   scalaVersion := GLOBAL_SCALA_VERSION,
   publishTo := Some(
@@ -12,7 +14,7 @@ lazy val assemblySettings = Seq(
   organization := "com.phylage",
   scalacOptions in Test ++= Seq("-Yrangepos", "-Xlint", "-deprecation", "-unchecked", "-feature"),
   releaseCrossBuild := true,
-  crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0"),
+  crossScalaVersions := buildTargetVersion,
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
@@ -28,28 +30,30 @@ lazy val assemblySettings = Seq(
 )
 
 lazy val commonDependencySettings = Seq(
-  excludeDependencies ++= Seq(
-    ExclusionRule("org.scala-lang.modules", "scala-xml_2.12")
-  ),
-  libraryDependencies ++= Seq(
-    // scala parallel collection
-    "org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0",
+  libraryDependencies ++= {
+    Seq(
+      "org.slf4j" % "slf4j-simple" % "1.7.25" % Provided,
 
-    "org.slf4j" % "slf4j-simple" % "1.7.25" % Provided,
-    
-    "org.scalatest" %% "scalatest" % "3.0.8" % Test
-  )
+      "org.scalatest" %% "scalatest" % "3.0.8" % Test
+    ) ++ {
+      scalaVersion.value match {
+        case "2.13.0" => Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+        case _ => Nil
+      }
+    }
+  }
 )
 
 lazy val root = project.in(file("."))
   .aggregate(
+    scaladiaMacro,
     scaladiaContainer,
     scaladiaHttp
   ).settings(
     publishLocal in ThisProject := {},
     publishArtifact in ThisProject := false,
     scalaVersion := GLOBAL_SCALA_VERSION,
-    crossScalaVersions := Seq("2.11.12", "2.12.8")
+    crossScalaVersions := buildTargetVersion
   )
 
 lazy val scaladiaMacro = (project in file("scaladia-macro"))
@@ -59,13 +63,16 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
     name := "scaladia-macro",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
-    libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.2",
-      "org.scala-lang" % "scala-reflect" % "2.13.0",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-      "com.softwaremill.macwire" %% "macros" % "2.3.3"
-    ),
-    scalacOptions in Global += "-language:experimental.macros"
+    libraryDependencies ++= {
+      Seq(
+        "com.typesafe" % "config" % "1.3.2",
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+        "com.softwaremill.macwire" %% "macros" % "2.3.3",
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      )
+    },
+    scalacOptions in Global += "-language:experimental.macros",
+    version in ThisProject := "1.0.0"
   )
 
 lazy val scaladiaContainer = (project in file("scaladia-container"))
@@ -78,12 +85,12 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.2",
-      "org.scala-lang" % "scala-reflect" % "2.13.0",
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "com.softwaremill.macwire" %% "macros" % "2.3.3"
     ),
     scalacOptions in Global += "-language:experimental.macros",
-    version in ThisProject := "0.0.1"
+    version in ThisProject := "2.0.0"
   ).enablePlugins(JavaAppPackaging)
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
@@ -101,7 +108,7 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
       // "com.twitter" % "finatra-http_2.12" % "19.5.1"
     ),
-    version in ThisProject := "0.0.6"
+    version in ThisProject := "0.1.0"
   )
 
 val GLOBAL_SCALA_VERSION = "2.13.0"

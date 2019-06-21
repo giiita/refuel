@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
 import com.phylage.scaladia.http.io.setting.HttpSetting
 import com.phylage.scaladia.injector.Injector
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
 
 object Http extends Injector {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
-  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = Logger("Http")
 
   private[http] val setting = inject[HttpSetting]
 
@@ -95,7 +95,7 @@ object Http extends Injector {
 
 private case class HttpRetryRevolver(maxRetry: Int) extends Injector {
 
-  private val logger: Logger = LoggerFactory.getLogger(this.getClass)
+  private val logger: Logger = Logger(classOf[HttpRetryRevolver])
 
   /**
     * Http request executor with retry.
