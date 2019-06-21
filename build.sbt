@@ -93,13 +93,14 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
+    logLevel := Level.Debug,
     name := "scaladia-macro",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.2",
       "org.scala-lang" % "scala-reflect" % "2.13.0",
-      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "com.softwaremill.macwire" %% "macros" % "2.3.3"
     ),
     scalacOptions in Global += "-language:experimental.macros",
@@ -111,13 +112,14 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
   .settings(commonDependencySettings)
   .dependsOn(scaladiaMacro)
   .settings(
+    logLevel := Level.Debug,
     name := "scaladia-container",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.3.2",
       "org.scala-lang" % "scala-reflect" % "2.13.0",
-      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "com.softwaremill.macwire" %% "macros" % "2.3.3"
     ),
     scalacOptions in Global += "-language:experimental.macros",

@@ -1,4 +1,4 @@
-package com.github.giiita.`macro`
+package com.github.giiita.internal
 
 import com.github.giiita.injector.scope.InjectableScope
 import com.github.giiita.provider.Lazy
@@ -47,10 +47,7 @@ object Macro {
   private[this] def flushForAll[C <: blackbox.Context, T: c.WeakTypeTag](c: C)(x: Vector[C#Symbol]): c.Expr[Seq[InjectableScope[T]]] = {
     import c.universe._
 
-    println(s"Flush type ${weakTypeOf[T].typeSymbol.fullName}")
-
     val flushed = x.map { name =>
-      println(s"Flushed is ${name.fullName}")
       c.Expr[InjectableScope[T]](q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]")
     }
     c.Expr[Seq[InjectableScope[T]]](

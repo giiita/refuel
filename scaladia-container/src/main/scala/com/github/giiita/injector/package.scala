@@ -1,6 +1,6 @@
 package com.github.giiita
 
-import com.github.giiita.`macro`.Macro
+import com.github.giiita.internal.Macro
 import com.github.giiita.container.{Container, ContainerStore}
 
 package object injector {
@@ -10,7 +10,4 @@ package object injector {
 
     def initContainer: Container = macro Macro.containerSetting[Container]
   }
-
-
-
 }

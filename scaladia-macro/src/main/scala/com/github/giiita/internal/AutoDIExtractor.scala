@@ -1,11 +1,16 @@
-package com.github.giiita.`macro`
+package com.github.giiita.internal
 
 import com.github.giiita.exception.InjectDefinitionException
 import com.github.giiita.injector.AutoInjectable
 import com.github.giiita.provider.Tag
+import com.typesafe.scalalogging.Logger
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
+
+object AutoDIExtractor {
+  val log: Logger = Logger(classOf[AutoDIExtractor[_]])
+}
 
 class AutoDIExtractor[C <: blackbox.Context](c: C) {
 
@@ -22,7 +27,7 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
       )
     ) match {
       case r =>
-        println(s"Recursive complete : ${r.map(_.name).mkString(",")}")
+        AutoDIExtractor.log.info(s"With the injection of ${weakTypeOf[T]}, flush these : ${r.map(_.name).mkString(",")}")
         r
     }
   }
@@ -34,7 +39,7 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
         x.fullName == "<root>" => prevs.tail.headOption.getOrElse {
         throw new InjectDefinitionException("Autoloading is limited to interfaces that are more deeply defined than two packages. \nThe auto-read range for the \"com.github.giiita.injector.Xxx\" interface is at least `com.github` objects.")
       }
-      case x                   => nealyPackage(x, prevs.+:(x): _*)
+      case x => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
@@ -44,11 +49,11 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
                                             result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     selfPackages match {
       case x if x.isEmpty => result
-      case _              =>
+      case _ =>
         val (packages, modules) = selfPackages.flatMap(_.info.members).collect {
           case x if x.isPackage =>
             Some(x) -> None
-          case x if x.isModule  =>
+          case x if x.isModule =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -68,13 +73,7 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n match {
       case x if x.isEmpty => result
-      case _              =>
-
-        n.withFilter(_.isModule).foreach { x =>
-          println(
-            s"""${requiredSymbol.mkString(",")} => ${x} assigned is ${allMeetCondition(requiredSymbol, x)}""".stripMargin)
-        }
-
+      case _ =>
         val validated = n.collect {
           case x if allMeetCondition(requiredSymbol, x) => x
         }
@@ -88,11 +87,7 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
   }
 
   private def allMeetCondition(requiredSymbol: Seq[Type], module: Symbol): Boolean = {
-
-    // MOMOから　MOMO A が消えるようにする
-    // println(s"""Module baseclass : ${module} => ${module.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol)}""")
-    // println(s"Required ${requiredSymbol.mkString(",")} as ${!requiredSymbol.exists(_.<:<(weakTypeOf[Tag[_]]))}")
-    requiredSymbol.forall(module.typeSignature.<:<) && !{
+    requiredSymbol.forall(module.typeSignature.<:<) && ! {
       module.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
         !requiredSymbol.exists(_.<:<(weakTypeOf[Tag[_]]))
     }

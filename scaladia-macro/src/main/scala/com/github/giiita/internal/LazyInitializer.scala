@@ -1,4 +1,4 @@
-package com.github.giiita.`macro`
+package com.github.giiita.internal
 
 import com.github.giiita.container.Container
 
@@ -11,7 +11,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
   def lazyInit[T: C#WeakTypeTag](fire: c.Expr[Unit], ctn: Tree, access: c.Tree): Tree = {
     q"""
        new com.github.giiita.provider.Lazy[${weakTypeOf[T]}] {
-         def provide: ${weakTypeOf[T]} = ${injection[T](ctn, fire, access)}
+         lazy val provide: ${weakTypeOf[T]} = ${injection[T](ctn, fire, access)}
        }
      """
   }
@@ -19,19 +19,15 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
   def injection[T: C#WeakTypeTag](ctn: Tree, fire: c.Expr[Unit], access: c.Tree): Expr[T] = {
     val tag = weakTypeOf[T]
 
-    val buffer = reify {
-      c.Expr[Container](ctn).splice.getBuffer
-    }
-
-    val mayBeInjection = c.Expr[Option[T]](q"""
-       $buffer.filter(_.accepted[$tag]($access)).sortBy(_.priority).lastOption.map(_.value.asInstanceOf[$tag])
+    val mayBeInjection = c.Expr[Option[T]](
+      q"""
+         ${c.Expr[Container](ctn)}.find[$tag]($access)
        """
     )
 
     c.Expr[T] {
       q"""
        $mayBeInjection orElse {
-         println("Primary foundation failed.")
          $fire
          $mayBeInjection
        } getOrElse {
