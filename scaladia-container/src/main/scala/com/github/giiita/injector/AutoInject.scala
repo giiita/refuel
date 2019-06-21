@@ -3,6 +3,14 @@ package com.github.giiita.injector
 import com.github.giiita.container.Container
 import com.github.giiita.injector.scope.InjectableScope
 
+/**
+  *
+  *
+  * It is a basic automatic injection interface.
+  * The priority is fixed, use [[com.github.giiita.injector.AutoInjectCustomPriority]] to change it.
+  *
+  * @tparam T Type to register
+  */
 trait AutoInject[T] extends AutoInjectable with Injector {
   me: T =>
 

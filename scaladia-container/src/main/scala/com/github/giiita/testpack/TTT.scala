@@ -1,5 +1,6 @@
 package com.github.giiita.testpack
 
+import com.github.giiita.injector.Injector.@@
 import com.github.giiita.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.github.giiita.provider.Tag
 import com.github.giiita.testpack.deeper.MMMMMM

@@ -5,9 +5,20 @@ import com.github.giiita.injector.scope.{InjectableScope, OpenScope}
 
 import scala.reflect.runtime.universe._
 
-abstract class StorePublisherContainer extends Container with AutoInject[Container] { me =>
+/**
+  * It is an abstract container
+  */
+abstract class StorePublisherContainer extends Container with AutoInject[Container] {
+  me =>
 
-  override def flush[N <: Container](implicit x: WeakTypeTag[N]): InjectableScope[Container] = {
+  /**
+    * The process that is originally registered to "Injection Container" is prevented to prevent circular reference.
+    *
+    * @param x runtime weak type tag
+    * @tparam N extends container type
+    * @return
+    */
+  override final def flush[N <: Container](implicit x: WeakTypeTag[N]): InjectableScope[Container] = {
     OpenScope[Container](me, injectionPriority, x.asInstanceOf[WeakTypeTag[Container]])
   }
 }
