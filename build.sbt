@@ -3,33 +3,24 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val assemblySettings = Seq(
   scalaVersion := GLOBAL_SCALA_VERSION,
-  assemblyJarName in assembly := {
-    s"${name.value}-${version.value}.jar"
-  },
   publishTo := Some(
     if (isSnapshot.value)
       Opts.resolver.sonatypeSnapshots
     else
       Opts.resolver.sonatypeStaging
   ),
-  organization := "com.github.giiita",
+  organization := "com.phylage",
   scalacOptions in Test ++= Seq("-Yrangepos", "-Xlint", "-deprecation", "-unchecked", "-feature"),
   releaseCrossBuild := true,
   crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0"),
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-  assemblyMergeStrategy in assembly := {
-    case PathList(ps@_*) if ps.last endsWith ".class"      => MergeStrategy.first
-    case PathList(ps@_*) if ps.last endsWith "BUILD"       => MergeStrategy.first
-    case PathList(ps@_*) if ps.last endsWith ".properties" => MergeStrategy.first
-    case ps                                                => (assemblyMergeStrategy in assembly).value(ps)
-  },
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
     runClean,
     runTest,
-    // setReleaseVersion,
-    // commitReleaseVersion,
+    setReleaseVersion,
+    commitReleaseVersion,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
     ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
@@ -52,9 +43,8 @@ lazy val commonDependencySettings = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(
-    scaladiaContainerCore,
-    scaladiaHttp,
-    all
+    scaladiaContainer,
+    scaladiaHttp
   ).settings(
     publishLocal in ThisProject := {},
     publishArtifact in ThisProject := false,
@@ -62,38 +52,10 @@ lazy val root = project.in(file("."))
     crossScalaVersions := Seq("2.11.12", "2.12.8")
   )
 
-lazy val all = (project in file("scaladia-all"))
-  .dependsOn(
-    scaladiaContainerCore,
-    scaladiaHttp
-  )
-  .settings(assemblySettings)
-  .settings(
-    name := "scaladia",
-    description := "Scaladia all libraries.",
-    version in ThisProject := "1.6.4"
-  )
-
-lazy val scaladiaContainerCore = (project in file("scaladia-container-core"))
-  .settings(assemblySettings)
-  .settings(commonDependencySettings)
-  .settings(
-    name := "scaladia-container-core",
-    description := "Lightweight DI container for Scala.",
-    parallelExecution in Test := false,
-    libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.2",
-      "org.scala-lang" % "scala-reflect" % "2.13.0",
-      "org.slf4j" % "slf4j-api" % "1.7.25"
-    ),
-    version in ThisProject := "1.5.8"
-  )
-
 lazy val scaladiaMacro = (project in file("scaladia-macro"))
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
-    logLevel := Level.Debug,
     name := "scaladia-macro",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
@@ -103,8 +65,7 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
       "com.softwaremill.macwire" %% "macros" % "2.3.3"
     ),
-    scalacOptions in Global += "-language:experimental.macros",
-    version in ThisProject := "0.0.1"
+    scalacOptions in Global += "-language:experimental.macros"
   )
 
 lazy val scaladiaContainer = (project in file("scaladia-container"))
@@ -112,7 +73,6 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
   .settings(commonDependencySettings)
   .dependsOn(scaladiaMacro)
   .settings(
-    logLevel := Level.Debug,
     name := "scaladia-container",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
@@ -124,10 +84,10 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
     ),
     scalacOptions in Global += "-language:experimental.macros",
     version in ThisProject := "0.0.1"
-  )
+  ).enablePlugins(JavaAppPackaging)
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
-  .dependsOn(scaladiaContainerCore)
+  .dependsOn(scaladiaContainer)
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
