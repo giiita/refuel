@@ -28,7 +28,6 @@ case class AcceptedFromInstanceScope[T](value: T, priority: Int = Int.MaxValue, 
     * @return
     */
   def acceptedInstance(x: Any): Boolean = {
-    println(s"${acceptedFrom} => ${x}")
     acceptedFrom.contains(x)
   }
 }

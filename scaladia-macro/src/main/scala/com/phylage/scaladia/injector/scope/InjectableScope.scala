@@ -26,10 +26,6 @@ trait InjectableScope[T] {
 
     isSameAs[X] && {
       isOpen || acceptedClass(requestFrom.t.getClass) || acceptedInstance(requestFrom.t)
-    } match {
-      case result =>
-        println(s"$value = $result ($priority)")
-        result
     }
   }
 

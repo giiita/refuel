@@ -1,6 +1,7 @@
 package com.phylage.scaladia.internal
 
 import com.phylage.scaladia.container.Container
+import com.phylage.scaladia.exception.InjectDefinitionException
 
 import scala.reflect.macros.blackbox
 
@@ -31,7 +32,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
          $fire
          $mayBeInjection
        } getOrElse {
-         throw new Exception(s"Cannot found " + ${tag.typeSymbol.fullName} + " implementation.")
+         throw new com.phylage.scaladia.exception.InjectDefinitionException(s"Cannot found " + ${tag.typeSymbol.fullName} + " implementation.")
        }
      """
     }
