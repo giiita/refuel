@@ -365,8 +365,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         new TestIF_303_B{}
       )
 
-      flush[Seq[TestIF_303_A]](r_A)
-      flush[Seq[TestIF_303_B]](r_B)
+      overwrite[Seq[TestIF_303_A]](r_A)
+      overwrite[Seq[TestIF_303_B]](r_B)
 
       inject[Seq[TestIF_303_A]].provide shouldBe r_A
       inject[Seq[TestIF_303_B]].provide shouldBe r_B

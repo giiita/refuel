@@ -18,7 +18,7 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
       override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
       override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
     }
-    flush[RuntimeTZ](tz)
+    overwrite[RuntimeTZ](tz)
   }
 
   "ZonedDateTimeBs" should {
