@@ -14,14 +14,14 @@ private[scaladia] trait Container {
     * @tparam T injection type
     * @return
     */
-  private[scaladia] def cache[T](value: InjectableScope[T]): InjectableScope[T]
+  def cache[T](value: InjectableScope[T]): InjectableScope[T]
 
   /**
     * May return an injectable object.
     *
     * @return
     */
-  private[scaladia] def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T]
+  def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T]
 
   /**
     * Generate an indexer.
@@ -31,5 +31,5 @@ private[scaladia] trait Container {
     * @tparam T injection type
     * @return
     */
-  private[scaladia] def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
+  def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
 }

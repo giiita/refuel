@@ -137,6 +137,13 @@ object InjectionTest {
     object AccessorC extends AccessorTestC
   }
 
+  object TEST107 {
+
+    trait TestIF_107
+
+    object TestIFImpl_107_AUTO extends TestIF_107 with AutoInject[TestIF_107]
+  }
+
   object TEST201 {
 
     trait TestIF_201
@@ -231,6 +238,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       inject[TestIF_101].provide shouldBe LOCAL_TestIF_101
     }
+
     "out of scope instance" in {
       import TEST102._
 
@@ -250,6 +258,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       inject[TestIF_103].provide shouldBe LOCAL_TestIF_103
     }
+
     "out of scope class" in {
       import TEST104._
 
@@ -259,6 +268,19 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       inject[TestIF_104].provide shouldBe TestIFImpl_104_AUTO
     }
+
+    "confirm vs narrow class" in {
+      import TEST107._
+
+      object LOCAL_TestIF_107 extends TestIF_107
+
+      val inspection = confirm[TestIF_107]
+
+      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
+
+      inspection shouldBe TestIFImpl_107_AUTO
+    }
+
     "add scope of multiple types" in {
       import TEST104._
 

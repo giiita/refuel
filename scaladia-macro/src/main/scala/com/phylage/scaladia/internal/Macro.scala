@@ -7,19 +7,31 @@ import scala.reflect.macros.blackbox
 
 object Macro {
 
-  def inject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
+  def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     import c.universe._
 
     val detections = new AutoDIExtractor[c.type](c).run[T]()
 
     val flushed = flushForAll[c.type, T](c)(detections)
 
-    c.Expr[Lazy[T]](
-      new LazyInitializer[c.type](c).lazyInit[T](
-        c.Expr[Unit](q"{..$flushed}"),
-        ctn,
-        access
-      )
+    new LazyInitializer[c.type](c).lazyInit[T](
+      c.Expr[Unit](q"{..$flushed}"),
+      ctn,
+      access
+    )
+  }
+
+  def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[T] = {
+    import c.universe._
+
+    val detections = new AutoDIExtractor[c.type](c).run[T]()
+
+    val flushed = flushForAll[c.type, T](c)(detections)
+
+    new LazyInitializer[c.type](c).diligentInit[T](
+      c.Expr[Unit](q"{..$flushed}"),
+      ctn,
+      access
     )
   }
 
@@ -39,7 +51,7 @@ object Macro {
     reify {
       flushed.splice.sortBy(_.priority).lastOption match {
         case Some(x) => x.value
-        case None    => throw new Exception("Container setup failed.")
+        case None => throw new Exception("Container setup failed.")
       }
     }
   }

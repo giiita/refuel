@@ -6,7 +6,7 @@
 libraryDependencies += "com.phylage" %% "scaladia-container" % "2.0.0"
 ````
 
-### The simplest Injection
+### Simplest Injection
 
 ```scala
 object A extends A with AutoInject[A]
@@ -58,7 +58,7 @@ If you want to control multiple overlapping dependencies, there are several appr
 ```scala
 /**
  * AutoInject priority = 1000
- * Injector.flush[X](x) = 1100
+ * Injector.overwrite[X](x) = 1100
  * AutoInjectCustomPriority = ???
  * RecoveredInject priority = 0
  * narrow[X](X).indexing() priority = Int.MAX
@@ -118,19 +118,9 @@ When UnitTest parallel execution is enabled, overriding global scope dependencie
 Therefore, be careful to use narrowly overriding in unit tests.
 
 ```scala
-class XxxTest extends TestClient with Injector {
-  "Test" should "test-1" in {
-    val targetService = TargetServiceImpl
-    narrow[A](new MockA).accept(targetService).indexing()
-    targetService.exec() // MockA is used for A in targetService
-  }
-  
-  trait Context extends TargetService
-  "Test" should "another case" in new Context {
-    narrow[A](new MockA).accept(this).indexing()
-    exec()
-  }
-}
+  val targetService = TargetServiceImpl
+  narrow[A](new MockA).accept(targetService).indexing()
+  targetService.exec() // MockA is used for A in targetService
 ```
 
 ### Override dependency
@@ -147,7 +137,7 @@ trait A {
 object TestA extends Injector {
   private[this] val a: A = inject[A]
 
-  flush[A] {
+  overwrite[A] {
     new A {
       override def toString: String = "OVERRIDE"
     }
@@ -166,7 +156,7 @@ narrow[T](new T {}).accept(this).indexing()
 Overwriting with `depends` and running tests in parallel may unexpectedly overwrite globally.
 
 
-### Custom usage
+### Advanced usage
 
 ```scala
   trait A
@@ -174,7 +164,7 @@ Overwriting with `depends` and running tests in parallel may unexpectedly overwr
   object C extends A
   
   trait BInjector extends Injector {
-    flush[A](B)
+    overwrite[A](B)
   }
   
   object Test extends BInjector {
@@ -197,11 +187,11 @@ Overwriting with `depends` and running tests in parallel may unexpectedly overwr
   object Z extends X
   
   trait BInjector extends Injector {
-    flush[A](B)
+    overwrite[A](B)
   }
   
   trait ZInjector extends Injector {
-    flush[X](Z)
+    overwrite[X](Z)
   }
   
   object TestA extends BInjector {
@@ -225,11 +215,11 @@ Overwriting with `depends` and running tests in parallel may unexpectedly overwr
   object C extends A
   
   trait BInjector extends Injector {
-    flush[A](B)
+    overwrite[A](B)
   }
   
   trait CInjector extends Injector {
-    flush[A](C)
+    overwrite[A](C)
   }
   
   object TestA extends BInjector with CInjector {

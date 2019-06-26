@@ -48,6 +48,7 @@ lazy val root = project.in(file("."))
   .aggregate(
     scaladiaMacro,
     scaladiaContainer,
+    scaladiaLang,
     scaladiaHttp
   ).settings(
     publishLocal in ThisProject := {},
@@ -65,13 +66,11 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
     parallelExecution in Test := false,
     libraryDependencies ++= {
       Seq(
-        "com.typesafe" % "config" % "1.3.2",
         "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-        "com.softwaremill.macwire" %% "macros" % "2.3.3",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       )
     },
-    scalacOptions in Global += "-language:experimental.macros",
+    scalacOptions += "-language:experimental.macros",
     version in ThisProject := "1.0.0"
   )
 
@@ -84,17 +83,25 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.2",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-      "com.softwaremill.macwire" %% "macros" % "2.3.3"
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global += "-language:experimental.macros",
     version in ThisProject := "2.0.0"
   ).enablePlugins(JavaAppPackaging)
 
-lazy val scaladiaHttp = (project in file("scaladia-http"))
+lazy val scaladiaLang = (project in file("scaladia-lang"))
+  .settings(assemblySettings)
+  .settings(commonDependencySettings)
   .dependsOn(scaladiaContainer)
+  .settings(
+    name := "scaladia-lang",
+    parallelExecution in Test := true,
+    version in ThisProject := "1.0.0"
+  ).enablePlugins(JavaAppPackaging)
+
+lazy val scaladiaHttp = (project in file("scaladia-http"))
+  .dependsOn(scaladiaLang)
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
@@ -106,9 +113,8 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
       "com.typesafe.akka" %% "akka-stream" % "2.5.23",
       "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8",
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
-      // "com.twitter" % "finatra-http_2.12" % "19.5.1"
     ),
     version in ThisProject := "0.1.0"
-  )
+  ).enablePlugins(JavaAppPackaging)
 
 val GLOBAL_SCALA_VERSION = "2.13.0"
