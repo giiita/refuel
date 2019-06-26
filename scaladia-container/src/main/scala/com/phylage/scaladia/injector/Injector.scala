@@ -27,7 +27,7 @@ trait Injector {
     * @param priority Injection priority.
     * @tparam T new dependency type
     */
-  protected def flush[T: WeakTypeTag](x: T, priority: Int = 1100): Unit = implicitly[Container].createIndexer(x, priority).indexing()
+  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100): Unit = implicitly[Container].createIndexer(x, priority).indexing()
 
   /**
     * Gets an indexer for registering new dependencies.
@@ -43,12 +43,34 @@ trait Injector {
   /**
     * Get accessible dependencies.
     *
+    * The type information is resolved at compile time, but the injection object is finalized at runtime.
+    * This function is slower than [[com.phylage.scaladia.injector.Injector.confirm]], but can be overwritten by flush or narrow.
+    *
     * @param ctn Container
     * @param access Accessor (This refers to itself)
     * @tparam T Injection type
     * @return
     */
-  protected def inject[T](implicit ctn: Container, access: Accessor[_]): Lazy[T] = macro Macro.inject[T]
+  protected def inject[T](implicit ctn: Container, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
+
+
+  /**
+    * Get accessible dependencies.
+    * You can detect errors that can not be assigned at compile time.
+    *
+    * It is faster than [[com.phylage.scaladia.injector.Injector.inject]] because of immediate assignment,
+    * but the dependency injected at compile time is determined,
+    * and this assignment can not be overwritten with "flush" or "narrow".
+    *
+    * The scope to which this immediate assignment applies is
+    * all the same instances that inherit [[com.phylage.scaladia.injector.AutoInjectable]].
+    *
+    * @param ctn Container
+    * @param access Accessor (This refers to itself)
+    * @tparam T Injection type
+    * @return
+    */
+  protected def confirm[T](implicit ctn: Container, access: Accessor[_]): T = macro Macro.diligentInject[T]
 
   /**
     * Provide dependency.
@@ -63,13 +85,13 @@ trait Injector {
     * This refers to itself
     * @return
     */
-  implicit def from: Accessor[_] = Accessor(me)
+  protected implicit def from: Accessor[_] = Accessor(me)
 
   /**
     * Implicitly container
     * @return
     */
-  implicit def getContainer: Container = implicitly[ContainerStore].ctn
+  protected implicit def getContainer: Container = implicitly[ContainerStore].ctn
 
 
 }
