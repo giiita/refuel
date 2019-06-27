@@ -114,7 +114,7 @@ object TestA extends Injector {
 
 ### Testing
 
-When UnitTest parallel execution is enabled, overriding global scope dependencies such as `depends` in a test may result in unexpected overwrites between different threads.<br/>
+When UnitTest parallel execution is enabled, overriding global scope dependencies such as `overwrite` in a test may result in unexpected overwrites between different threads.<br/>
 Therefore, be careful to use narrowly overriding in unit tests.
 
 ```scala
@@ -264,7 +264,7 @@ However, caution is required as types inheriting AnyVal are handled internally a
 ### [ScalaTime](https://github.com/giiita/scaladia/blob/master/scaladia-container-core/src/main/scala/com/giitan/lang/ScalaTime.scala)
 
 ```scala
-import com.giitan.lang.ScalaTime._
+import com.phylage.scaladia.lang.ScalaTime._
 ```
 Supports conversion between various classes and date classes.
 
