@@ -4,19 +4,17 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.giiita/scaladia_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/scaladia_2.12)
 
-Scaladia is a lightweight DI container.<br/>
+Scaladia is not bothersome and is lightweight Scala Dependency Injection library<br/>
 Inspired by [Macwire](https://github.com/adamw/macwire)<br/>
-I do not use macro.
 
-## [scaladia-container-core](https://github.com/giiita/scaladia/tree/master/scaladia-container-core)
+## [scaladia-container-core](https://github.com/giiita/scaladia/tree/master/scaladia-container)
 
-> Lightweight DI container.<br/>
+> DI container core.<br/>
 > Just by Mixining a specific trait, it will be loaded automatically into DIContainer.<br/>
 > It is also possible to easily change dependencies from test cases or allow access only from arbitrary scopes.<br/>
 
 
 ## [scaladia-http](https://github.com/giiita/scaladia/tree/master/scaladia-http)
 
-> Http server call client.<br/>
-> HTTP communication Client based on IO monad.<br/>
-> In future, we plan to implement test stub control by DI and finatra interceptor..<br/>
+> Http server client with Akka-HTTP.<br/>
+> In future, we plan to implement test stub control by dependency injection..<br/>
