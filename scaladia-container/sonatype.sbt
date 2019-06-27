@@ -1,6 +1,6 @@
 sonatypeProfileName := "com.phylage"
 
-homepage := Some(url("https://github.com/giiita/scaladia/tree/master/scaladia-http"))
+homepage := Some(url("https://github.com/giiita/scaladia/tree/master/scaladia-container"))
 
 licenses := Seq(
   "Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")

@@ -37,6 +37,8 @@ jobs:
             - ~/.ivy2
             - ~/.sbt
             - ~/target
-            - ~/scaladia-container-core/target
+            - ~/scaladia-macro/target
+            - ~/scaladia-container/target
+            - ~/scaladia-lang/target
             - ~/scaladia-http/target
           key: v1-dependencies--{{ checksum "build.sbt" }}

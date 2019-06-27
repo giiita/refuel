@@ -1,4 +1,4 @@
-sonatypeProfileName := "com.github.giiita"
+sonatypeProfileName := "com.phylage"
 
 homepage := Some(url("https://github.com/giiita/scaladia"))
 
