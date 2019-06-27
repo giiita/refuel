@@ -70,8 +70,7 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
         "org.scala-lang" % "scala-reflect" % scalaVersion.value
       )
     },
-    scalacOptions += "-language:experimental.macros",
-    version in ThisProject := "1.0.0"
+    scalacOptions += "-language:experimental.macros"
   )
 
 lazy val scaladiaContainer = (project in file("scaladia-container"))
@@ -86,8 +85,7 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
-    scalacOptions in Global += "-language:experimental.macros",
-    version in ThisProject := "2.0.0"
+    scalacOptions in Global += "-language:experimental.macros"
   ).enablePlugins(JavaAppPackaging)
 
 lazy val scaladiaLang = (project in file("scaladia-lang"))
@@ -96,8 +94,7 @@ lazy val scaladiaLang = (project in file("scaladia-lang"))
   .dependsOn(scaladiaContainer)
   .settings(
     name := "scaladia-lang",
-    parallelExecution in Test := true,
-    version in ThisProject := "1.0.0"
+    parallelExecution in Test := true
   ).enablePlugins(JavaAppPackaging)
 
 lazy val scaladiaHttp = (project in file("scaladia-http"))
@@ -113,8 +110,7 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
       "com.typesafe.akka" %% "akka-stream" % "2.5.23",
       "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8",
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
-    ),
-    version in ThisProject := "0.1.0"
+    )
   ).enablePlugins(JavaAppPackaging)
 
 val GLOBAL_SCALA_VERSION = "2.13.0"
