@@ -175,8 +175,22 @@ object InjectionTest {
 
   object TEST303 {
 
-    trait TestIF_303_A
-    trait TestIF_303_B
+    object Wrap {
+      def apply[T <: TestIF](t: T) = new Wrap[T] {
+        override val inst: T = t
+      }
+    }
+    trait Wrap[T <: TestIF] {
+      val inst: T
+    }
+    trait TestIF
+    trait TestIF_303_A extends TestIF
+    trait TestIF_303_B extends TestIF
+  }
+
+  object TEST304 {
+    trait TestIF_304_A
+    trait TestIF_304_B
   }
 }
 
@@ -333,6 +347,10 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
     }
   }
 
+  "Type erase" should {
+
+  }
+
   "Inheritance relationship" should {
     "pattern 1" in {
       import TEST301._
@@ -350,26 +368,43 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[EX_TestIF_302].provide shouldBe TestIFImpl_301_AUTO
     }
 
-    "type erase" in {
-      import TEST303._
+    "type erase Seq" in {
+      import TEST304._
 
       val r_A = Seq(
-        new TestIF_303_A{},
-        new TestIF_303_A{},
-        new TestIF_303_A{}
+        new TestIF_304_A{},
+        new TestIF_304_A{},
+        new TestIF_304_A{}
       )
 
       val r_B = Seq(
-        new TestIF_303_B{},
-        new TestIF_303_B{},
-        new TestIF_303_B{}
+        new TestIF_304_B{},
+        new TestIF_304_B{},
+        new TestIF_304_B{}
       )
 
-      overwrite[Seq[TestIF_303_A]](r_A)
-      overwrite[Seq[TestIF_303_B]](r_B)
+      overwrite[Seq[TestIF_304_A]](r_A)
+      overwrite[Seq[TestIF_304_B]](r_B)
 
-      inject[Seq[TestIF_303_A]].provide shouldBe r_A
-      inject[Seq[TestIF_303_B]].provide shouldBe r_B
+      inject[Seq[TestIF_304_A]].provide shouldBe r_A
+      inject[Seq[TestIF_304_B]].provide shouldBe r_B
+    }
+
+    "type erase" in {
+      import TEST303._
+
+      val r_A = Wrap(new TestIF_303_A{})
+
+      val r_B = Wrap(new TestIF_303_B{})
+
+      overwrite[Wrap[TestIF_303_A]](r_A)
+      overwrite[Wrap[TestIF_303_B]](r_B)
+
+      import scala.reflect.runtime.universe._
+      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap[T]] = inject[Wrap[T]]
+
+      get[TestIF_303_A].provide shouldBe r_A
+      get[TestIF_303_B].provide shouldBe r_B
     }
   }
 }
