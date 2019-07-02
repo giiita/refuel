@@ -176,11 +176,11 @@ object InjectionTest {
   object TEST303 {
 
     object Wrap {
-      def apply[T <: TestIF](t: T) = new Wrap[T] {
+      def apply[T <: TestIF](t: T) = new Wrap_303[T] {
         override val inst: T = t
       }
     }
-    trait Wrap[T <: TestIF] {
+    trait Wrap_303[+T <: TestIF] {
       val inst: T
     }
     trait TestIF
@@ -191,6 +191,25 @@ object InjectionTest {
   object TEST304 {
     trait TestIF_304_A
     trait TestIF_304_B
+  }
+
+  object TEST305 {
+
+    import scala.reflect.runtime.universe.WeakTypeTag
+    abstract class Wrap_305[+T <: TestIF: WeakTypeTag] {
+      val inst: T
+    }
+    trait TestIF
+
+    trait TestIF_305_A extends TestIF
+    object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject[Wrap_305[TestIF_305_A]] {
+      val inst: TestIF_305_A = new TestIF_305_A {}
+    }
+
+    trait TestIF_305_B extends TestIF
+    object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject[Wrap_305[TestIF_305_B]] {
+      val inst: TestIF_305_B = new TestIF_305_B {}
+    }
   }
 }
 
@@ -368,7 +387,24 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[EX_TestIF_302].provide shouldBe TestIFImpl_301_AUTO
     }
 
-    "type erase Seq" in {
+    "type erase" in {
+      import TEST303._
+
+      val r_A = Wrap(new TestIF_303_A{})
+
+      val r_B = Wrap(new TestIF_303_B{})
+
+      overwrite[Wrap_303[TestIF_303_A]](r_A)
+      overwrite[Wrap_303[TestIF_303_B]](r_B)
+
+      import scala.reflect.runtime.universe._
+      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
+
+      get[TestIF_303_A].provide shouldBe r_A
+      get[TestIF_303_B].provide shouldBe r_B
+    }
+
+    "type erase with Seq" in {
       import TEST304._
 
       val r_A = Seq(
@@ -390,21 +426,14 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[Seq[TestIF_304_B]].provide shouldBe r_B
     }
 
-    "type erase" in {
-      import TEST303._
-
-      val r_A = Wrap(new TestIF_303_A{})
-
-      val r_B = Wrap(new TestIF_303_B{})
-
-      overwrite[Wrap[TestIF_303_A]](r_A)
-      overwrite[Wrap[TestIF_303_B]](r_B)
+    "type erase with Auto" in {
+      import TEST305._
 
       import scala.reflect.runtime.universe._
-      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap[T]] = inject[Wrap[T]]
+      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
 
-      get[TestIF_303_A].provide shouldBe r_A
-      get[TestIF_303_B].provide shouldBe r_B
+      get[TestIF_305_A].provide shouldBe TestIF_305_A_WRAP
+      get[TestIF_305_B].provide shouldBe TestIF_305_B_WRAP
     }
   }
 }
