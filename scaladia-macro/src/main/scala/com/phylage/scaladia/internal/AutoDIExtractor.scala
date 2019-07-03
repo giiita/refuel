@@ -1,6 +1,6 @@
 package com.phylage.scaladia.internal
 
-import com.phylage.scaladia.exception.InjectDefinitionException
+import com.phylage.scaladia.Config
 import com.phylage.scaladia.injector.AutoInjectable
 import com.phylage.scaladia.provider.Tag
 import com.typesafe.scalalogging.Logger
@@ -10,13 +10,63 @@ import scala.reflect.macros.blackbox
 
 object AutoDIExtractor {
   val log: Logger = Logger(classOf[AutoDIExtractor[_]])
+  private[this] var buffer: Vector[Any] = Vector.empty
+
+  def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): AutoInjectableSet[C] = {
+    buffer match {
+      case x if x.isEmpty =>
+        new AutoDIExtractor(c).run[T]() match {
+          case r =>
+            buffer = r
+            AutoInjectableSet(c)(r.asInstanceOf[Vector[c.Symbol]])
+        }
+      case x              => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
+    }
+  }
+
+  case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
+    def filter[T: C#WeakTypeTag]: Vector[C#Symbol] = {
+      import c.universe._
+      val tag = weakTypeOf[T]
+      value.filter { x =>
+        x.typeSignature.<:<(tag) && ! {
+          x.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
+            !tag.<:<(weakTypeOf[Tag[_]])
+        }
+      } match {
+        case x if x.isEmpty =>
+          c.warning(c.enclosingPosition, s"${tag.typeSymbol.fullName}'s automatic injection target can not be found.")
+          x
+        case x              =>
+          c.info(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.", force = false)
+          x
+      }
+    }
+  }
+
 }
 
-class AutoDIExtractor[C <: blackbox.Context](c: C) {
+class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  def run[T: C#WeakTypeTag](): Vector[C#Symbol] = {
+  lazy val unloadablePackages: Seq[String] = Config.blackList ++ List(
+    "com.oracle",
+    "com.apple",
+    "com.sun",
+    "oracle",
+    "apple",
+    "scala",
+    "javafx",
+    "javax",
+    "sun",
+    "java",
+    "jdk",
+    "akka",
+    "com.fasterxml"
+  )
+
+  def run[T: C#WeakTypeTag](): Vector[Symbol] = {
 
     val p = nealyPackage(c.weakTypeOf[T].typeSymbol)
     recursivePackageExplore(
@@ -25,35 +75,30 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
         weakTypeOf[AutoInjectable],
         weakTypeOf[T]
       )
-    ) match {
-      case r =>
-        AutoDIExtractor.log.info(s"With the injection of ${weakTypeOf[T]}, flush these : ${r.map(_.name).mkString(",")}")
-        r
-    }
+    )
   }
 
   @tailrec
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
-      case x if x.isPackage &&
-        x.fullName == "<root>" => prevs.tail.headOption.getOrElse {
-        throw new InjectDefinitionException("Autoloading is limited to interfaces that are more deeply defined than two packages. \nThe auto-read range for the \"com.phylage.scaladia.injector.Xxx\" interface is at least `com.github` objects.")
-      }
-      case x => nealyPackage(x, prevs.+:(x): _*)
+      case x if x.isPackage && x.fullName == "<root>" => x
+      case x                                          => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
-  @tailrec
+  // @tailrec
   private final def recursivePackageExplore(selfPackages: Vector[Symbol],
                                             requiredSymbol: Seq[Type],
                                             result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     selfPackages match {
       case x if x.isEmpty => result
-      case _ =>
+      case _              =>
         val (packages, modules) = selfPackages.flatMap(_.info.members).collect {
-          case x if x.isPackage =>
+          case x if x.isPackage && (selfPackages.contains(x) || unloadablePackages.contains(x.fullName)) =>
+            None -> None
+          case x if x.isPackage                                                                          =>
             Some(x) -> None
-          case x if x.isModule =>
+          case x if x.isModule                                                                           =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -67,13 +112,13 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
     }
   }
 
-  @tailrec
+  // @tailrec
   private final def recursiveModuleExplore(n: Vector[Symbol],
                                            requiredSymbol: Seq[Type],
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n match {
       case x if x.isEmpty => result
-      case _ =>
+      case _              =>
         val validated = n.collect {
           case x if allMeetCondition(requiredSymbol, x) => x
         }
@@ -87,9 +132,10 @@ class AutoDIExtractor[C <: blackbox.Context](c: C) {
   }
 
   private def allMeetCondition(requiredSymbol: Seq[Type], module: Symbol): Boolean = {
-    requiredSymbol.forall(module.typeSignature.<:<) && ! {
-      module.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
-        !requiredSymbol.exists(_.<:<(weakTypeOf[Tag[_]]))
-    }
+    module.typeSignature.<:<(weakTypeOf[AutoInjectable])
+    //    requiredSymbol.forall(module.typeSignature.<:<) && ! {
+    //      module.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
+    //        !requiredSymbol.exists(_.<:<(weakTypeOf[Tag[_]]))
+    //    }
   }
 }
