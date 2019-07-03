@@ -2,7 +2,7 @@ package com.phylage.scaladia
 
 import com.typesafe.config.ConfigFactory
 
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
 import scala.util.Try
 object Config {
   lazy val blackList: List[String] = Try {
