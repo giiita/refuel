@@ -10,8 +10,7 @@ object Macro {
   def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     import c.universe._
 
-    AutoDIExtractor.log
-    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
+    val detections = AutoDIExtractor.getList[c.type, T](c)
 
     val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 
@@ -25,7 +24,7 @@ object Macro {
   def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[T] = {
     import c.universe._
 
-    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
+    val detections = AutoDIExtractor.getList[c.type, T](c)
 
     val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 

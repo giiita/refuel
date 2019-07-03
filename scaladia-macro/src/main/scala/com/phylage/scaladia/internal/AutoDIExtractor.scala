@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.Logger
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
+import scala.util.{Failure, Success}
 
 object AutoDIExtractor {
   val log: Logger = Logger(classOf[AutoDIExtractor[_]])
@@ -63,7 +64,8 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     "java",
     "jdk",
     "akka",
-    "com.fasterxml"
+    "com.fasterxml",
+    "com.typesafe.config"
   )
 
   def run[T: C#WeakTypeTag](): Vector[Symbol] = {
@@ -116,7 +118,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def recursiveModuleExplore(n: Vector[Symbol],
                                            requiredSymbol: Seq[Type],
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
-    n match {
+    n.accessible match {
       case x if x.isEmpty => result
       case _              =>
         val validated = n.collect {
@@ -133,9 +135,18 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   private def allMeetCondition(requiredSymbol: Seq[Type], module: Symbol): Boolean = {
     module.typeSignature.<:<(weakTypeOf[AutoInjectable])
-    //    requiredSymbol.forall(module.typeSignature.<:<) && ! {
-    //      module.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
-    //        !requiredSymbol.exists(_.<:<(weakTypeOf[Tag[_]]))
-    //    }
+  }
+
+  implicit class RichVectorSymbol(value: Vector[Symbol]) {
+    def accessible: Vector[Symbol] = value.flatMap { x =>
+      scala.util.Try {
+        x.typeSignature
+      } match {
+        case Success(_) => Some(x)
+        case Failure(e) =>
+          c.warning(c.enclosingPosition, e.getMessage)
+          None
+      }
+    }
   }
 }
