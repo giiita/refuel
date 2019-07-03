@@ -65,7 +65,8 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
     libraryDependencies ++= {
       Seq(
         "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "com.typesafe" % "config" % "1.3.4"
       )
     },
     scalacOptions += "-language:experimental.macros"

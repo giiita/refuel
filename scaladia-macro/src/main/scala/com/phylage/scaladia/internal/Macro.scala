@@ -10,9 +10,10 @@ object Macro {
   def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     import c.universe._
 
-    val detections = new AutoDIExtractor[c.type](c).run[T]()
+    AutoDIExtractor.log
+    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
 
-    val flushed = flushForAll[c.type, T](c)(detections)
+    val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 
     new LazyInitializer[c.type](c).lazyInit[T](
       c.Expr[Unit](q"{..$flushed}"),
@@ -24,9 +25,9 @@ object Macro {
   def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[T] = {
     import c.universe._
 
-    val detections = new AutoDIExtractor[c.type](c).run[T]()
+    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
 
-    val flushed = flushForAll[c.type, T](c)(detections)
+    val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 
     new LazyInitializer[c.type](c).diligentInit[T](
       c.Expr[Unit](q"{..$flushed}"),
@@ -44,9 +45,9 @@ object Macro {
 
   def containerSetting[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[T] = {
     import c.universe._
-    val detections = new AutoDIExtractor[c.type](c).run[T]()
+    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
 
-    val flushed = flushForAll[c.type, T](c)(detections)
+    val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 
     reify {
       flushed.splice.sortBy(_.priority).lastOption match {

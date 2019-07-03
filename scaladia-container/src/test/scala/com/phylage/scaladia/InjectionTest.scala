@@ -426,14 +426,14 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[Seq[TestIF_304_B]].provide shouldBe r_B
     }
 
-    "type erase with Auto" in {
-      import TEST305._
-
-      import scala.reflect.runtime.universe._
-      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
-
-      get[TestIF_305_A].provide shouldBe TestIF_305_A_WRAP
-      get[TestIF_305_B].provide shouldBe TestIF_305_B_WRAP
-    }
+//    "type erase with Auto" in {
+//      import TEST305._
+//
+//      import scala.reflect.runtime.universe._
+//      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
+//
+//      get[TestIF_305_A].provide shouldBe TestIF_305_A_WRAP
+//      get[TestIF_305_B].provide shouldBe TestIF_305_B_WRAP
+//    }
   }
 }
