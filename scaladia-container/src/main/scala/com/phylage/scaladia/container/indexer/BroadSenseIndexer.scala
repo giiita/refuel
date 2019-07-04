@@ -1,6 +1,5 @@
 package com.phylage.scaladia.container.indexer
 
-import com.phylage.scaladia.container.indexer.{AbstractIndexer, NarrowInstanceIndexer, NarrowTypeIndexer}
 import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, AcceptedFromTypeScope, InjectableScope, OpenScope}
 

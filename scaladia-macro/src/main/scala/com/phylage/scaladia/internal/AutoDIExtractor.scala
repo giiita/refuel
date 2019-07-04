@@ -3,26 +3,26 @@ package com.phylage.scaladia.internal
 import com.phylage.scaladia.Config
 import com.phylage.scaladia.injector.AutoInjectable
 import com.phylage.scaladia.provider.Tag
-import com.typesafe.scalalogging.Logger
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
 import scala.util.{Failure, Success}
 
 object AutoDIExtractor {
-  val log: Logger = Logger(classOf[AutoDIExtractor[_]])
   private[this] var buffer: Vector[Any] = Vector.empty
 
   def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): AutoInjectableSet[C] = {
-    buffer match {
+    val xx = buffer match {
       case x if x.isEmpty =>
         new AutoDIExtractor(c).run[T]() match {
           case r =>
             buffer = r
             AutoInjectableSet(c)(r.asInstanceOf[Vector[c.Symbol]])
         }
-      case x              => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
+      case x => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
     }
+
+    xx
   }
 
   case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
@@ -38,7 +38,7 @@ object AutoDIExtractor {
         case x if x.isEmpty =>
           c.warning(c.enclosingPosition, s"${tag.typeSymbol.fullName}'s automatic injection target can not be found.")
           x
-        case x              =>
+        case x =>
           c.info(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.", force = false)
           x
       }
@@ -63,20 +63,21 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     "sun",
     "java",
     "jdk",
+    "<empty>",
     "akka",
     "com.fasterxml",
-    "com.typesafe.config"
+    "com.typesafe",
+    "org.scalatest",
+    "org.scalatools.testing"
   )
+
+  private val autoDiTag = weakTypeOf[AutoInjectable]
 
   def run[T: C#WeakTypeTag](): Vector[Symbol] = {
 
     val p = nealyPackage(c.weakTypeOf[T].typeSymbol)
     recursivePackageExplore(
-      Vector(p),
-      Seq(
-        weakTypeOf[AutoInjectable],
-        weakTypeOf[T]
-      )
+      Vector(p)
     )
   }
 
@@ -84,23 +85,22 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
       case x if x.isPackage && x.fullName == "<root>" => x
-      case x                                          => nealyPackage(x, prevs.+:(x): _*)
+      case x => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
-  // @tailrec
+  @tailrec
   private final def recursivePackageExplore(selfPackages: Vector[Symbol],
-                                            requiredSymbol: Seq[Type],
                                             result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     selfPackages match {
       case x if x.isEmpty => result
-      case _              =>
-        val (packages, modules) = selfPackages.flatMap(_.info.members).collect {
-          case x if x.isPackage && (selfPackages.contains(x) || unloadablePackages.contains(x.fullName)) =>
+      case _ =>
+        val (packages, modules) = selfPackages.flatMap(_.typeSignature.decls).distinct.collect {
+          case x if selfPackages.contains(x) || unloadablePackages.contains(x.fullName) =>
             None -> None
-          case x if x.isPackage                                                                          =>
+          case x if x.isPackage =>
             Some(x) -> None
-          case x if x.isModule                                                                           =>
+          case x if !x.isClass && !x.isJava && x.isModule =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -108,33 +108,29 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
         recursivePackageExplore(
           packages,
-          requiredSymbol,
-          result ++ recursiveModuleExplore(modules, requiredSymbol)
+          result ++ recursiveModuleExplore(modules)
         )
     }
   }
 
-  // @tailrec
+  @tailrec
   private final def recursiveModuleExplore(n: Vector[Symbol],
-                                           requiredSymbol: Seq[Type],
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n.accessible match {
       case x if x.isEmpty => result
-      case _              =>
-        val validated = n.collect {
-          case x if allMeetCondition(requiredSymbol, x) => x
+      case accessible =>
+        val validated = accessible.filter(allMeetCondition)
+
+        val nested = accessible.flatMap(_.typeSignature.members).collect {
+          case x if x.isModule && !x.isClass => x
         }
 
-        val nested = n.flatMap(_.typeSignature.members).collect {
-          case x if x.isModule => x
-        }
-
-        recursiveModuleExplore(nested, requiredSymbol, result ++ validated)
+        recursiveModuleExplore(nested, result ++ validated)
     }
   }
 
-  private def allMeetCondition(requiredSymbol: Seq[Type], module: Symbol): Boolean = {
-    module.typeSignature.<:<(weakTypeOf[AutoInjectable])
+  private def allMeetCondition(module: Symbol): Boolean = {
+    module.typeSignature.baseClasses.contains(autoDiTag.typeSymbol)
   }
 
   implicit class RichVectorSymbol(value: Vector[Symbol]) {
@@ -149,4 +145,5 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
       }
     }
   }
+
 }

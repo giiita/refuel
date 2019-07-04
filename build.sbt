@@ -1,7 +1,7 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
+lazy val buildTargetVersion = Seq("2.12.8", "2.13.0")
 
 lazy val assemblySettings = Seq(
   scalaVersion := GLOBAL_SCALA_VERSION,
@@ -64,7 +64,6 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
     parallelExecution in Test := false,
     libraryDependencies ++= {
       Seq(
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "com.typesafe" % "config" % "1.3.4"
       )
