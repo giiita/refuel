@@ -110,7 +110,7 @@ object InjectionTest {
     object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject[TestIF_105]
 
     trait AccessorTest extends Injector {
-      def get: Lazy[TestIF_105] = inject[TestIF_105]
+      def get = inject[TestIF_105]
     }
     object AccessorA extends AccessorTest
     object AccessorB extends AccessorTest

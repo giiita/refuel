@@ -1,5 +1,5 @@
 package com.phylage.scaladia.container
 
-private[scaladia] trait ContainerStore extends AnyRef {
+private[scaladia] trait ContainerStore {
   val ctn: Container
 }
