@@ -14,11 +14,10 @@ abstract class StorePublisherContainer extends Container with AutoInject[Contain
   /**
     * The process that is originally registered to "Injection Container" is prevented to prevent circular reference.
     *
-    * @param x runtime weak type tag
     * @tparam N extends container type
     * @return
     */
-  override final def flush[N <: Container](implicit x: WeakTypeTag[N]): InjectableScope[Container] = {
-    OpenScope[Container](me, injectionPriority, x.asInstanceOf[WeakTypeTag[Container]])
+  override def flush[N <: Container: WeakTypeTag]: InjectableScope[Container] = {
+    OpenScope[Container](me, injectionPriority, implicitly[WeakTypeTag[N]].asInstanceOf[WeakTypeTag[Container]])
   }
 }
