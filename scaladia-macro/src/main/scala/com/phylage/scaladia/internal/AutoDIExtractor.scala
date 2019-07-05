@@ -1,5 +1,7 @@
 package com.phylage.scaladia.internal
 
+import java.io.IOException
+
 import com.phylage.scaladia.Config
 import com.phylage.scaladia.injector.AutoInjectable
 import com.phylage.scaladia.provider.Tag
@@ -19,7 +21,7 @@ object AutoDIExtractor {
             buffer = r
             AutoInjectableSet(c)(r.asInstanceOf[Vector[c.Symbol]])
         }
-      case x => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
+      case x              => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
     }
 
     xx
@@ -38,7 +40,7 @@ object AutoDIExtractor {
         case x if x.isEmpty =>
           c.warning(c.enclosingPosition, s"${tag.typeSymbol.fullName}'s automatic injection target can not be found.")
           x
-        case x =>
+        case x              =>
           c.info(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.", force = false)
           x
       }
@@ -63,15 +65,17 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     "sun",
     "java",
     "jdk",
-    "<empty>",
-    "akka",
-    "com.fasterxml",
-    "com.typesafe",
-    "org.scalatest",
-    "org.scalatools.testing"
+    "<empty>"
+        ,
+        // "akka",
+        "com.fasterxml",
+        "com.typesafe",
+        "org.scalatest",
+        "org.scalatools.testing"
   )
 
-  private val autoDiTag = weakTypeOf[AutoInjectable]
+  private[this] val autoDITag = weakTypeOf[AutoInjectable]
+
 
   def run[T: C#WeakTypeTag](): Vector[Symbol] = {
 
@@ -85,7 +89,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
       case x if x.isPackage && x.fullName == "<root>" => x
-      case x => nealyPackage(x, prevs.+:(x): _*)
+      case x                                          => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
@@ -94,13 +98,13 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
                                             result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     selfPackages match {
       case x if x.isEmpty => result
-      case _ =>
+      case _              =>
         val (packages, modules) = selfPackages.flatMap(_.typeSignature.decls).distinct.collect {
           case x if selfPackages.contains(x) || unloadablePackages.contains(x.fullName) =>
             None -> None
-          case x if x.isPackage =>
+          case x if x.isPackage                                                         =>
             Some(x) -> None
-          case x if !x.isClass && !x.isJava && x.isModule =>
+          case x if x.isModule                               =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -118,30 +122,51 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n.accessible match {
       case x if x.isEmpty => result
-      case accessible =>
+      case accessible     =>
         val validated = accessible.filter(allMeetCondition)
 
-        val nested = accessible.flatMap(_.typeSignature.members).collect {
-          case x if x.isModule && !x.isClass => x
-        }
+        val nested = Vector.empty
+//        val nested = accessible.flatMap(_.typeSignature.members).collect {
+//          case x if x.isModule && !x.isClass => x
+//        }
 
         recursiveModuleExplore(nested, result ++ validated)
     }
   }
 
   private def allMeetCondition(module: Symbol): Boolean = {
-    module.typeSignature.baseClasses.contains(autoDiTag.typeSymbol)
+    true
+    // module.typeSignature.baseClasses.contains(autoDITag.typeSymbol)
   }
 
   implicit class RichVectorSymbol(value: Vector[Symbol]) {
-    def accessible: Vector[Symbol] = value.flatMap { x =>
-      scala.util.Try {
-        x.typeSignature
-      } match {
-        case Success(_) => Some(x)
-        case Failure(e) =>
-          c.warning(c.enclosingPosition, e.getMessage)
-          None
+    def accessible: Vector[Symbol] = {
+      value.flatMap { x =>
+        try {
+          if (c.typecheck(q"${c.parse(x.fullName)}", silent = true).isEmpty) {
+            println(s"None $x")
+            None
+          } else {
+            println(s"Some $x")
+            Some(x)
+          }
+        } catch {
+          case _ =>
+            println(s"None $x")
+            None
+        }
+//        } match {
+//          case Success(r) =>
+//            println("Success")
+//            Some(x)
+//          case Failure(e) =>
+//            println(s"Fail ${e.getMessage}")
+//            c.warning(c.enclosingPosition, e.getMessage)
+//            None
+//          case _          =>
+//            println("Empty")
+//            None
+//        }
       }
     }
   }
