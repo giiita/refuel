@@ -1,7 +1,7 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.12.8", "2.13.0")
+lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
 
 lazy val assemblySettings = Seq(
   scalaVersion := GLOBAL_SCALA_VERSION,
@@ -89,8 +89,8 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
       "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8"
     ),
     scalacOptions in Global ++= Seq(
-       "-Ydebug",
-       "-Ymacro-debug-verbose",
+//       "-Ydebug",
+//       "-Ymacro-debug-verbose",
       "-language:experimental.macros"
     )
   ).enablePlugins(JavaAppPackaging)
