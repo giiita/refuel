@@ -1,14 +1,11 @@
 package com.phylage.scaladia.internal
 
-import java.io.IOException
-
 import com.phylage.scaladia.Config
 import com.phylage.scaladia.injector.AutoInjectable
 import com.phylage.scaladia.provider.Tag
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
-import scala.util.{Failure, Success}
 
 object AutoDIExtractor {
   private[this] var buffer: Vector[Any] = Vector.empty
@@ -21,7 +18,7 @@ object AutoDIExtractor {
             buffer = r
             AutoInjectableSet(c)(r.asInstanceOf[Vector[c.Symbol]])
         }
-      case x              => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
+      case x => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
     }
 
     xx
@@ -40,8 +37,8 @@ object AutoDIExtractor {
         case x if x.isEmpty =>
           c.warning(c.enclosingPosition, s"${tag.typeSymbol.fullName}'s automatic injection target can not be found.")
           x
-        case x              =>
-          c.info(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.", force = false)
+        case x =>
+          c.echo(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.")
           x
       }
     }
@@ -65,13 +62,13 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     "sun",
     "java",
     "jdk",
-    "<empty>"
-        ,
-        // "akka",
-        "com.fasterxml",
-        "com.typesafe",
-        "org.scalatest",
-        "org.scalatools.testing"
+    "<empty>",
+
+    // For later scala 2.11 compilation errors
+    // see https://github.com/giiita/scaladia/issues/29
+    "org.scalatest",
+    "org.scalatestplus",
+    "akka"
   )
 
   private[this] val autoDITag = weakTypeOf[AutoInjectable]
@@ -89,7 +86,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
       case x if x.isPackage && x.fullName == "<root>" => x
-      case x                                          => nealyPackage(x, prevs.+:(x): _*)
+      case x => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
@@ -98,13 +95,13 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
                                             result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     selfPackages match {
       case x if x.isEmpty => result
-      case _              =>
+      case _ =>
         val (packages, modules) = selfPackages.flatMap(_.typeSignature.decls).distinct.collect {
           case x if selfPackages.contains(x) || unloadablePackages.contains(x.fullName) =>
             None -> None
-          case x if x.isPackage                                                         =>
+          case x if x.isPackage =>
             Some(x) -> None
-          case x if x.isModule                               =>
+          case x if x.isModule && !x.isClass && !x.isAbstract =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -122,51 +119,30 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n.accessible match {
       case x if x.isEmpty => result
-      case accessible     =>
-        val validated = accessible.filter(allMeetCondition)
-
-        val nested = Vector.empty
-//        val nested = accessible.flatMap(_.typeSignature.members).collect {
-//          case x if x.isModule && !x.isClass => x
-//        }
-
-        recursiveModuleExplore(nested, result ++ validated)
+      case accessible =>
+        recursiveModuleExplore(
+          accessible.flatMap(_.typeSignature.members).collect {
+            case x if x.isModule && !x.isClass => x
+          },
+          result ++ accessible.filter(_.typeSignature.<:<(autoDITag)))
     }
-  }
-
-  private def allMeetCondition(module: Symbol): Boolean = {
-    true
-    // module.typeSignature.baseClasses.contains(autoDITag.typeSymbol)
   }
 
   implicit class RichVectorSymbol(value: Vector[Symbol]) {
     def accessible: Vector[Symbol] = {
       value.flatMap { x =>
         try {
-          if (c.typecheck(q"${c.parse(x.fullName)}", silent = true).isEmpty) {
-            println(s"None $x")
-            None
-          } else {
-            println(s"Some $x")
-            Some(x)
+          c.typecheck(
+            c.parse(
+              x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
+            ),
+            silent = true
+          ).symbol.typeSignature match {
+            case _ => Some(x)
           }
         } catch {
-          case _ =>
-            println(s"None $x")
-            None
+          case _: Throwable => None
         }
-//        } match {
-//          case Success(r) =>
-//            println("Success")
-//            Some(x)
-//          case Failure(e) =>
-//            println(s"Fail ${e.getMessage}")
-//            c.warning(c.enclosingPosition, e.getMessage)
-//            None
-//          case _          =>
-//            println("Empty")
-//            None
-//        }
       }
     }
   }

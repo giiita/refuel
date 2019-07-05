@@ -61,7 +61,7 @@ object Macro {
 
     val flushed = x.map { name =>
       c.Expr[InjectableScope[T]](
-        c.typecheck(q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]", silent = true)
+        q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]"
       )
     }
     c.Expr[Seq[InjectableScope[T]]](
