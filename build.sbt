@@ -84,7 +84,7 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global ++= Seq(
-      "-Ydebug",
+//      "-Ydebug",
 //       "-Ymacro-debug-verbose",
       "-language:experimental.macros"
     )
