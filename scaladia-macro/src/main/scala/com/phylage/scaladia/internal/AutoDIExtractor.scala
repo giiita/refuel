@@ -130,18 +130,21 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   implicit class RichVectorSymbol(value: Vector[Symbol]) {
     def accessible: Vector[Symbol] = {
-      value.flatMap { x =>
-        try {
-          c.typecheck(
-            c.parse(
-              x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
-            ),
-            silent = true
-          ).symbol.typeSignature match {
-            case _ => Some(x)
+      value.flatMap { v =>
+        v match {
+          case x if x.toString.endsWith("package$") => None
+          case x => try {
+            c.typecheck(
+              c.parse(
+                x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
+              ),
+              silent = true
+            ).symbol.typeSignature.members match {
+              case _ => Some(x)
+            }
+          } catch {
+            case _ => None
           }
-        } catch {
-          case _: Throwable => None
         }
       }
     }

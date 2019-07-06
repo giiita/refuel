@@ -81,15 +81,10 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-
-      "com.typesafe.akka" %% "akka-http" % "10.1.8",
-      "com.typesafe.akka" %% "akka-actor" % "2.5.23",
-      "com.typesafe.akka" %% "akka-stream" % "2.5.23",
-      "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8"
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global ++= Seq(
-//       "-Ydebug",
+      "-Ydebug",
 //       "-Ymacro-debug-verbose",
       "-language:experimental.macros"
     )
