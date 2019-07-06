@@ -8,6 +8,6 @@ package object injector {
   private[scaladia] implicit object IndirectContainerStore extends ContainerStore {
     lazy val ctn: Container = initContainer
 
-    def initContainer: Container = DefaultContainer// macro Macro.containerSetting[Container]
+    def initContainer: Container = macro Macro.containerSetting[Container]
   }
 }

@@ -60,7 +60,9 @@ object Macro {
     import c.universe._
 
     val flushed = x.map { name =>
-      c.Expr[InjectableScope[T]](q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]")
+      c.Expr[InjectableScope[T]](
+        q"${c.parse(name.fullName)}.flush[${weakTypeOf[T]}]"
+      )
     }
     c.Expr[Seq[InjectableScope[T]]](
       q"Seq.apply(..$flushed)"
