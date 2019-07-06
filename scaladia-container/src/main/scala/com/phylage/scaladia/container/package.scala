@@ -8,6 +8,7 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 package object container {
+
   object DefaultContainer extends StorePublisherContainer {
 
     val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
@@ -49,4 +50,5 @@ package object container {
       new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]))
     }
   }
+
 }
