@@ -49,11 +49,11 @@ lazy val root = project.in(file("."))
     scaladiaLang,
     scaladiaHttp
   ).settings(
-    publishLocal in ThisProject := {},
-    publishArtifact in ThisProject := false,
-    scalaVersion := GLOBAL_SCALA_VERSION,
-    crossScalaVersions := buildTargetVersion
-  )
+  publishLocal in ThisProject := {},
+  publishArtifact in ThisProject := false,
+  scalaVersion := GLOBAL_SCALA_VERSION,
+  crossScalaVersions := buildTargetVersion
+)
 
 lazy val scaladiaMacro = (project in file("scaladia-macro"))
   .settings(assemblySettings)
@@ -84,10 +84,11 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global ++= Seq(
-//      "-Ydebug",
-//       "-Ymacro-debug-verbose",
+      //      "-Ydebug",
+      //       "-Ymacro-debug-verbose",
       "-language:experimental.macros"
-    )
+    ),
+    unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   ).enablePlugins(JavaAppPackaging)
 
 lazy val scaladiaLang = (project in file("scaladia-lang"))
@@ -116,3 +117,10 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
   ).enablePlugins(JavaAppPackaging)
 
 val GLOBAL_SCALA_VERSION = "2.13.0"
+
+lazy val subModules: Seq[ProjectReference] = Seq(
+  scaladiaMacro,
+  scaladiaContainer,
+  scaladiaLang,
+  scaladiaHttp
+)

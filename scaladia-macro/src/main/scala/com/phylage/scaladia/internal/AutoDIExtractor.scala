@@ -1,6 +1,7 @@
 package com.phylage.scaladia.internal
 
 import com.phylage.scaladia.Config
+import com.phylage.scaladia.Config.AdditionalPackage
 import com.phylage.scaladia.injector.AutoInjectable
 import com.phylage.scaladia.provider.Tag
 
@@ -11,7 +12,7 @@ object AutoDIExtractor {
   private[this] var buffer: Vector[Any] = Vector.empty
 
   def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): AutoInjectableSet[C] = {
-    val xx = buffer match {
+    buffer match {
       case x if x.isEmpty =>
         new AutoDIExtractor(c).run[T]() match {
           case r =>
@@ -20,8 +21,6 @@ object AutoDIExtractor {
         }
       case x => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
     }
-
-    xx
   }
 
   case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
@@ -50,35 +49,30 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  lazy val unloadablePackages: Seq[String] = Config.blackList ++ List(
-    "com.oracle",
-    "com.apple",
-    "com.sun",
-    "oracle",
-    "apple",
-    "scala",
-    "javafx",
-    "javax",
-    "sun",
-    "java",
-    "jdk",
-    "<empty>",
+  lazy val unloadablePackages: Seq[String] = {
+    val config = Config.blackList
+    config.collect {
+      case AdditionalPackage(p) => p
+    } match {
+      case x if x.nonEmpty =>
+        c.echo(EmptyTree.pos, s"\nUnscanning packages:\n    ${x.mkString("\n    ")}\n\n")
+      case _ =>
+    }
+    config.map(_.`package`)
+  }
 
-    // For later scala 2.11 compilation errors
-    // see https://github.com/giiita/scaladia/issues/29
-    "org.scalatest",
-    "org.scalatestplus",
-    "akka"
-  )
+  // For later scala 2.11 compilation errors
+  // see https://github.com/giiita/scaladia/issues/29
+  //    "org.scalatest",
+  //    "org.scalatestplus",
+  //    "akka"
 
   private[this] val autoDITag = weakTypeOf[AutoInjectable]
 
 
   def run[T: C#WeakTypeTag](): Vector[Symbol] = {
-
-    val p = nealyPackage(c.weakTypeOf[T].typeSymbol)
     recursivePackageExplore(
-      Vector(p)
+      Vector(nealyPackage(c.weakTypeOf[T].typeSymbol))
     )
   }
 
@@ -130,21 +124,19 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   implicit class RichVectorSymbol(value: Vector[Symbol]) {
     def accessible: Vector[Symbol] = {
-      value.flatMap { v =>
-        v match {
-          case x if x.toString.endsWith("package$") => None
-          case x => try {
-            c.typecheck(
-              c.parse(
-                x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
-              ),
-              silent = true
-            ).symbol.typeSignature.members match {
-              case _ => Some(x)
-            }
-          } catch {
-            case _ => None
+      value.flatMap {
+        case x if x.toString.endsWith("package$") => None
+        case x => try {
+          c.typecheck(
+            c.parse(
+              x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
+            ),
+            silent = true
+          ).symbol match {
+            case _ => Some(x)
           }
+        } catch {
+          case _: Throwable => None
         }
       }
     }
