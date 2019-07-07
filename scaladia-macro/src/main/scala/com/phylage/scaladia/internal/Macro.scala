@@ -44,7 +44,7 @@ object Macro {
 
   def containerSetting[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[T] = {
     import c.universe._
-    val detections = AutoDIExtractor.getList[c.type, T](c)// new AutoDIExtractor[c.type](c).run[T]()
+    val detections = AutoDIExtractor.getList[c.type, T](c)
 
     val flushed = flushForAll[c.type, T](c)(detections.filter[T])
 
