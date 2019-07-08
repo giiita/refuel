@@ -17,7 +17,7 @@ abstract class StorePublisherContainer extends Container with AutoInject[Contain
     * @tparam N extends container type
     * @return
     */
-  override def flush[N <: Container: WeakTypeTag]: InjectableScope[Container] = {
-    OpenScope[Container](me, injectionPriority, implicitly[WeakTypeTag[N]].asInstanceOf[WeakTypeTag[Container]])
+  override def flush(implicit wtt: WeakTypeTag[Container]): InjectableScope[Container] = {
+    OpenScope[Container](me, injectionPriority, wtt)
   }
 }

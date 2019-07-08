@@ -9,21 +9,14 @@ import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
 
 object AutoDIExtractor {
-  private[this] var buffer: Vector[Any] = Vector.empty
+  private[this] var buffer: Option[Set[_]] = None
 
-  def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): AutoInjectableSet[C] = {
-    buffer match {
-      case x if x.isEmpty =>
-        new AutoDIExtractor(c).run[T]() match {
-          case r =>
-            buffer = r
-            AutoInjectableSet(c)(r.asInstanceOf[Vector[c.Symbol]])
-        }
-      case x => AutoInjectableSet(c)(x.asInstanceOf[Vector[c.Symbol]])
-    }
+  def collectApplyTarget[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
+    getList[C, T](c)
   }
 
-  case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
+  private[this] case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
+
     def filter[T: C#WeakTypeTag]: Vector[C#Symbol] = {
       import c.universe._
       val tag = weakTypeOf[T]
@@ -38,9 +31,22 @@ object AutoDIExtractor {
           x
         case x =>
           c.echo(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.")
-          x
+          x.sortBy(_.fullName)
       }
     }
+  }
+
+  private[this] def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
+    {
+      buffer match {
+        case None => new AutoDIExtractor(c).run[T]() match {
+          case x =>
+            buffer = Some(x.toSet)
+            x
+        }
+        case Some(x) => x.toVector.asInstanceOf[Vector[C#Symbol]]
+      }
+    }.sortBy(_.fullName)
   }
 
 }
@@ -55,17 +61,11 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
       case AdditionalPackage(p) => p
     } match {
       case x if x.nonEmpty =>
-        c.echo(EmptyTree.pos, s"\nUnscanning packages:\n    ${x.mkString("\n    ")}\n\n")
+        c.echo(EmptyTree.pos, s"\nUnscanning injection packages:\n    ${x.mkString("\n    ")}\n\n")
       case _ =>
     }
-    config.map(_.`package`)
+    config.map(_.value)
   }
-
-  // For later scala 2.11 compilation errors
-  // see https://github.com/giiita/scaladia/issues/29
-  //    "org.scalatest",
-  //    "org.scalatestplus",
-  //    "akka"
 
   private[this] val autoDITag = weakTypeOf[AutoInjectable]
 

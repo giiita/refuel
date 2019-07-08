@@ -1,6 +1,7 @@
 package com.phylage.scaladia
 
-import com.phylage.scaladia.exception.InjectDefinitionException
+import com.phylage.scaladia.InjectionTest.TEST301.EX_TestIF_301
+import com.phylage.scaladia.exception.{DIAutoInitializationException, InjectDefinitionException}
 import com.phylage.scaladia.injector.Injector.@@
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.phylage.scaladia.provider.{Lazy, Tag}
@@ -170,7 +171,7 @@ object InjectionTest {
     trait TestIF_302
     trait EX_TestIF_302 extends TestIF_302
 
-    object TestIFImpl_301_AUTO extends EX_TestIF_302 with AutoInject[TestIF_302]
+    object TestIFImpl_302_AUTO extends EX_TestIF_302 with AutoInject[TestIF_302]
   }
 
   object TEST303 {
@@ -240,7 +241,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[TestIF_4].provide shouldBe TestIFImpl_4_CUSTOM
     }
 
-    "recovered vs custom(0) inject priority == First win" in {
+    "recovered vs custom(0) inject priority == name after win" in {
       import TEST5._
       inject[TestIF_5].provide shouldBe TestIFImpl_5_RECOVER
     }
@@ -250,9 +251,9 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[TestIF_6].provide shouldBe TestIFImpl_6_AUTO
     }
 
-    "auto vs custom(1000) inject priority == First win" in {
+    "auto vs custom(1000) inject priority == name after win" in {
       import TEST7._
-      inject[TestIF_7].provide shouldBe TestIFImpl_7_AUTO
+      inject[TestIF_7].provide shouldBe TestIFImpl_7_CUSTOM
     }
 
     "auto vs custom(1001) inject priority == custom" in {
@@ -361,7 +362,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         inject[TestIF_201 @@ TestTagC].provide
       } match {
         case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "Cannot found com.phylage.scaladia.injector.Injector.<refinement> implementation."
+        case scala.util.Failure(exception) => exception.getMessage shouldBe "com.phylage.scaladia.injector.Injector.<refinement> or its internal initialize failed."
       }
     }
   }
@@ -377,14 +378,20 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       Try {
         inject[EX_TestIF_301].provide shouldBe TestIFImpl_301_AUTO
       } match {
-        case scala.util.Failure(_: InjectDefinitionException) => succeed
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
         case _ => fail()
       }
     }
     "pattern 2" in {
       import TEST302._
-      inject[TestIF_302].provide shouldBe TestIFImpl_301_AUTO
-      inject[EX_TestIF_302].provide shouldBe TestIFImpl_301_AUTO
+      inject[TestIF_302].provide shouldBe TestIFImpl_302_AUTO
+      Try {
+        inject[EX_TestIF_302].provide shouldBe TestIFImpl_302_AUTO
+      } match {
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
+        case _ => fail()
+      }
+
     }
 
     "type erase" in {
