@@ -46,10 +46,7 @@ lazy val root = project.in(file("."))
     scaladiaMacro,
     scaladiaContainer,
     scaladiaLang,
-    scaladiaHttp,
-    testClient,
-    testServer,
-    testFrontend
+    scaladiaHttp
   ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
