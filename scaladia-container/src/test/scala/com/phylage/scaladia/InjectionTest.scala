@@ -1,7 +1,7 @@
 package com.phylage.scaladia
 
 import com.phylage.scaladia.InjectionTest.TEST301.EX_TestIF_301
-import com.phylage.scaladia.exception.InjectDefinitionException
+import com.phylage.scaladia.exception.{DIAutoInitializationException, InjectDefinitionException}
 import com.phylage.scaladia.injector.Injector.@@
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.phylage.scaladia.provider.{Lazy, Tag}
@@ -362,7 +362,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         inject[TestIF_201 @@ TestTagC].provide
       } match {
         case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "Cannot found com.phylage.scaladia.injector.Injector.<refinement> implementation."
+        case scala.util.Failure(exception) => exception.getMessage shouldBe "com.phylage.scaladia.injector.Injector.<refinement> or its internal initialize failed."
       }
     }
   }
@@ -378,7 +378,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       Try {
         inject[EX_TestIF_301].provide shouldBe TestIFImpl_301_AUTO
       } match {
-        case scala.util.Failure(_: InjectDefinitionException) => succeed
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
         case _ => fail()
       }
     }
@@ -388,7 +388,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       Try {
         inject[EX_TestIF_302].provide shouldBe TestIFImpl_302_AUTO
       } match {
-        case scala.util.Failure(_: InjectDefinitionException) => succeed
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
         case _ => fail()
       }
 
