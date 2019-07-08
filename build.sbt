@@ -46,7 +46,10 @@ lazy val root = project.in(file("."))
     scaladiaMacro,
     scaladiaContainer,
     scaladiaLang,
-    scaladiaHttp
+    scaladiaHttp,
+    testClient,
+    testServer,
+    testFrontend
   ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
@@ -116,10 +119,3 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
   ).enablePlugins(JavaAppPackaging)
 
 val GLOBAL_SCALA_VERSION = "2.11.12"
-
-lazy val subModules: Seq[ProjectReference] = Seq(
-  scaladiaMacro,
-  scaladiaContainer,
-  scaladiaLang,
-  scaladiaHttp
-)

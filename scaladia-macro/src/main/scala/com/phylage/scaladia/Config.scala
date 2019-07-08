@@ -8,12 +8,12 @@ import scala.util.Try
 object Config {
 
   trait SkippedPackage {
-    val `package`: String
+    val value: String
   }
 
-  case class DefaultPackage(`package`: String) extends SkippedPackage
+  case class DefaultPackage(value: String) extends SkippedPackage
 
-  case class AdditionalPackage(`package`: String) extends SkippedPackage
+  case class AdditionalPackage(value: String) extends SkippedPackage
 
   implicit class RichPackageString(value: String) {
     def asDefault: SkippedPackage = DefaultPackage(value)
@@ -22,8 +22,11 @@ object Config {
   }
 
   val blackList: List[SkippedPackage] = Try {
+    println(ConfigFactory.load(getClass.getClassLoader, "di.conf")
+      .getStringList("unscanning.package")
+      .asScala.toList.map(_.asAddition))
     ConfigFactory.load(getClass.getClassLoader, "di.conf")
-      .getStringList("unscaning.package")
+      .getStringList("unscanning.package")
       .asScala.toList.map(_.asAddition) ++ List(
       "com.oracle",
       "com.apple",
