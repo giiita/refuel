@@ -31,7 +31,6 @@ lazy val commonDependencySettings = Seq(
   libraryDependencies ++= {
     Seq(
       "org.slf4j" % "slf4j-simple" % "1.7.25" % Provided,
-
       "org.scalatest" %% "scalatest" % "3.0.8" % Test
     ) ++ {
       scalaVersion.value match {
@@ -116,11 +115,4 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     )
   ).enablePlugins(JavaAppPackaging)
 
-val GLOBAL_SCALA_VERSION = "2.13.0"
-
-lazy val subModules: Seq[ProjectReference] = Seq(
-  scaladiaMacro,
-  scaladiaContainer,
-  scaladiaLang,
-  scaladiaHttp
-)
+val GLOBAL_SCALA_VERSION = "2.11.12"

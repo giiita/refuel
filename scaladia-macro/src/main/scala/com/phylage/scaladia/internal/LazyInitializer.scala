@@ -13,7 +13,12 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     c.Expr[Lazy[T]](
       q"""
          new com.phylage.scaladia.provider.Lazy[${weakTypeOf[T]}] {
-           lazy val provide: ${weakTypeOf[T]} = ${injection[T](ctn, fire, access)}
+           lazy val provide: ${weakTypeOf[T]} = try {
+             ${injection[T](ctn, fire, access)}
+           } catch {
+             case e: java.lang.Throwable =>
+               throw new com.phylage.scaladia.exception.DIAutoInitializationException(${weakTypeOf[T].typeSymbol.fullName} + " or its internal initialize failed.", e)
+           }
          }
        """
     )
