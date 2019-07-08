@@ -47,7 +47,9 @@ object Macro {
 
     val flushed = x.map { name =>
       c.Expr[InjectableScope[T]](
-        q"${c.parse(name.fullName)}.flush"
+        q"""
+           ${c.parse(name.fullName)}.flush
+         """
       )
     }
     c.Expr[Seq[InjectableScope[T]]](

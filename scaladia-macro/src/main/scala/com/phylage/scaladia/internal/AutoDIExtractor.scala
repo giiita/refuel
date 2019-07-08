@@ -12,27 +12,7 @@ object AutoDIExtractor {
   private[this] var buffer: Option[Set[_]] = None
 
   def collectApplyTarget[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
-    storeBufferAndNewTargets(c) match {
-      case x if x.isEmpty => collectT[C, T](c)
-      case x => x
-    }
-  }
-
-  private[this] def collectT[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
-    AutoInjectableSet(c)(
-      buffer.fold(Set.empty[C#Symbol])(_.asInstanceOf[Set[C#Symbol]]).toVector
-    ).filter[T]
-  }
-
-  private[this] def storeBufferAndNewTargets[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
-    buffer match {
-      case None => new AutoDIExtractor(c).run[T]() match {
-        case r =>
-          buffer = Some(r.toSet)
-          r
-      }
-      case Some(_) => Vector.empty
-    }
+    getList[C, T](c)
   }
 
   private[this] case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
@@ -56,6 +36,19 @@ object AutoDIExtractor {
     }
   }
 
+  private[this] def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
+    {
+      buffer match {
+        case None => new AutoDIExtractor(c).run[T]() match {
+          case x =>
+            buffer = Some(x.toSet)
+            x
+        }
+        case Some(x) => x.toVector.asInstanceOf[Vector[C#Symbol]]
+      }
+    }.sortBy(_.fullName)
+  }
+
 }
 
 class AutoDIExtractor[C <: blackbox.Context](val c: C) {
@@ -73,12 +66,6 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     }
     config.map(_.value)
   }
-
-  // For later scala 2.11 compilation errors
-  // see https://github.com/giiita/scaladia/issues/29
-  //    "org.scalatest",
-  //    "org.scalatestplus",
-  //    "akka"
 
   private[this] val autoDITag = weakTypeOf[AutoInjectable]
 

@@ -22,6 +22,6 @@ trait AutoInject[T] extends AutoInjectable with Injector {
     implicitly[Container].createIndexer[T](
       me,
       injectionPriority
-    )(wtt).indexing()
+    )(implicitly[WeakTypeTag[T]]).indexing()
   }
 }
