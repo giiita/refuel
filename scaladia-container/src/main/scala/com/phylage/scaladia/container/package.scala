@@ -36,6 +36,7 @@ package object container {
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = {
       buffer.filter(_.accepted[T](requestFrom)).sortBy(_.priority).lastOption.map(_.value.asInstanceOf[T])
+
     }
 
     /**
