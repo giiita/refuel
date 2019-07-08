@@ -115,4 +115,4 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     )
   ).enablePlugins(JavaAppPackaging)
 
-val GLOBAL_SCALA_VERSION = "2.11.12"
+val GLOBAL_SCALA_VERSION = "2.13.0"
