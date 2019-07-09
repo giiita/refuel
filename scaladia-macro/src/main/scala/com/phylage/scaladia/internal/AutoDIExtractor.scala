@@ -67,7 +67,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     config.map(_.value)
   }
 
-  private[this] val autoDITag = weakTypeOf[AutoInjectable]
+  private[this] val autoDITag = weakTypeOf[AutoInjectable[_]]
 
 
   def run[T: C#WeakTypeTag](): Vector[Symbol] = {
