@@ -22,9 +22,6 @@ object Config {
   }
 
   val blackList: List[SkippedPackage] = Try {
-    println(ConfigFactory.load(getClass.getClassLoader, "di.conf")
-      .getStringList("unscanning.package")
-      .asScala.toList.map(_.asAddition))
     ConfigFactory.load(getClass.getClassLoader, "di.conf")
       .getStringList("unscanning.package")
       .asScala.toList.map(_.asAddition) ++ List(
