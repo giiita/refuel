@@ -1,6 +1,6 @@
 package com.phylage.scaladia
 
-import com.phylage.scaladia.container.{Container, ContainerStore, DefaultContainer}
+import com.phylage.scaladia.container.{Container, ContainerStore, DefaultContainer, InjectionPool}
 
 package object injector {
 
@@ -8,6 +8,8 @@ package object injector {
     lazy val ctn: Container = initContainer
 
     def initContainer: Container = DefaultContainer
+
+    override val ijp: InjectionPool = InjectionPool
   }
 
 }

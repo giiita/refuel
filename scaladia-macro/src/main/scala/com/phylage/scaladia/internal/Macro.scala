@@ -1,13 +1,12 @@
 package com.phylage.scaladia.internal
 
-import com.phylage.scaladia.injector.scope.InjectableScope
 import com.phylage.scaladia.provider.Lazy
 
 import scala.reflect.macros.blackbox
 
 object Macro {
 
-  def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
+  def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     import c.universe._
 
     val detections = AutoDIExtractor.collectApplyTarget[c.type, T](c)
@@ -17,11 +16,12 @@ object Macro {
     new LazyInitializer[c.type](c).lazyInit[T](
       c.Expr[Unit](q"{..$flushed}"),
       ctn,
+      ip,
       access
     )
   }
 
-  def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, access: c.Tree): c.Expr[T] = {
+  def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[T] = {
     import c.universe._
 
     val detections = AutoDIExtractor.collectApplyTarget[c.type, T](c)
@@ -31,6 +31,7 @@ object Macro {
     new LazyInitializer[c.type](c).diligentInit[T](
       c.Expr[Unit](q"{..$flushed}"),
       ctn,
+      ip,
       access
     )
   }
@@ -42,18 +43,20 @@ object Macro {
       """
   }
 
-  private[this] def flushForAll[C <: blackbox.Context, T: c.WeakTypeTag](c: C)(x: Vector[C#Symbol]): c.Expr[Seq[InjectableScope[T]]] = {
+  private[this] def flushForAll[C <: blackbox.Context, T: c.WeakTypeTag](c: C)(x: Vector[C#Symbol]): c.Expr[Seq[Unit]] = {
     import c.universe._
 
     val flushed = x.map { name =>
-      c.Expr[InjectableScope[T]](
+      c.Expr[Unit](
         q"""
-           ${c.parse(name.fullName)}.flush
+           _pool.pool(
+             com.phylage.scaladia.injector.InjectionType.apply(() => ${c.parse(name.fullName)}.flush)
+           )
          """
       )
     }
-    c.Expr[Seq[InjectableScope[T]]](
-      q"Seq.apply(..$flushed)"
+    c.Expr[Seq[Unit]](
+      q"Seq(..$flushed)"
     )
   }
 }

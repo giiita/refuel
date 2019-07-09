@@ -11,7 +11,7 @@ import com.phylage.scaladia.injector.scope.InjectableScope
   *
   * @tparam T Type to register
   */
-trait AutoInject[T] extends AutoInjectable with Injector {
+trait AutoInject[T] extends AutoInjectable[T] with Injector {
   me: T =>
 
   private[scaladia] val injectionPriority = 1000
