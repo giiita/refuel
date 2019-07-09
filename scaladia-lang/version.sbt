@@ -1,1 +1,1 @@
-version in ThisProject := "1.1.1"
+version in ThisProject := "1.1.2"

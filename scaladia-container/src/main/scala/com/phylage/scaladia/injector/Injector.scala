@@ -51,7 +51,7 @@ trait Injector {
     * @tparam T Injection type
     * @return
     */
-  protected def inject[T](implicit ctn: Container, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
+  protected def inject[T](implicit ctn: Container, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
 
 
   /**
@@ -70,7 +70,7 @@ trait Injector {
     * @tparam T Injection type
     * @return
     */
-  protected def confirm[T](implicit ctn: Container, access: Accessor[_]): T = macro Macro.diligentInject[T]
+  protected def confirm[T](implicit ctn: Container, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
 
   /**
     * Provide dependency.
@@ -85,13 +85,19 @@ trait Injector {
     * This refers to itself
     * @return
     */
-  protected implicit def from: Accessor[_] = Accessor(me)
+  protected implicit def someoneNeeds: Accessor[_] = Accessor(me)
 
   /**
     * Implicitly container
     * @return
     */
-  protected implicit def getContainer: Container = implicitly[ContainerStore].ctn
+  protected implicit def _dicnt: Container = implicitly[ContainerStore].ctn
+
+  /**
+    * Implicitly injection pool
+    * @return
+    */
+  protected implicit def _ijp: InjectionPool = implicitly[ContainerStore].ijp
 
 
 }
