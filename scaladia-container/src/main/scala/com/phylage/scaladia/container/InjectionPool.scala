@@ -1,11 +1,13 @@
 package com.phylage.scaladia.container
 
-import com.phylage.scaladia.injector.{InjectionPool, InjectionType}
+import com.phylage.scaladia.injector.InjectionType
+import com.typesafe.scalalogging.Logger
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
-object InjectionPool extends InjectionPool {
+object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
+  private[this] val logger: Logger = Logger(classOf[com.phylage.scaladia.injector.InjectionPool])
   private[this] val buffer: ListBuffer[InjectionType[_]] = ListBuffer()
 
   /**
@@ -13,12 +15,19 @@ object InjectionPool extends InjectionPool {
     * The timing to be initialized is when the related
     * component is initialized or when it is called by inject.
     *
-    * @param value injection object
-    * @tparam T injection type
+    * @param applyer injection object
     * @return
     */
-  def pool[T](value: InjectionType[T]): Unit = {
-    if (!buffer.contains(value)) buffer += value
+  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = {
+    logger.debug(":: Pooling {")
+
+    applyer().collect {
+      case x if !buffer.exists(_ =:= x) =>
+        logger.debug(s"::  ${x.name}")
+        buffer += x
+    }
+
+    logger.debug(":: }")
   }
 
   /**
@@ -30,9 +39,17 @@ object InjectionPool extends InjectionPool {
     */
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
     {
-      buffer.collect {
+
+      logger.debug("## Applyment {")
+
+      val r = buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
-      } map {_.applyment}
+      } map { x =>
+        logger.debug(s"##  ${x.name}")
+        x.applyment
+      }
+      logger.debug("## }")
+      r
     }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
   }
 }

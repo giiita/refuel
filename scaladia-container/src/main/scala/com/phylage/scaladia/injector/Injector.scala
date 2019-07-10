@@ -8,6 +8,7 @@ import com.phylage.scaladia.container.{Container, ContainerStore}
 import com.phylage.scaladia.provider.Accessor
 
 import scala.reflect.runtime.universe._
+import scala.language.experimental.macros
 import scala.language.implicitConversions
 
 object Injector {
@@ -98,6 +99,5 @@ trait Injector {
     * @return
     */
   protected implicit def _ijp: InjectionPool = implicitly[ContainerStore].ijp
-
 
 }
