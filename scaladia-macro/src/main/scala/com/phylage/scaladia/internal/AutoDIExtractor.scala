@@ -11,7 +11,7 @@ import scala.reflect.macros.blackbox
 object AutoDIExtractor {
   private[this] var buffer: Option[Set[_]] = None
 
-  def collectApplyTarget[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
+  def collectApplyTarget[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Iterable[C#Symbol] = {
     getList[C, T](c)
   }
 
@@ -36,7 +36,7 @@ object AutoDIExtractor {
     }
   }
 
-  private[this] def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Vector[C#Symbol] = {
+  private[this] def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Iterable[C#Symbol] = {
     {
       buffer match {
         case None => new AutoDIExtractor(c).run[T]() match {
