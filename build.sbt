@@ -3,6 +3,8 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
 
+
+
 lazy val assemblySettings = Seq(
   scalaVersion := GLOBAL_SCALA_VERSION,
   publishTo := Some(
@@ -46,7 +48,10 @@ lazy val root = project.in(file("."))
     scaladiaMacro,
     scaladiaContainer,
     scaladiaLang,
-    scaladiaHttp
+    scaladiaHttp,
+    root_interfaces,
+    interfaces_impl,
+    call_interfaces
   ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
@@ -114,5 +119,26 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
     )
   ).enablePlugins(JavaAppPackaging)
+
+lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
+  .dependsOn(scaladiaHttp)
+  .settings(commonDependencySettings, assemblySettings)
+  .settings(
+    releaseProcess := Nil
+  )
+
+lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
+  .dependsOn(root_interfaces)
+  .settings(commonDependencySettings, assemblySettings)
+  .settings(
+    releaseProcess := Nil
+  )
+
+lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
+  .dependsOn(interfaces_impl)
+  .settings(commonDependencySettings, assemblySettings)
+  .settings(
+    releaseProcess := Nil
+  )
 
 val GLOBAL_SCALA_VERSION = "2.13.0"
