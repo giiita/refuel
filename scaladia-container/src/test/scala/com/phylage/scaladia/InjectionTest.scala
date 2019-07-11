@@ -1,5 +1,6 @@
 package com.phylage.scaladia
 
+import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.exception.DIAutoInitializationException
 import com.phylage.scaladia.injector.Injector.@@
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
@@ -167,6 +168,12 @@ object InjectionTest {
     trait TestIF_107
 
     object TestIFImpl_107_AUTO extends TestIF_107 with AutoInject[TestIF_107]
+
+  }
+
+  object TEST108 {
+
+    trait TestIF_108
 
   }
 
@@ -351,18 +358,6 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[TestIF_104].provide shouldBe TestIFImpl_104_AUTO
     }
 
-    "confirm vs narrow class" in {
-      import TEST107._
-
-      object LOCAL_TestIF_107 extends TestIF_107
-
-      val inspection = confirm[TestIF_107]
-
-      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
-
-      inspection shouldBe TestIFImpl_107_AUTO
-    }
-
     "add scope of multiple types" in {
       import TEST104._
 
@@ -396,6 +391,34 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       AccessorA.get.provide shouldBe LOCAL_TestIF_106
       AccessorB.get.provide shouldBe LOCAL_TestIF_106
       AccessorC.get.provide shouldBe TestIFImpl_106_AUTO
+    }
+
+    "confirm vs narrow class" in {
+      import TEST107._
+
+      object LOCAL_TestIF_107 extends TestIF_107
+
+      val inspection = confirm[TestIF_107]
+
+      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
+
+      inspection shouldBe TestIFImpl_107_AUTO
+    }
+
+    "using pattern" in {
+      import TEST108._
+
+      object LOCAL_TestIF_108 extends TestIF_108 with AutoInject[TestIF_108]
+      object NARROWED_TestIF_108 extends TestIF_108
+
+      object TEST108_RUNNER extends Injector {
+        val assertion = shade { implicit c =>
+          narrow[TestIF_108](NARROWED_TestIF_108).indexing()(c)
+          inject[TestIF_108].provide shouldBe NARROWED_TestIF_108
+        }
+      }
+      TEST108_RUNNER.assertion
+      inject[TestIF_108].provide shouldBe NARROWED_TestIF_108
     }
   }
 

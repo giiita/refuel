@@ -9,7 +9,7 @@ import scala.reflect.runtime.universe._
 
 package object container {
 
-  object DefaultContainer extends StorePublisherContainer {
+  class StandardContainer() extends StorePublisherContainer {
 
     val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
 

@@ -1,6 +1,6 @@
 package com.phylage.scaladia.injector
 
-import com.phylage.scaladia.container.Container
+import com.phylage.scaladia.container.{Container, ContainerStore}
 import com.phylage.scaladia.injector.scope.InjectableScope
 
 /**
@@ -19,7 +19,7 @@ trait AutoInject[T] extends AutoInjectable[T] with Injector {
   import scala.reflect.runtime.universe._
 
   def flush(implicit wtt: WeakTypeTag[T]): InjectableScope[T] = {
-    implicitly[Container].createIndexer[T](
+    implicitly[ContainerStore].ctn.createIndexer[T](
       me,
       injectionPriority
     )(implicitly[WeakTypeTag[T]]).indexing()
