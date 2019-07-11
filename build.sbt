@@ -52,12 +52,11 @@ lazy val root = project.in(file("."))
     root_interfaces,
     interfaces_impl,
     call_interfaces
-  ).settings(assemblySettings).settings(
+  ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
   scalaVersion := GLOBAL_SCALA_VERSION,
-  crossScalaVersions := buildTargetVersion,
-  releaseProcess := Nil
+  crossScalaVersions := buildTargetVersion
 )
 
 lazy val scaladiaMacro = (project in file("scaladia-macro"))
