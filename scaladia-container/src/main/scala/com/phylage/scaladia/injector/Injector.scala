@@ -1,11 +1,10 @@
 package com.phylage.scaladia.injector
 
-import com.phylage.scaladia.provider.Lazy
-import com.phylage.scaladia.provider.Tag
+import com.phylage.scaladia.provider.{Accessor, Lazy, Localized, Tag}
 import com.phylage.scaladia.internal.Macro
 import com.phylage.scaladia.container.indexer.Indexer
-import com.phylage.scaladia.container.{Container, ContainerStore}
-import com.phylage.scaladia.provider.Accessor
+import com.phylage.scaladia.container._
+import com.phylage.scaladia.injector.Injector.{@@, PhantomCtxIndication}
 
 import scala.reflect.runtime.universe._
 import scala.language.experimental.macros
@@ -13,13 +12,22 @@ import scala.language.implicitConversions
 
 object Injector {
   type @@[+T, +U] = T with Tag[U]
+
+  class PhantomCtxIndication[T](xxx: Container @@ Localized => T) extends Injector {
+    override implicit def _dicnt: Container @@ Localized = new StandardContainer with Tag[Localized]
+    override type CNT = Container @@ Localized
+
+    def enclose: T = xxx(_dicnt)
+  }
 }
 
 /**
   * It is a rule class to use Injection container.
   */
-trait Injector {
+trait Injector extends ContainerTypeSymbol {
   me =>
+
+  type CTN = Container
 
   /**
     * Manually register the new dependency.
@@ -28,7 +36,7 @@ trait Injector {
     * @param priority Injection priority.
     * @tparam T new dependency type
     */
-  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100): Unit = implicitly[Container].createIndexer(x, priority).indexing()
+  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100): Unit = implicitly[CTN].createIndexer(x, priority).indexing()
 
   /**
     * Gets an indexer for registering new dependencies.
@@ -39,7 +47,7 @@ trait Injector {
     * @tparam T new dependency type
     * @return
     */
-  protected def narrow[T: WeakTypeTag](x: T, priority: Int = Int.MaxValue): Indexer[T] = implicitly[Container].createIndexer(x, priority)
+  protected def narrow[T: WeakTypeTag](x: T, priority: Int = Int.MaxValue): Indexer[T] = implicitly[CTN].createIndexer(x, priority)
 
   /**
     * Get accessible dependencies.
@@ -52,7 +60,7 @@ trait Injector {
     * @tparam T Injection type
     * @return
     */
-  protected def inject[T](implicit ctn: Container, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
+  protected def inject[T](implicit ctn: CTN, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
 
 
   /**
@@ -71,7 +79,7 @@ trait Injector {
     * @tparam T Injection type
     * @return
     */
-  protected def confirm[T](implicit ctn: Container, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
+  protected def confirm[T](implicit ctn: CTN = implicitly[ContainerStore].ctn, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
 
   /**
     * Provide dependency.
@@ -92,12 +100,15 @@ trait Injector {
     * Implicitly container
     * @return
     */
-  protected implicit def _dicnt: Container = implicitly[ContainerStore].ctn
+  protected implicit def _dicnt: CTN = implicitly[ContainerStore].ctn
 
   /**
     * Implicitly injection pool
     * @return
     */
   protected implicit def _ijp: InjectionPool = implicitly[ContainerStore].ijp
+
+
+  def shade[T](ctx: Container @@ Localized => T): T = new PhantomCtxIndication[T](ctx).enclose
 
 }
