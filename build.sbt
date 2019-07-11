@@ -57,7 +57,8 @@ lazy val root = project.in(file("."))
   publishArtifact in ThisProject := false,
   scalaVersion := GLOBAL_SCALA_VERSION,
   crossScalaVersions := buildTargetVersion,
-  releaseProcess := Nil
+  releaseProcess in ThisProject := Nil,
+  publishTo in ThisProject := None
 )
 
 lazy val scaladiaMacro = (project in file("scaladia-macro"))
