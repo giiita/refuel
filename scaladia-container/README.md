@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-container" % "2.1.2"
+libraryDependencies += "com.phylage" %% "scaladia-container" % "2.3.0"
 ````
 
 ### Simplest Injection

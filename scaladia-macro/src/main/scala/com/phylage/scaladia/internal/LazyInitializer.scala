@@ -29,20 +29,29 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     )
   }
 
-  def diligentInit[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
-    injection[T](ctn, ip, access)
-  }
-
-  def publish(ip: Tree): Expr[() => Unit] = {
+  def publish(ip: Tree): Expr[Unit] = {
     c.Expr(
       q"""
-        import scala.language.experimental.macros
-        def _scrp(): Iterable[com.phylage.scaladia.injector.InjectionType[_]] = macro com.phylage.scaladia.internal.Macro.scrapeInjectionTypes
         ${c.Expr[InjectionPool](ip)}.pool(
-          () => _scrp()
+          () => $scrapeInjectionTypes
         )
       """
     )
+  }
+
+  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ip: Tree): Expr[T] = {
+    c.Expr(
+      q"""
+         {
+        ${publish(ip)}
+        $fun
+         }
+      """
+    )
+  }
+
+  def diligentInit[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
+    injection[T](ctn, ip, access)
   }
 
   def injection[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
@@ -56,14 +65,22 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
     c.Expr[T] {
       q"""
-       $mayBeInjection orElse {
-         val _pool = ${c.Expr[InjectionPool](ip)}
-         _pool.collect[$tag].map(_.apply())
+       {
+         ${c.Expr[InjectionPool](ip)}.collect[$tag].map(_.apply())
          $mayBeInjection
        } getOrElse {
          throw new com.phylage.scaladia.exception.InjectDefinitionException(s"Cannot found " + ${tag.typeSymbol.fullName} + " implementation.")
        }
      """
     }
+  }
+
+
+
+  def scrapeInjectionTypes: c.Expr[Iterable[InjectionType[_]]] = {
+    import c.universe._
+    new InjectionCompound[c.type](c).build(
+      AutoDIExtractor.collectApplyTarget[c.type, Container](c)(weakTypeTag[Container])
+    )
   }
 }
