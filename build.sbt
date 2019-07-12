@@ -120,6 +120,18 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     )
   ).enablePlugins(JavaAppPackaging)
 
+lazy val scaladiaTest = (project in file("scaladia-test"))
+  .dependsOn(scaladiaHttp)
+  .settings(assemblySettings)
+  .settings(commonDependencySettings)
+  .settings(
+    name := "scaladia-test",
+    description := "DI testing framework.",
+    libraryDependencies ++= Seq(
+      "org.scalatest" %% "scalatest" % "3.0.8"
+    )
+  ).enablePlugins(JavaAppPackaging)
+
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
   .dependsOn(scaladiaHttp)
   .settings(commonDependencySettings, assemblySettings)
@@ -141,4 +153,4 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
     releaseProcess := Nil
   )
 
-val GLOBAL_SCALA_VERSION = "2.13.0"
+val GLOBAL_SCALA_VERSION = "2.12.8"
