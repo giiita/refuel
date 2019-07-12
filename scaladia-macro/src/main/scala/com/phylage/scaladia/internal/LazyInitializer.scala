@@ -17,11 +17,18 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
         {
          ${publish(ip)}
           new com.phylage.scaladia.provider.Lazy[${weakTypeOf[T]}] {
-            lazy val provide: ${weakTypeOf[T]} = try {
-              ${injection[T](ctn, ip, access)}
-            } catch {
-              case e: java.lang.Throwable =>
-                throw new com.phylage.scaladia.exception.DIAutoInitializationException(${weakTypeOf[T].typeSymbol.fullName} + " or its internal initialize failed.", e)
+            lazy val provide: ${weakTypeOf[T]} = {
+              try {
+                ${injection[T](ctn, ip, access)}
+              } catch {
+                case e: java.lang.Throwable =>
+                  throw new com.phylage.scaladia.exception.DIAutoInitializationException(${weakTypeOf[T].typeSymbol.fullName} + " or its internal initialize failed.", e)
+              }
+            } match {
+              case x: com.phylage.scaladia.injector.Injector =>
+                x._inheritCnt($ctn)
+                x
+              case x => x
             }
           }
         }

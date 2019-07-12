@@ -32,4 +32,6 @@ private[scaladia] trait Container {
     * @return
     */
   def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
+
+  def shading: Container
 }

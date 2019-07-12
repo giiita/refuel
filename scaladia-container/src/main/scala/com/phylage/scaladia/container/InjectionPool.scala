@@ -19,15 +19,15 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     * @return
     */
   def pool(applyer: () => Iterable[InjectionType[_]]): Unit = {
-    logger.debug(":: Pooling {")
+    println(":: Pooling {")
 
     applyer().collect {
       case x if !buffer.exists(_ =:= x) =>
-        logger.debug(s"::  ${x.name}")
+        println(s"::  ${x.name}")
         buffer += x
     }
 
-    logger.debug(":: }")
+    println(":: }")
   }
 
   /**
@@ -40,15 +40,15 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
     {
 
-      logger.debug("## Applyment {")
+      println(s"## Applyment ${wtt.tpe.typeSymbol.fullName} {")
 
       val r = buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
       } map { x =>
-        logger.debug(s"##  ${x.name}")
+        println(s"##  ${x.name}")
         x.applyment
       }
-      logger.debug("## }")
+      println("## }")
       r
     }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
   }

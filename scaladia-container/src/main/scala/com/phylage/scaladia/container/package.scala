@@ -9,9 +9,7 @@ import scala.reflect.runtime.universe._
 
 package object container {
 
-  class StandardContainer() extends StorePublisherContainer {
-
-    val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
+  case class StandardContainer(buffer: ListBuffer[InjectableScope[_]] = ListBuffer()) extends Container {
 
     /**
       * Cache in the injection container.
@@ -48,8 +46,10 @@ package object container {
       * @return
       */
     def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T] = {
-      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]))
+      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]), this)
     }
+
+    override def shading: Container = copy()
   }
 
 }
