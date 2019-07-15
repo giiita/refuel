@@ -1,5 +1,6 @@
 package com.phylage.scaladia.container
 
+import com.phylage.scaladia.Types.{@@, Localized}
 import com.phylage.scaladia.container.indexer.Indexer
 import com.phylage.scaladia.injector.scope.InjectableScope
 import com.phylage.scaladia.provider.Accessor
@@ -33,5 +34,5 @@ private[scaladia] trait Container {
     */
   def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
 
-  def shading: Container
+  def shading: Container @@ Localized
 }
