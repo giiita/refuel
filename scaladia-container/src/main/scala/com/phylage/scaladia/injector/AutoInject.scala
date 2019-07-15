@@ -1,6 +1,6 @@
 package com.phylage.scaladia.injector
 
-import com.phylage.scaladia.container.{Container, ContainerStore}
+import com.phylage.scaladia.container.ContainerStore
 import com.phylage.scaladia.injector.scope.InjectableScope
 
 /**

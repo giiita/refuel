@@ -12,4 +12,5 @@ object Executor extends RefreshInjection {
   object InjectionExecution extends Injector {
     def exec: String = inject[Runner].run
   }
+
 }

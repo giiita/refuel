@@ -5,8 +5,6 @@ import java.time.{Instant, LocalDateTime, ZonedDateTime}
 
 import com.phylage.scaladia.injector.Injector
 
-import scala.util.matching.Regex
-
 object ScalaTime extends Injector {
   type DefaultDateType = ZonedDateTime
 
