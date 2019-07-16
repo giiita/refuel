@@ -25,11 +25,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
                 case e: java.lang.Throwable =>
                   throw new com.phylage.scaladia.exception.DIAutoInitializationException(${tag.typeSymbol.fullName} + " or its internal initialize failed.", e)
               }
-            } match {
-              case x: com.phylage.scaladia.injector.Injector =>
-                x._cntMutation = $ctn
-                x
-              case x => x
             }
           }
         }

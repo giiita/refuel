@@ -1,6 +1,5 @@
 package com.phylage.scaladia.injector
 
-import com.phylage.scaladia.Types.LocalizedContainer
 import com.phylage.scaladia.container._
 import com.phylage.scaladia.container.indexer.Indexer
 import com.phylage.scaladia.internal.Macro
@@ -25,7 +24,14 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     */
   def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority).indexing()
 
-  def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)
+  /**
+    * Create a container shade.
+    *
+    * @param ctx
+    * @tparam T
+    * @return
+    */
+  // def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)
 
   /**
     * Gets an indexer for registering new dependencies.
@@ -37,8 +43,6 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @return
     */
   protected def narrow[T: WeakTypeTag](x: T, priority: Int = Int.MaxValue)(implicit ctn: C): Indexer[T] = ctn.createIndexer(x, priority)
-
-  def test(implicit ctn: C) = ctn
 
   /**
     * Get accessible dependencies.
