@@ -5,14 +5,13 @@ import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, AcceptedF
 
 import scala.reflect.{ClassTag, classTag}
 
-class BroadSenseIndexer[T](scope: OpenScope[T]) extends AbstractIndexer[T] {
+class BroadSenseIndexer[T](scope: OpenScope[T], cnt: Container) extends AbstractIndexer[T] {
   /**
     * Create a new object in the injection container.
     *
-    * @param ctn Container
     * @return
     */
-  override def indexing()(implicit ctn: Container): InjectableScope[T] = ctn.cache(scope)
+  override def indexing(): InjectableScope[T] = cnt.cache(scope)
 
   /**
     * Register a new authorization instance with this indexer.
@@ -28,7 +27,8 @@ class BroadSenseIndexer[T](scope: OpenScope[T]) extends AbstractIndexer[T] {
       scope.priority,
       scope.x,
       Vector(x)
-    )
+    ),
+    cnt
   )
 
   /**
@@ -44,6 +44,7 @@ class BroadSenseIndexer[T](scope: OpenScope[T]) extends AbstractIndexer[T] {
       scope.priority,
       scope.x,
       Vector(classTag[X].runtimeClass)
-    )
+    ),
+    cnt
   )
 }

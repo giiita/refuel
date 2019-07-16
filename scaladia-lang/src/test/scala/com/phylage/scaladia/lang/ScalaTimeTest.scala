@@ -3,8 +3,8 @@ package com.phylage.scaladia.lang
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.TimeZone
 
-import ScalaTime._
 import com.phylage.scaladia.injector.Injector
+import com.phylage.scaladia.lang.ScalaTime._
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.util.{Failure, Try}

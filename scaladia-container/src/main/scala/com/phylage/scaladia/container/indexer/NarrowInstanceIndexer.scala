@@ -5,14 +5,13 @@ import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, Injectabl
 
 import scala.reflect.ClassTag
 
-class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceScope[T]) extends AbstractIndexer[T] {
+class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceScope[T], cnt: Container) extends AbstractIndexer[T] {
   /**
     * Create a new object in the injection container.
     *
-    * @param ctn Container
     * @return
     */
-  override def indexing()(implicit ctn: Container): InjectableScope[T] = ctn.cache(scope)
+  override def indexing(): InjectableScope[T] = cnt.cache(scope)
 
   /**
     * Create a new authorization class for this indexer.
@@ -32,6 +31,7 @@ class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceScope[T]) extends Abst
     * @return
     */
   def accept[X](x: X): Indexer[T] = new NarrowInstanceIndexer(
-    scope.copy(acceptedFrom = scope.acceptedFrom.+:(x))
+    scope.copy(acceptedFrom = scope.acceptedFrom.+:(x)),
+    cnt
   )
 }

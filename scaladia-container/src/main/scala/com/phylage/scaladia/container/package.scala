@@ -1,17 +1,16 @@
 package com.phylage.scaladia
 
+import com.phylage.scaladia.Types.@@
 import com.phylage.scaladia.container.indexer.{BroadSenseIndexer, Indexer}
 import com.phylage.scaladia.injector.scope.{InjectableScope, OpenScope}
-import com.phylage.scaladia.provider.Accessor
+import com.phylage.scaladia.provider.{Accessor, Tag}
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 package object container {
 
-  object DefaultContainer extends StorePublisherContainer {
-
-    val buffer: ListBuffer[InjectableScope[_]] = ListBuffer()
+  case class StandardContainer(shaded: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer()) extends Container with Tag[Types.Localized] {
 
     /**
       * Cache in the injection container.
@@ -23,7 +22,7 @@ package object container {
     def cache[T](value: InjectableScope[T]): InjectableScope[T] = {
       value match {
         case sc if buffer.contains(sc) => sc
-        case sc                        =>
+        case sc =>
           buffer += sc
           sc
       }
@@ -35,8 +34,10 @@ package object container {
       * @return
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = {
-      buffer.filter(_.accepted[T](requestFrom)).sortBy(_.priority).lastOption.map(_.value.asInstanceOf[T])
-
+      buffer.filter(_.accepted[T](requestFrom))
+        .sortBy(_.priority)
+        .lastOption
+        .map(_.value.asInstanceOf[T])
     }
 
     /**
@@ -48,7 +49,11 @@ package object container {
       * @return
       */
     def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T] = {
-      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]))
+      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]), this)
+    }
+
+    override def shading: @@[Container, Types.Localized] = {
+      copy(shaded = true)
     }
   }
 
