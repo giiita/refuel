@@ -8,6 +8,7 @@ import com.phylage.scaladia.injector.Injector
 import org.scalatest._
 
 object HttpTest {
+
   object TestEntity {
 
     case class JokeBody(id: Int,
@@ -18,7 +19,9 @@ object HttpTest {
     case class Jokes(`type`: String, value: JokeBody)
 
   }
+
 }
+
 class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
 
   "Http io test" should {
@@ -60,7 +63,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
         .run
         .map { result =>
-           println(result)
+          println(result)
           result.length > 0 shouldBe true
         }
     }

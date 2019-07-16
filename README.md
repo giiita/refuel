@@ -5,7 +5,10 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/scaladia-container_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/scaladia_2.12)
 
 Scaladia is not bothersome and is lightweight Scala Dependency Injection library<br/>
-Inspired by [Macwire](https://github.com/adamw/macwire)<br/>
+Flexible support for basic injection.<br/>
+You can replace second or third party injections from anywhere and easily handle multi-project configuration dependencies.
+
+
 
 ## [scaladia-container-core](https://github.com/giiita/scaladia/tree/master/scaladia-container)
 

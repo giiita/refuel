@@ -1,18 +1,21 @@
 package com.phylage.scaladia
 
+import com.phylage.scaladia.Types.@@
 import com.phylage.scaladia.exception.DIAutoInitializationException
-import com.phylage.scaladia.injector.Injector.@@
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.phylage.scaladia.provider.{Lazy, Tag}
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.{Assertion, AsyncWordSpec, DiagrammedAssertions, Matchers}
 
 import scala.util.Try
 
 object InjectionTest {
 
+
   object TEST1 {
 
-    trait TestIF_1
+    trait TestIF_1 {
+      val value = "value"
+    }
 
     object TestIFImpl_1 extends TestIF_1 with AutoInject[TestIF_1]
 
@@ -170,6 +173,28 @@ object InjectionTest {
 
   }
 
+  object TEST108 {
+
+    trait A108
+
+    object A108_REPLACE extends A108
+
+    object A108 extends A108 with AutoInject[A108]
+
+    trait B108 extends Injector {
+      val a = inject[A108]
+    }
+
+    object B108 extends B108 with AutoInject[B108]
+
+    trait C108 extends Injector {
+      val b = inject[B108]
+    }
+
+    object C108 extends C108 with AutoInject[C108]
+
+  }
+
   object TEST201 {
 
     trait TestIF_201
@@ -271,7 +296,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
   "auto inject" should {
     "default auto inject" in {
       import TEST1._
-      inject[TestIF_1].provide shouldBe TestIFImpl_1
+      inject[TestIF_1].value shouldBe "value"
     }
 
     "recovered inject" in {
@@ -351,18 +376,6 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inject[TestIF_104].provide shouldBe TestIFImpl_104_AUTO
     }
 
-    "confirm vs narrow class" in {
-      import TEST107._
-
-      object LOCAL_TestIF_107 extends TestIF_107
-
-      val inspection = confirm[TestIF_107]
-
-      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
-
-      inspection shouldBe TestIFImpl_107_AUTO
-    }
-
     "add scope of multiple types" in {
       import TEST104._
 
@@ -397,6 +410,29 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       AccessorB.get.provide shouldBe LOCAL_TestIF_106
       AccessorC.get.provide shouldBe TestIFImpl_106_AUTO
     }
+
+    "confirm vs narrow class" in {
+      import TEST107._
+
+      object LOCAL_TestIF_107 extends TestIF_107
+
+      val inspection = confirm[TestIF_107]
+
+      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
+
+      inspection shouldBe TestIFImpl_107_AUTO
+    }
+
+//    "using pattern" in {
+//      import TEST108._
+//
+//      shade[Assertion] { implicit c =>
+//        overwrite[A108](A108_REPLACE)
+//        inject[C108].provide.b.a.provide shouldBe A108_REPLACE
+//      }
+//
+//      inject[C108].provide.b.a.provide shouldBe A108
+//    }
   }
 
   "Tagging" should {
@@ -410,7 +446,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         inject[TestIF_201 @@ TestTagC].provide
       } match {
         case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "com.phylage.scaladia.injector.Injector.<refinement> or its internal initialize failed."
+        case scala.util.Failure(exception) => exception.getMessage shouldBe "com.phylage.scaladia.Types.<refinement> or its internal initialize failed."
       }
     }
   }

@@ -1,13 +1,12 @@
 package com.phylage.scaladia.container
 
-import com.phylage.scaladia.Types.{@@, Localized}
 import com.phylage.scaladia.container.indexer.Indexer
 import com.phylage.scaladia.injector.scope.InjectableScope
 import com.phylage.scaladia.provider.Accessor
 
 import scala.reflect.runtime.universe._
 
-private[scaladia] trait Container {
+private[scaladia] trait CanBeContainer {
   /**
     * Cache in the injection container.
     *
@@ -33,6 +32,4 @@ private[scaladia] trait Container {
     * @return
     */
   def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
-
-  def shading: Container @@ Localized
 }

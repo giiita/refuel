@@ -40,7 +40,7 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
     {
 
-      logger.debug("## Applyment {")
+      logger.debug(s"## Applyment ${wtt.tpe.typeSymbol.fullName} {")
 
       val r = buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
