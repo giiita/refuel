@@ -7,7 +7,6 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
-  private[this] val logger: Logger = Logger(classOf[com.phylage.scaladia.injector.InjectionPool])
   private[this] val buffer: ListBuffer[InjectionType[_]] = ListBuffer()
 
   /**
@@ -18,16 +17,10 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     * @param applyer injection object
     * @return
     */
-  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = {
-    logger.debug(":: Pooling {")
-
+  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = synchronized {
     applyer().collect {
-      case x if !buffer.exists(_ =:= x) =>
-        logger.debug(s"::  ${x.name}")
-        buffer += x
+      case x if !buffer.exists(_ =:= x) => buffer += x
     }
-
-    logger.debug(":: }")
   }
 
   /**
@@ -37,19 +30,11 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
+  def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = synchronized {
     {
-
-      logger.debug(s"## Applyment ${wtt.tpe.typeSymbol.fullName} {")
-
-      val r = buffer.collect {
+      buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
-      } map { x =>
-        logger.debug(s"##  ${x.name}")
-        x.applyment
-      }
-      logger.debug("## }")
-      r
+      } map(_.applyment)
     }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
   }
 }
