@@ -19,7 +19,7 @@ package object container {
       * @tparam T injection type
       * @return
       */
-    def cache[T](value: InjectableScope[T]): InjectableScope[T] = {
+    def cache[T](value: InjectableScope[T]): InjectableScope[T] = synchronized {
       value match {
         case sc if buffer.contains(sc) => sc
         case sc =>
@@ -33,7 +33,7 @@ package object container {
       *
       * @return
       */
-    def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = {
+    def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = synchronized {
       buffer.filter(_.accepted[T](requestFrom))
         .sortBy(_.priority)
         .lastOption

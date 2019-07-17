@@ -37,7 +37,5 @@ trait RuntimeTZ { me =>
   /* Default String format */
   val DEFAULT_FORMAT: String
 
-  TimeZone.setDefault(me.TIME_ZONE)
-
   lazy val format: DateTimeFormatter = DateTimeFormatter.ofPattern(me.DEFAULT_FORMAT)
 }
