@@ -176,6 +176,8 @@ object InjectionTest {
   object TEST108 {
 
     trait A108
+    trait A108_TRAIT
+    class A180_CLASS extends A108_TRAIT with AutoInject[A108_TRAIT]
 
     object A108_REPLACE extends A108
 
@@ -423,16 +425,16 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inspection shouldBe TestIFImpl_107_AUTO
     }
 
-//    "using pattern" in {
-//      import TEST108._
-//
-//      shade[Assertion] { implicit c =>
-//        overwrite[A108](A108_REPLACE)
-//        inject[C108].provide.b.a.provide shouldBe A108_REPLACE
-//      }
-//
-//      inject[C108].provide.b.a.provide shouldBe A108
-//    }
+    "using pattern" in {
+      import TEST108._
+
+      shade[Assertion] { implicit c =>
+        overwrite[A108](A108_REPLACE)
+        inject[C108].provide.b.a.provide shouldBe A108_REPLACE
+      }
+
+      inject[C108].provide.b.a.provide shouldBe A108
+    }
   }
 
   "Tagging" should {

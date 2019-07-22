@@ -1,5 +1,6 @@
 package com.phylage.scaladia.injector
 
+import com.phylage.scaladia.Types.LocalizedContainer
 import com.phylage.scaladia.container._
 import com.phylage.scaladia.container.indexer.Indexer
 import com.phylage.scaladia.internal.Macro
@@ -31,7 +32,7 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @tparam T
     * @return
     */
-  // def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)
+  def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)(_cntMutation.shading)
 
   /**
     * Gets an indexer for registering new dependencies.
@@ -64,17 +65,17 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @tparam X Variable type
     * @return
     */
-  implicit def implicitProviding[X](variable: Lazy[X]): X = variable.provide
+  implicit def _implicitProviding[X](variable: Lazy[X]): X = variable.provide
 
   /**
     * This refers to itself
     *
     * @return
     */
-  protected implicit def someoneNeeds: Accessor[_] = Accessor(me)
+  protected implicit def _someoneNeeds: Accessor[_] = Accessor(me)
 
 
-  implicit var _cntMutation: C
+  implicit def _cntMutation: C
 
   /**
     * Implicitly injection pool
