@@ -34,6 +34,7 @@ package object container {
       * @return
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = synchronized {
+      // println(s"Shadind : ${shaded}")
       buffer.filter(_.accepted[T](requestFrom))
         .sortBy(_.priority)
         .lastOption

@@ -32,6 +32,10 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     */
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = synchronized {
     {
+      // println(s"TARGET : ${wtt.tpe.typeSymbol.fullName}")
+      // buffer.map(_.name).foreach(println)
+      // println()
+
       buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
       } map(_.applyment)
