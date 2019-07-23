@@ -45,10 +45,10 @@ lazy val commonDependencySettings = Seq(
 
 lazy val root = project.in(file("."))
   .aggregate(
-    scaladiaMacro,
-    scaladiaContainer,
-    scaladiaLang,
-    scaladiaHttp,
+    `macro`,
+    container,
+    lang,
+    http,
     root_interfaces,
     interfaces_impl,
     call_interfaces
@@ -59,7 +59,7 @@ lazy val root = project.in(file("."))
   crossScalaVersions := buildTargetVersion
 )
 
-lazy val scaladiaMacro = (project in file("scaladia-macro"))
+lazy val `macro` = (project in file("scaladia-macro"))
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
@@ -75,10 +75,10 @@ lazy val scaladiaMacro = (project in file("scaladia-macro"))
     scalacOptions += "-language:experimental.macros"
   )
 
-lazy val scaladiaContainer = (project in file("scaladia-container"))
+lazy val container = (project in file("scaladia-container"))
   .settings(assemblySettings)
   .settings(commonDependencySettings)
-  .dependsOn(scaladiaMacro)
+  .dependsOn(`macro`)
   .settings(
     name := "scaladia-container",
     description := "Lightweight DI container for Scala.",
@@ -95,17 +95,17 @@ lazy val scaladiaContainer = (project in file("scaladia-container"))
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   ).enablePlugins(JavaAppPackaging)
 
-lazy val scaladiaLang = (project in file("scaladia-lang"))
+lazy val lang = (project in file("scaladia-lang"))
   .settings(assemblySettings)
   .settings(commonDependencySettings)
-  .dependsOn(scaladiaContainer)
+  .dependsOn(container)
   .settings(
     name := "scaladia-lang",
     parallelExecution in Test := true
   ).enablePlugins(JavaAppPackaging)
 
-lazy val scaladiaHttp = (project in file("scaladia-http"))
-  .dependsOn(scaladiaLang)
+lazy val http = (project in file("scaladia-http"))
+  .dependsOn(lang)
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
@@ -120,8 +120,8 @@ lazy val scaladiaHttp = (project in file("scaladia-http"))
     )
   ).enablePlugins(JavaAppPackaging)
 
-lazy val scaladiaTest = (project in file("scaladia-test"))
-  .dependsOn(scaladiaHttp)
+lazy val `test` = (project in file("scaladia-test"))
+  .dependsOn(http)
   .settings(assemblySettings)
   .settings(commonDependencySettings)
   .settings(
@@ -133,7 +133,7 @@ lazy val scaladiaTest = (project in file("scaladia-test"))
   ).enablePlugins(JavaAppPackaging)
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
-  .dependsOn(scaladiaHttp)
+  .dependsOn(http)
   .settings(commonDependencySettings, assemblySettings)
   .settings(
     releaseProcess := Nil

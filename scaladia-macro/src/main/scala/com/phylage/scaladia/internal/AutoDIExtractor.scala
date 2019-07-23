@@ -114,12 +114,12 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     n.accessible match {
       case accessibleSymbol if accessibleSymbol.isEmpty => result
       case accessibleSymbol =>
-        accessibleSymbol
-          .filter(_.fullName.startsWith("com.phylage"))
-          .map(x => s"  ${x.companion} : ${x.companion.isClass} : ${!x.companion.isAbstract} :  ${
-            if (x.companion.isClass && !x.companion.isAbstract && x.companion.asClass.primaryConstructor.isMethod) {
-              x.companion.asClass.primaryConstructor.asMethod.paramLists
-            } else ""}").foreach(println)
+//        accessibleSymbol
+//          .filter(_.fullName.startsWith("com.phylage"))
+//          .map(x => s"  ${x.companion} : ${x.companion.isClass} : ${!x.companion.isAbstract} :  ${
+//            if (x.companion.isClass && !x.companion.isAbstract && x.companion.asClass.primaryConstructor.isMethod) {
+//              x.companion.asClass.primaryConstructor.asMethod.paramLists
+//            } else ""}").foreach(println)
         recursiveModuleExplore(
           accessibleSymbol.withFilter(_.isModule).flatMap(_.typeSignature.members).collect {
             case x if x.isModule => x

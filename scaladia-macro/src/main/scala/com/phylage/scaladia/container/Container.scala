@@ -8,6 +8,9 @@ import com.phylage.scaladia.provider.Accessor
 import scala.reflect.runtime.universe._
 
 private[scaladia] trait Container {
+
+  val lights: Vector[Container]
+
   /**
     * Cache in the injection container.
     *
@@ -32,7 +35,7 @@ private[scaladia] trait Container {
     * @tparam T injection type
     * @return
     */
-  def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T]
+  def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container] = this.lights): Indexer[T]
 
   def shading: Container @@ Localized
 }

@@ -23,13 +23,13 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @param priority Injection priority.
     * @tparam T new dependency type
     */
-  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority).indexing()
+  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
 
   /**
     * Create a container shade.
     *
-    * @param ctx
-    * @tparam T
+    * @param ctx Shaded container function.
+    * @tparam T Result type
     * @return
     */
   def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)(_cntMutation.shading)
@@ -65,7 +65,9 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @tparam X Variable type
     * @return
     */
-  implicit def _implicitProviding[X](variable: Lazy[X]): X = variable.provide
+  implicit def _implicitProviding[X](variable: Lazy[X]): X = {
+    variable._provide
+  }
 
   /**
     * This refers to itself
@@ -75,7 +77,7 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
   protected implicit def _someoneNeeds: Accessor[_] = Accessor(me)
 
 
-  implicit def _cntMutation: C
+  implicit var _cntMutation: C
 
   /**
     * Implicitly injection pool
