@@ -1,11 +1,12 @@
 package com.phylage.scaladia.injector
 
+import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.injector.scope.InjectableScope
 
 import scala.reflect.runtime.universe._
 
 trait InjectionPool {
-  type InjectionApplyment[T] = () => InjectableScope[T]
+  type InjectionApplyment[T] = Container => InjectableScope[T]
 
   /**
     * Pool Injectable subtypes for automatic loading.

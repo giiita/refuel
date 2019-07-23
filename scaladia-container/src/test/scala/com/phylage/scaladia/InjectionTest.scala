@@ -177,6 +177,10 @@ object InjectionTest {
 
     trait A108
 
+    trait A108_TRAIT
+
+    class A180_CLASS extends A108_TRAIT with AutoInject[A108_TRAIT]
+
     object A108_REPLACE extends A108
 
     object A108 extends A108 with AutoInject[A108]
@@ -301,37 +305,37 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
     "recovered inject" in {
       import TEST2._
-      inject[TestIF_2].provide shouldBe TestIFImpl_2
+      inject[TestIF_2]._provide shouldBe TestIFImpl_2
     }
 
     "recovered vs default auto inject priority" in {
       import TEST3._
-      inject[TestIF_3].provide shouldBe TestIFImpl_3_AUTO
+      inject[TestIF_3]._provide shouldBe TestIFImpl_3_AUTO
     }
 
     "recovered vs custom(1) inject priority" in {
       import TEST4._
-      inject[TestIF_4].provide shouldBe TestIFImpl_4_CUSTOM
+      inject[TestIF_4]._provide shouldBe TestIFImpl_4_CUSTOM
     }
 
     "recovered vs custom(0) inject priority == name after win" in {
       import TEST5._
-      inject[TestIF_5].provide shouldBe TestIFImpl_5_RECOVER
+      inject[TestIF_5]._provide shouldBe TestIFImpl_5_RECOVER
     }
 
     "auto vs custom(999) inject priority == auto" in {
       import TEST6._
-      inject[TestIF_6].provide shouldBe TestIFImpl_6_AUTO
+      inject[TestIF_6]._provide shouldBe TestIFImpl_6_AUTO
     }
 
     "auto vs custom(1000) inject priority == name after win" in {
       import TEST7._
-      inject[TestIF_7].provide shouldBe TestIFImpl_7_CUSTOM
+      inject[TestIF_7]._provide shouldBe TestIFImpl_7_CUSTOM
     }
 
     "auto vs custom(1001) inject priority == custom" in {
       import TEST8._
-      inject[TestIF_8].provide shouldBe TestIFImpl_8_CUSTOM
+      inject[TestIF_8]._provide shouldBe TestIFImpl_8_CUSTOM
     }
   }
 
@@ -343,7 +347,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_101](LOCAL_TestIF_101).accept(this).indexing()
 
-      inject[TestIF_101].provide shouldBe LOCAL_TestIF_101
+      inject[TestIF_101]._provide shouldBe LOCAL_TestIF_101
     }
 
     "out of scope instance" in {
@@ -353,7 +357,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_102](LOCAL_TestIF_102).accept(TEST101.TestIFImpl_101_AUTO).indexing()
 
-      inject[TestIF_102].provide shouldBe TestIFImpl_102_AUTO
+      inject[TestIF_102]._provide shouldBe TestIFImpl_102_AUTO
     }
 
     "auto vs narrow class" in {
@@ -363,7 +367,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_103](LOCAL_TestIF_103).accept[InjectionTest].indexing()
 
-      inject[TestIF_103].provide shouldBe LOCAL_TestIF_103
+      inject[TestIF_103]._provide shouldBe LOCAL_TestIF_103
     }
 
     "out of scope class" in {
@@ -373,7 +377,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).indexing()
 
-      inject[TestIF_104].provide shouldBe TestIFImpl_104_AUTO
+      inject[TestIF_104]._provide shouldBe TestIFImpl_104_AUTO
     }
 
     "add scope of multiple types" in {
@@ -395,9 +399,9 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_105](LOCAL_TestIF_105).accept(AccessorA).accept(AccessorB).indexing()
 
-      AccessorA.get.provide shouldBe LOCAL_TestIF_105
-      AccessorB.get.provide shouldBe LOCAL_TestIF_105
-      AccessorC.get.provide shouldBe TestIFImpl_105_AUTO
+      AccessorA.get._provide shouldBe LOCAL_TestIF_105
+      AccessorB.get._provide shouldBe LOCAL_TestIF_105
+      AccessorC.get._provide shouldBe TestIFImpl_105_AUTO
     }
     "Meny acception class" in {
       import TEST106._
@@ -406,9 +410,9 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       narrow[TestIF_106](LOCAL_TestIF_106).accept[AccessorTestA].accept[AccessorTestB].indexing()
 
-      AccessorA.get.provide shouldBe LOCAL_TestIF_106
-      AccessorB.get.provide shouldBe LOCAL_TestIF_106
-      AccessorC.get.provide shouldBe TestIFImpl_106_AUTO
+      AccessorA.get._provide shouldBe LOCAL_TestIF_106
+      AccessorB.get._provide shouldBe LOCAL_TestIF_106
+      AccessorC.get._provide shouldBe TestIFImpl_106_AUTO
     }
 
     "confirm vs narrow class" in {
@@ -423,30 +427,30 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       inspection shouldBe TestIFImpl_107_AUTO
     }
 
-//    "using pattern" in {
-//      import TEST108._
-//
-//      shade[Assertion] { implicit c =>
-//        overwrite[A108](A108_REPLACE)
-//        inject[C108].provide.b.a.provide shouldBe A108_REPLACE
-//      }
-//
-//      inject[C108].provide.b.a.provide shouldBe A108
-//    }
+    "using pattern" in {
+      import TEST108._
+
+      shade[Assertion] { implicit c =>
+        overwrite[A108](A108_REPLACE)
+        inject[C108].b.a._provide shouldBe A108_REPLACE
+      }
+
+      inject[C108].b.a._provide shouldBe A108
+    }
   }
 
   "Tagging" should {
     "tag inspect" in {
       import TEST201._
-      inject[TestIF_201].provide shouldBe TestIFImpl_201_TAGNONE
-      inject[TestIF_201 @@ TestTagA].provide shouldBe TestIFImpl_201_TAGA
-      inject[TestIF_201 @@ TestTagB].provide shouldBe TestIFImpl_201_TAGB
+      inject[TestIF_201]._provide shouldBe TestIFImpl_201_TAGNONE
+      inject[TestIF_201 @@ TestTagA]._provide shouldBe TestIFImpl_201_TAGA
+      inject[TestIF_201 @@ TestTagB]._provide shouldBe TestIFImpl_201_TAGB
 
       Try {
-        inject[TestIF_201 @@ TestTagC].provide
+        inject[TestIF_201 @@ TestTagC]._provide
       } match {
         case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "com.phylage.scaladia.Types.<refinement> or its internal initialize failed."
+        case scala.util.Failure(exception) => exception.getMessage shouldBe "interface com.phylage.scaladia.InjectionTest$TEST201$TestIF_201 or its internal initialize failed."
       }
     }
   }
@@ -458,9 +462,9 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
   "Inheritance relationship" should {
     "pattern 1" in {
       import TEST301._
-      inject[TestIF_301].provide shouldBe TestIFImpl_301_AUTO
+      inject[TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
       Try {
-        inject[EX_TestIF_301].provide shouldBe TestIFImpl_301_AUTO
+        inject[EX_TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
       } match {
         case scala.util.Failure(_: DIAutoInitializationException) => succeed
         case _ => fail()
@@ -468,9 +472,9 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
     }
     "pattern 2" in {
       import TEST302._
-      inject[TestIF_302].provide shouldBe TestIFImpl_302_AUTO
+      inject[TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
       Try {
-        inject[EX_TestIF_302].provide shouldBe TestIFImpl_302_AUTO
+        inject[EX_TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
       } match {
         case scala.util.Failure(_: DIAutoInitializationException) => succeed
         case _ => fail()
@@ -491,8 +495,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       import scala.reflect.runtime.universe._
       def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
 
-      get[TestIF_303_A].provide shouldBe r_A
-      get[TestIF_303_B].provide shouldBe r_B
+      get[TestIF_303_A]._provide shouldBe r_A
+      get[TestIF_303_B]._provide shouldBe r_B
     }
 
     "type erase with Seq" in {
@@ -513,8 +517,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       overwrite[Seq[TestIF_304_A]](r_A)
       overwrite[Seq[TestIF_304_B]](r_B)
 
-      inject[Seq[TestIF_304_A]].provide shouldBe r_A
-      inject[Seq[TestIF_304_B]].provide shouldBe r_B
+      inject[Seq[TestIF_304_A]]._provide shouldBe r_A
+      inject[Seq[TestIF_304_B]]._provide shouldBe r_B
     }
 
     "type erase with Auto" in {
@@ -523,8 +527,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       import scala.reflect.runtime.universe._
       def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
 
-      get[TestIF_305_A].provide shouldBe TestIF_305_A_WRAP
-      get[TestIF_305_B].provide shouldBe TestIF_305_B_WRAP
+      get[TestIF_305_A]._provide shouldBe TestIF_305_A_WRAP
+      get[TestIF_305_B]._provide shouldBe TestIF_305_B_WRAP
     }
   }
 }

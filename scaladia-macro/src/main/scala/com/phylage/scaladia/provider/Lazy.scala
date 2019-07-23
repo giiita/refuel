@@ -7,5 +7,5 @@ trait Lazy[X] {
     *
     * @return
     */
-  def provide: X
+  def _provide: X
 }
