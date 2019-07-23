@@ -10,7 +10,7 @@ import scala.reflect.runtime.universe._
 
 package object container {
 
-  case class StandardContainer(shaded: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer()) extends Container with Tag[Types.Localized] {
+  case class StandardContainer(shade: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer.empty, lights: Vector[Container] = Vector.empty) extends Container with Tag[Types.Localized] {
 
     /**
       * Cache in the injection container.
@@ -34,11 +34,13 @@ package object container {
       * @return
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = synchronized {
-      // println(s"Shadind : ${shaded}")
       buffer.filter(_.accepted[T](requestFrom))
-        .sortBy(_.priority)
-        .lastOption
-        .map(_.value.asInstanceOf[T])
+        .sortBy(_.priority) match {
+        case x =>
+          x.lastOption
+            .map(_.value.asInstanceOf[T])
+      }
+
     }
 
     /**
@@ -49,12 +51,16 @@ package object container {
       * @tparam T injection type
       * @return
       */
-    def createIndexer[T: WeakTypeTag](x: T, priority: Int): Indexer[T] = {
-      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]), this)
+    def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container]): Indexer[T] = {
+      new BroadSenseIndexer(OpenScope[T](x, priority, weakTypeTag[T]), lights :+ this)
     }
 
     override def shading: @@[Container, Types.Localized] = {
-      copy(shaded = true)
+      copy(
+        shade = true,
+        buffer = ListBuffer.apply(this.buffer.toSeq: _*),
+        lights = this.lights.:+(this)
+      )
     }
   }
 

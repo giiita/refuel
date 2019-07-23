@@ -1,7 +1,6 @@
 package com.phylage.scaladia.container
 
 import com.phylage.scaladia.injector.InjectionType
-import com.typesafe.scalalogging.Logger
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
@@ -32,10 +31,6 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     */
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = synchronized {
     {
-      // println(s"TARGET : ${wtt.tpe.typeSymbol.fullName}")
-      // buffer.map(_.name).foreach(println)
-      // println()
-
       buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
       } map(_.applyment)
