@@ -1,7 +1,6 @@
 package com.phylage.scaladia.container
 
 import com.phylage.scaladia.injector.InjectionType
-import com.typesafe.scalalogging.Logger
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._

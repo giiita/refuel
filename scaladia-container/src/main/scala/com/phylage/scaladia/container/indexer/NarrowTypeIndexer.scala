@@ -5,13 +5,16 @@ import com.phylage.scaladia.injector.scope.{AcceptedFromTypeScope, InjectableSco
 
 import scala.reflect.{ClassTag, classTag}
 
-class NarrowTypeIndexer[T](scope: AcceptedFromTypeScope[T], cnt: Container) extends AbstractIndexer[T] {
+class NarrowTypeIndexer[T](scope: AcceptedFromTypeScope[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
   /**
     * Create a new object in the injection container.
     *
     * @return
     */
-  override def indexing(): InjectableScope[T] = cnt.cache(scope)
+  override def indexing(): InjectableScope[T] = {
+    cnt.foreach(_.cache(scope))
+    scope
+  }
 
   /**
     * Create a new authorization class for this indexer.

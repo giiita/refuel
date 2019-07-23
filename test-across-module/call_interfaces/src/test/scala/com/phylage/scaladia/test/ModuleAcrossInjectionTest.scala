@@ -13,7 +13,7 @@ class ModuleAcrossInjectionTest extends AsyncWordSpec with Matchers with Diagram
         PureExecution.exec shouldBe ConfImpl.value
       } match {
         case Success(_) => fail("It can not be solved by the internal call which does not pass injection")
-        case Failure(e) => e.getMessage shouldBe "com.phylage.scaladia.test.Conf or its internal initialize failed."
+        case Failure(e) => e.getMessage shouldBe "interface com.phylage.scaladia.test.Conf or its internal initialize failed."
       }
     }
 

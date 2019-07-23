@@ -95,7 +95,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
             None -> None
           case x if x.isPackage =>
             Some(x) -> None
-          case x if x.isModule && !x.isClass && !x.isAbstract =>
+          case x if x.isModule && !x.isAbstract =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -112,13 +112,19 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def recursiveModuleExplore(n: Vector[Symbol],
                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
     n.accessible match {
-      case x if x.isEmpty => result
-      case accessible =>
+      case accessibleSymbol if accessibleSymbol.isEmpty => result
+      case accessibleSymbol =>
+//        accessibleSymbol
+//          .filter(_.fullName.startsWith("com.phylage"))
+//          .map(x => s"  ${x.companion} : ${x.companion.isClass} : ${!x.companion.isAbstract} :  ${
+//            if (x.companion.isClass && !x.companion.isAbstract && x.companion.asClass.primaryConstructor.isMethod) {
+//              x.companion.asClass.primaryConstructor.asMethod.paramLists
+//            } else ""}").foreach(println)
         recursiveModuleExplore(
-          accessible.flatMap(_.typeSignature.members).collect {
-            case x if x.isModule && !x.isClass => x
+          accessibleSymbol.withFilter(_.isModule).flatMap(_.typeSignature.members).collect {
+            case x if x.isModule => x
           },
-          result ++ accessible.filter(_.typeSignature.<:<(autoDITag)))
+          result ++ accessibleSymbol.filter(_.typeSignature.<:<(autoDITag)))
     }
   }
 
