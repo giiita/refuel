@@ -49,26 +49,22 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
   }
 
   def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ip: Tree): Expr[T] = {
-    c.Expr(
-      q"""
-         {
-        ${publish(ip)}
-        $fun
-         }
-      """
-    )
+    reify {
+      {
+        publish(ip).splice
+        c.Expr[T](fun).splice
+      }
+    }
   }
 
   def diligentInit[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
-    c.Expr[T](
-      q"""
-         {
-           ${publish(ip)}
-           ${applymentFunctionTree[T](ctn, ip)}
-           ${injection[T](ctn, ip, access)}
-         }
-       """
-    )
+    reify[T] {
+      {
+        publish(ip).splice
+        applymentFunctionTree[T](ctn, ip).splice
+        injection[T](ctn, ip, access).splice
+      }
+    }
   }
 
   def injection[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
