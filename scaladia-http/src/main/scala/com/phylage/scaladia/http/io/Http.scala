@@ -155,11 +155,11 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   /**
     * Set a requets header.
     *
-    * @param headers headers
+    * @param header header
     * @return
     */
-  def header(headers: HttpHeader*): HttpRunner[T] = new HttpRunner[T](
-    request.withHeaders(headers: _*),
+  def header(header: HttpHeader): HttpRunner[T] = new HttpRunner[T](
+    request.withHeaders(header),
     task
   )
 
