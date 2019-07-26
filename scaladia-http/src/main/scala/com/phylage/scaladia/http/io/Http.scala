@@ -2,7 +2,7 @@ package com.phylage.scaladia.http.io
 
 import akka.http.javadsl.model.ContentType.WithCharset
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
 import com.phylage.scaladia.http.io.setting.HttpSetting
 import com.phylage.scaladia.injector.Injector
@@ -149,6 +149,17 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
     */
   def header(key: String, value: String): HttpRunner[T] = new HttpRunner[T](
     request.withHeaders(RawHeader(key, value)),
+    task
+  )
+
+  /**
+    * Set a requets header.
+    *
+    * @param headers headers
+    * @return
+    */
+  def header(headers: HttpHeader*): HttpRunner[T] = new HttpRunner[T](
+    request.withHeaders(headers: _*),
     task
   )
 
