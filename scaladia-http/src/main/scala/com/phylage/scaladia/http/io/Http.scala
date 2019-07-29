@@ -49,10 +49,60 @@ object Http extends Injector {
     /**
       * Regist a type of returning deserialized json texts.
       *
+      * Sets the upper limit for akka stream to close the stream.
+      * [[akka.http.scaladsl.model.EntityStreamSizeException]] occurs when receiving a response exceeding the setting.
+      * The usual limit is 8MB.
+      *
+      * @tparam X Deserialized type.
+      * @return
+      */
+    def asLimit[X: ClassTag](limit: Long): HttpRunner[X] = {
+      asStringLimit(limit).map(super.deserialize[X])
+    }
+
+    /**
+      * Regist a type of returning deserialized json texts.
+      * Cut the reception size limit.
+      * The usual limit is 8MB.
+      *
+      * @tparam X
+      * @return
+      */
+    def asLimitCut[X: ClassTag]: HttpRunner[X] = {
+      asStringLimitCut.map(super.deserialize[X])
+    }
+
+    /**
+      * Regist a type of returning deserialized json texts.
+      *
       * @return
       */
     def asString: HttpRunner[String] = {
       value.flatMap(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
+    }
+
+    /**
+      * Regist a type of returning deserialized json texts.
+      *
+      * Sets the upper limit for akka stream to close the stream.
+      * [[akka.http.scaladsl.model.EntityStreamSizeException]] occurs when receiving a response exceeding the setting.
+      * The usual limit is 8MB.
+      *
+      * @return
+      */
+    def asStringLimit(limit: Long): HttpRunner[String] = {
+      value.flatMap(_.entity.withSizeLimit(limit).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
+    }
+
+    /**
+      * Regist a type of returning deserialized json texts.
+      * Cut the reception size limit.
+      * The usual limit is 8MB.
+      *
+      * @return
+      */
+    def asStringLimitCut: HttpRunner[String] = {
+      value.flatMap(_.entity.withoutSizeLimit().dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
     }
   }
 
