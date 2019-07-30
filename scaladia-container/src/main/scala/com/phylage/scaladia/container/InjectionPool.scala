@@ -16,7 +16,7 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     * @param applyer injection object
     * @return
     */
-  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = synchronized {
+  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = {
     applyer().collect {
       case x if !buffer.exists(_ =:= x) => buffer += x
     }
@@ -29,7 +29,7 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = synchronized {
+  def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
     {
       buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
