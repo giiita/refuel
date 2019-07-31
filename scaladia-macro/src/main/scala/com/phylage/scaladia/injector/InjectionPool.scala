@@ -26,4 +26,11 @@ trait InjectionPool {
     * @return
     */
   def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]]
+
+  /**
+    * Get a list of injection-enabled declarations of all
+    *
+    * @return
+    */
+  def all(): Vector[InjectionApplyment[_]]
 }

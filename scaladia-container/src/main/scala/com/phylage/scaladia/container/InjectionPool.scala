@@ -36,4 +36,13 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
       } map(_.applyment)
     }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
   }
+
+  /**
+    * Get a list of injection-enabled declarations of all
+    *
+    * @return
+    */
+  override def all(): Vector[InjectionPool.InjectionApplyment[_]] = {
+    buffer.map(_.applyment).toVector
+  }
 }
