@@ -5,7 +5,7 @@ import com.phylage.scaladia.injector.InjectionType
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
-object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
+object MacroInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
   private[this] val buffer: ListBuffer[InjectionType[_]] = ListBuffer()
 
   /**
@@ -35,14 +35,5 @@ object InjectionPool extends com.phylage.scaladia.injector.InjectionPool {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
       } map(_.applyment)
     }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
-  }
-
-  /**
-    * Get a list of injection-enabled declarations of all
-    *
-    * @return
-    */
-  override def all(): Vector[InjectionPool.InjectionApplyment[_]] = {
-    buffer.map(_.applyment).toVector
   }
 }
