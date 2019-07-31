@@ -19,7 +19,7 @@ package object container {
       * @tparam T injection type
       * @return
       */
-    def cache[T](value: InjectableScope[T]): InjectableScope[T] = {
+    def cache[T](value: InjectableScope[T]): InjectableScope[T] = synchronized {
       value match {
         case sc if buffer.contains(sc) => sc
         case sc =>
