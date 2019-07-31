@@ -13,7 +13,7 @@ class InjectionCompound[C <: blackbox.Context](val c: C) {
     val flushed = symbols.map { name =>
       c.Expr[InjectionType[_]](
         q"""
-           com.phylage.scaladia.injector.InjectionType.apply(c => ${c.parse(name.fullName)}.flush(c), ${name.fullName})
+           com.phylage.scaladia.injector.InjectionType.apply(${c.parse(name.fullName)}.flush, ${name.fullName})
          """
       )
     }
