@@ -1,5 +1,6 @@
 package com.phylage.scaladia.injector
 
+import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.internal.Macro
 
 /**
@@ -32,5 +33,5 @@ trait RefreshInjection extends Injector {
     * @tparam T result type
     * @return
     */
-  def reify[T](fun: T)(implicit ip: InjectionPool): T = macro Macro.reifyClasspathInjectables[T]
+  def reify[T](fun: T)(implicit ctn: Container, ip: InjectionPool): T = macro Macro.reifyClasspathInjectables[T]
 }

@@ -7,8 +7,8 @@ import scala.reflect.macros.blackbox
 
 object Macro {
 
-  def reifyClasspathInjectables[T: c.WeakTypeTag](c: blackbox.Context)(fun: c.Tree)(ip: c.Tree): c.Expr[T] = {
-    new LazyInitializer[c.type](c).classpathRepooling[T](fun, ip)
+  def reifyClasspathInjectables[T: c.WeakTypeTag](c: blackbox.Context)(fun: c.Tree)(ctn: c.Tree, ip: c.Tree): c.Expr[T] = {
+    new LazyInitializer[c.type](c).classpathRepooling[T](fun, ctn, ip)
   }
 
   def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
