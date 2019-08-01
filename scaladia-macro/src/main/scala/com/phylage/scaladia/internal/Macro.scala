@@ -1,5 +1,6 @@
 package com.phylage.scaladia.internal
 
+import com.phylage.scaladia.injector.InjectionType
 import com.phylage.scaladia.provider.Lazy
 
 import scala.reflect.macros.blackbox
