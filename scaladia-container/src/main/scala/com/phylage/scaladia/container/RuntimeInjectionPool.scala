@@ -1,11 +1,12 @@
 package com.phylage.scaladia.container
 
+import com.phylage.scaladia.injector.InjectionPool.InjectionApplyment
 import com.phylage.scaladia.injector.{AutoInject, InjectionType}
 import com.phylage.scaladia.runtime.{InjectionReflector, RuntimeAutoDIExtractor}
 
 import scala.reflect.runtime.universe
 
-object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
+trait RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
 
   private[this] val buffer: Vector[universe.Symbol] = RuntimeAutoDIExtractor.run()
 
@@ -17,9 +18,7 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
     * @param applyer injection object
     * @return
     */
-  def pool(applyer: () => Iterable[InjectionType[_]]): Unit = {
-
-  }
+  def pool(applyer: () => Iterable[InjectionType[_]]): Unit
 
   /**
     * Get a list of injection-enabled declarations of any type

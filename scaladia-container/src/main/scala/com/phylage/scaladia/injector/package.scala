@@ -19,7 +19,6 @@ package object injector {
   class ImplicitContainerInheritation[T](val fx: LocalizedContainer => T)(c: LocalizedContainer) extends ContainerAccessible[LocalizedContainer] {
     it =>
     implicit var _cntMutation: LocalizedContainer = c
-    // override def shade[I](ctx: LocalizedContainer => I): I = throw new InjectDefinitionException("Recursive calls to shade() are prohibited.")
   }
 
 }

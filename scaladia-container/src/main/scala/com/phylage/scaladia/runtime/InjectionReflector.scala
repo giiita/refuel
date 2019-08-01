@@ -1,6 +1,6 @@
 package com.phylage.scaladia.runtime
 
-import com.phylage.scaladia.container.RuntimeInjectionPool.InjectionApplyment
+import com.phylage.scaladia.injector.InjectionPool.InjectionApplyment
 
 import scala.reflect.runtime.universe
 
