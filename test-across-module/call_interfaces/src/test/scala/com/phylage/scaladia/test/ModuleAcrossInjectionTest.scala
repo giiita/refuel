@@ -9,12 +9,7 @@ import scala.util.{Failure, Success, Try}
 class ModuleAcrossInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with RefreshInjection {
   "Module across injection test" should {
     "pure call" in {
-      Try {
-        PureExecution.exec shouldBe ConfImpl.value
-      } match {
-        case Success(_) => fail("It can not be solved by the internal call which does not pass injection")
-        case Failure(e) => e.getMessage shouldBe "interface com.phylage.scaladia.test.Conf or its internal initialize failed."
-      }
+      PureExecution.exec shouldBe ConfImpl.value
     }
 
     "pure call with reify" in {

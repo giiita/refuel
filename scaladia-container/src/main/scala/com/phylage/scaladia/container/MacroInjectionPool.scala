@@ -34,6 +34,6 @@ object MacroInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
       buffer.collect {
         case x if wtt.tpe.=:=(x.wtt.tpe) => x
       } map(_.applyment)
-    }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]]
+    }.toVector.asInstanceOf[Vector[InjectionApplyment[T]]] ++ RuntimeInjectionPool.collect[T]
   }
 }

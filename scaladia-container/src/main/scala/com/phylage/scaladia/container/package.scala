@@ -11,7 +11,7 @@ import scala.reflect.runtime.universe._
 
 package object container {
 
-  implicit val injectionReflector: InjectionReflector = new RuntimeReflector()
+  implicit val injectionReflector: InjectionReflector = RuntimeReflector
 
   case class StandardContainer(shade: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer.empty, lights: Vector[Container] = Vector.empty) extends Container with Tag[Types.Localized] {
 
