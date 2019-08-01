@@ -52,7 +52,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     reify {
       {
         publish(ip).splice
-        applymentFunctionAll(ctn, ip).splice
         c.Expr[T](fun).splice
       }
     }
@@ -97,12 +96,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
   private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Vector[InjectableScope[T]]] = {
     reify {
       c.Expr[InjectionPool](ip).splice.collect[T].map(_.apply(c.Expr[Container](cnt).splice))
-    }
-  }
-
-  private def applymentFunctionAll(cnt: Tree, ip: Tree): c.Expr[Vector[InjectableScope[_]]] = {
-    reify {
-      c.Expr[InjectionPool](ip).splice.all().map(_.apply(c.Expr[Container](cnt).splice))
     }
   }
 

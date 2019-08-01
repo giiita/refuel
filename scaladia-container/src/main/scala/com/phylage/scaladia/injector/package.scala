@@ -1,13 +1,13 @@
 package com.phylage.scaladia
 
 import com.phylage.scaladia.Types.LocalizedContainer
-import com.phylage.scaladia.container.{Container, ContainerStore, InjectionPool, StandardContainer}
+import com.phylage.scaladia.container.{Container, ContainerStore, MacroInjectionPool, StandardContainer}
 
 package object injector {
 
   private[scaladia] implicit object IndirectContainerStore extends ContainerStore {
     lazy val ctn: Container = initContainer
-    override val ijp: InjectionPool = InjectionPool
+    override val ijp: InjectionPool = MacroInjectionPool
 
     def initContainer: Container = StandardContainer()
   }
@@ -19,7 +19,6 @@ package object injector {
   class ImplicitContainerInheritation[T](val fx: LocalizedContainer => T)(c: LocalizedContainer) extends ContainerAccessible[LocalizedContainer] {
     it =>
     implicit var _cntMutation: LocalizedContainer = c
-    // override def shade[I](ctx: LocalizedContainer => I): I = throw new InjectDefinitionException("Recursive calls to shade() are prohibited.")
   }
 
 }

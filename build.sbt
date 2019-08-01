@@ -152,4 +152,4 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
     releaseProcess := Nil
   )
 
-val GLOBAL_SCALA_VERSION = "2.12.8"
+val GLOBAL_SCALA_VERSION = "2.13.0"

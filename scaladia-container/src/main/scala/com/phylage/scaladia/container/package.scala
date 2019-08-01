@@ -4,11 +4,14 @@ import com.phylage.scaladia.Types.@@
 import com.phylage.scaladia.container.indexer.{BroadSenseIndexer, Indexer}
 import com.phylage.scaladia.injector.scope.{InjectableScope, OpenScope}
 import com.phylage.scaladia.provider.{Accessor, Tag}
+import com.phylage.scaladia.runtime.InjectionReflector
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 
 package object container {
+
+  implicit val injectionReflector: InjectionReflector = RuntimeReflector
 
   case class StandardContainer(shade: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer.empty, lights: Vector[Container] = Vector.empty) extends Container with Tag[Types.Localized] {
 
