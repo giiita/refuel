@@ -4,8 +4,6 @@ import com.phylage.scaladia.injector.RefreshInjection
 import com.phylage.scaladia.test.Executor.{InjectionExecution, PureExecution}
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-import scala.util.{Failure, Success, Try}
-
 class ModuleAcrossInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with RefreshInjection {
   "Module across injection test" should {
     "pure call" in {

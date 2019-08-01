@@ -320,7 +320,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
     "recovered vs custom(0) inject priority == name after win" in {
       import TEST5._
-      inject[TestIF_5]._provide shouldBe TestIFImpl_5_RECOVER
+      inject[TestIF_5]._provide shouldBe TestIFImpl_5_CUSTOM
     }
 
     "auto vs custom(999) inject priority == auto" in {
