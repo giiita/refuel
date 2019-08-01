@@ -1,13 +1,13 @@
 package com.phylage.scaladia.container
 
-import com.phylage.scaladia.injector.InjectionType
+import com.phylage.scaladia.injector.{AutoInject, InjectionType}
 import com.phylage.scaladia.runtime.{InjectionReflector, RuntimeAutoDIExtractor}
 
 import scala.reflect.runtime.universe
 
 object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
 
-  private[this] val buffer: Vector[universe.Symbol] = new RuntimeAutoDIExtractor().run()
+  private[this] val buffer: Vector[universe.Symbol] = RuntimeAutoDIExtractor.run()
 
   /**
     * Pool Injectable subtypes for automatic loading.
@@ -30,7 +30,7 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
     */
   def collect[T](implicit wtt: universe.WeakTypeTag[T]): Vector[InjectionApplyment[T]] = {
     buffer.collect {
-      case x if x.typeSignature.=:=(wtt.tpe) =>
+      case x if x.typeSignature.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
         implicitly[InjectionReflector].reflect[T](x.asModule)
     }
   }
