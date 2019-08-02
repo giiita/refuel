@@ -19,14 +19,10 @@ trait InjectableScope[T] {
     * Determines if this object can be injected from any accessor.
     *
     * @param requestFrom Accessor of request source.
-    * @tparam X Type of dependency requested.
     * @return
     */
-  final def accepted[X: WeakTypeTag](requestFrom: Accessor[_]): Boolean = {
-
-    isSameAs[X] && {
-      isOpen || acceptedClass(requestFrom.t.getClass) || acceptedInstance(requestFrom.t)
-    }
+  final def accepted(requestFrom: Accessor[_]): Boolean = {
+    isOpen || acceptedClass(requestFrom.t.getClass) || acceptedInstance(requestFrom.t)
   }
 
   /**
@@ -47,16 +43,9 @@ trait InjectableScope[T] {
 
   /**
     * When access from any instance is permitted, it returns true if the request source instance matches.
+    *
     * @param x request source instance
     * @return
     */
   protected def acceptedInstance(x: Any): Boolean
-
-  /**
-    * Returns true if it matches the requested type.
-    *
-    * @tparam X Type of dependency requested
-    * @return
-    */
-  protected def isSameAs[X: WeakTypeTag]: Boolean
 }
