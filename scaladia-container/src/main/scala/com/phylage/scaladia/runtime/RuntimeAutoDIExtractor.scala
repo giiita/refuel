@@ -96,9 +96,9 @@ object RuntimeAutoDIExtractor {
     */
   private[this] final def filePackageExtraction(files: Seq[File]): Seq[String] = {
     files.flatMap { file =>
-      val collected = file.list().toVector match {
+      val collected = file.list() match {
         case null => Vector.empty
-        case list => list.map { part =>
+        case list => list.toVector.map { part =>
           new File(file, part) match {
             case x if x.isDirectory => Some(x) -> None
             case x if x.isFile && x.getName.isModuleSymbol => None -> Some(x)
