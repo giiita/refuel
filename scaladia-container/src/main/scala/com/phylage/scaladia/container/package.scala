@@ -6,14 +6,17 @@ import com.phylage.scaladia.injector.scope.{InjectableScope, OpenScope}
 import com.phylage.scaladia.provider.{Accessor, Tag}
 import com.phylage.scaladia.runtime.InjectionReflector
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.concurrent.TrieMap
+import scala.collection.mutable
 import scala.reflect.runtime.universe._
 
 package object container {
+  type ContainerTypeKey = String
+  type ContainerPool = TrieMap[ContainerTypeKey, mutable.LinkedHashSet[InjectableScope[_]]]
 
   implicit val injectionReflector: InjectionReflector = RuntimeReflector
 
-  case class StandardContainer(shade: Boolean = false, buffer: ListBuffer[InjectableScope[_]] = ListBuffer.empty, lights: Vector[Container] = Vector.empty) extends Container with Tag[Types.Localized] {
+  case class StandardContainer(shade: Boolean = false, buffer: ContainerPool = TrieMap.empty, lights: Vector[Container] = Vector.empty) extends Container with Tag[Types.Localized] {
 
     /**
       * Cache in the injection container.
@@ -23,12 +26,11 @@ package object container {
       * @return
       */
     def cache[T](value: InjectableScope[T]): InjectableScope[T] = synchronized {
-      value match {
-        case sc if buffer.contains(sc) => sc
-        case sc =>
-          buffer += sc
-          sc
+      buffer.get(value.tag.tpe.toString) match {
+        case None    => buffer.+=(value.tag.tpe.toString -> mutable.LinkedHashSet.apply(value))
+        case Some(x) => buffer.update(value.tag.tpe.toString, x + value)
       }
+      value
     }
 
     /**
@@ -37,13 +39,10 @@ package object container {
       * @return
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = {
-      buffer.filter(_.accepted[T](requestFrom))
-        .sortBy(_.priority) match {
-        case x =>
-          x.lastOption
-            .map(_.value.asInstanceOf[T])
+      buffer.get(implicitly[WeakTypeTag[T]].tpe.toString) match {
+        case None    => None
+        case Some(x) => x.filter(_.accepted(requestFrom)).toSeq.sortBy(_.priority)(Ordering.Int.reverse).headOption.map(_.value.asInstanceOf[T])
       }
-
     }
 
     /**
@@ -61,7 +60,7 @@ package object container {
     override def shading: @@[Container, Types.Localized] = {
       copy(
         shade = true,
-        buffer = ListBuffer.apply(this.buffer.toSeq: _*),
+        buffer = buffer.snapshot(),
         lights = this.lights.:+(this)
       )
     }
