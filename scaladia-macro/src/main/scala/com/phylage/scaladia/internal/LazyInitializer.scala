@@ -28,10 +28,18 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
       c.reifyRuntimeClass(weakTypeOf[T])
     }
 
+    val ctnExpr = c.Expr[Container](ctn)
+
     reify[Lazy[T]] {
       new Lazy[T] {
+        private[this] val mediation: CntMediateOnce[T] = CntMediateOnce.empty
+
         def _provide: T = try {
-          injectionRf.splice
+          mediation.getOrElse(ctnExpr.splice, {
+            val r = injectionRf.splice
+            mediation += ctnExpr.splice -> r
+            r
+          })
         } catch {
           case e: Throwable =>
             throw new DIAutoInitializationException(s"${typName.splice} or its internal initialize failed.", e)

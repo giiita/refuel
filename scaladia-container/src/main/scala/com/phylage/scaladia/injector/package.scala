@@ -9,7 +9,7 @@ package object injector {
     lazy val ctn: Container = initContainer
     override val ijp: InjectionPool = MacroInjectionPool
 
-    def initContainer: Container = StandardContainer()
+    def initContainer: Container = new StandardContainer()
   }
 
   import scala.language.implicitConversions
