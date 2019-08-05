@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-http" % "0.6.2"
+libraryDependencies += "com.phylage" %% "scaladia-http" % "0.6.3"
 ````
 
 ## Examples
