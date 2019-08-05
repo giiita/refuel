@@ -4,15 +4,14 @@ import com.phylage.scaladia.Types.@@
 import com.phylage.scaladia.container.indexer.{BroadSenseIndexer, Indexer}
 import com.phylage.scaladia.injector.scope.{InjectableScope, OpenScope}
 import com.phylage.scaladia.provider.{Accessor, Tag}
-import com.phylage.scaladia.runtime.InjectionReflector
+import com.phylage.scaladia.runtime.{ConcreteDeferredAttachementOnce, InjectionReflector}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.reflect.runtime.universe._
 
 package object container {
-  type ContainerTypeKey = String
-  type ContainerPool = TrieMap[ContainerTypeKey, mutable.LinkedHashSet[InjectableScope[_]]]
+  type ContainerPool = TrieMap[ContainerIndexedKey, mutable.LinkedHashSet[InjectableScope[_]]]
 
   implicit val injectionReflector: InjectionReflector = RuntimeReflector
 
@@ -26,9 +25,11 @@ package object container {
       * @return
       */
     def cache[T](value: InjectableScope[T]): InjectableScope[T] = synchronized {
-      buffer.get(value.tag.tpe.toString) match {
-        case None    => buffer.+=(value.tag.tpe.toString -> mutable.LinkedHashSet.apply(value))
-        case Some(x) => buffer.update(value.tag.tpe.toString, x + value)
+
+      val key = implicitly[ConcreteDeferredAttachementOnce].get(value.tag.tpe)
+      buffer.get(key) match {
+        case None    => buffer.+=(key -> mutable.LinkedHashSet.apply(value))
+        case Some(x) => buffer.update(key, x + value)
       }
       value
     }
@@ -36,10 +37,12 @@ package object container {
     /**
       * May return an injectable object.
       *
+      * @param requestFrom object that called inject
+      * @tparam T return object type
       * @return
       */
     def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T] = {
-      buffer.get(implicitly[WeakTypeTag[T]].tpe.toString) match {
+      buffer.get(implicitly[ConcreteDeferredAttachementOnce].get(implicitly[WeakTypeTag[T]].tpe)) match {
         case None    => None
         case Some(x) => x.filter(_.accepted(requestFrom)).toSeq.sortBy(_.priority)(Ordering.Int.reverse).headOption.map(_.value.asInstanceOf[T])
       }
@@ -66,4 +69,23 @@ package object container {
     }
   }
 
+  implicit object ConcreteDeferredAttachementOnce extends ConcreteDeferredAttachementOnce {
+    private[this] val runtimeBuffer: TrieMap[Type, ContainerIndexedKey] = TrieMap.empty
+
+    /**
+      * Temporarily hold concrete deferred type names for high multi-threading environments.
+      * This is because it may be synchronized inside scala-reflect during container search.
+      *
+      * @param t Type instance
+      * @return
+      */
+    def get(t: Type): ContainerIndexedKey = {
+      runtimeBuffer.getOrElse(t, {
+
+        val key = ContainerIndexedKey(t.toString)
+        runtimeBuffer.+=(t -> key)
+        key
+      })
+    }
+  }
 }

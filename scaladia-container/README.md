@@ -1,7 +1,7 @@
 # scaladia-container
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-container" % "2.5.0"
+libraryDependencies += "com.phylage" %% "scaladia-container" % "2.5.2"
 ````
 
 # Usage

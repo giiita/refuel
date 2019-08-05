@@ -301,6 +301,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
     "default auto inject" in {
       import TEST1._
       inject[TestIF_1].value shouldBe "value"
+      println("")
+      true shouldBe true
     }
 
     "recovered inject" in {
