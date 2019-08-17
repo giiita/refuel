@@ -3,6 +3,8 @@ package com.phylage.scaladia.injector
 import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.injector.scope.InjectableScope
 
+import scala.reflect.runtime.universe._
+
 /**
   *
   *
@@ -11,12 +13,9 @@ import com.phylage.scaladia.injector.scope.InjectableScope
   *
   * @tparam T Type to register
   */
-trait AutoInject[T] extends AutoInjectable[T] with Injector {
-  me: T =>
+trait AutoInject[T] extends AutoInjectable[T] with Injector { me: T =>
 
   private[scaladia] val injectionPriority = 1000
-
-  import scala.reflect.runtime.universe._
 
   def flush(c: Container)(implicit wtt: WeakTypeTag[T]): InjectableScope[T] = {
     c.createIndexer[T](

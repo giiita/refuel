@@ -1,9 +1,9 @@
 package com.phylage.scaladia.test
 
-import com.phylage.scaladia.injector.RefreshInjection
+import com.phylage.scaladia.injector.Injector
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-trait DITestContext[T] extends AsyncWordSpec with Matchers with DiagrammedAssertions with RefreshInjection {
+trait ScaladiaTest[T] extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
   /**
     * {{{
     *   class HogeTest extends DITestContext[Hoge] {
@@ -18,8 +18,21 @@ trait DITestContext[T] extends AsyncWordSpec with Matchers with DiagrammedAssert
     *     }
     *   }
     * }}}
+    *
     * @param functionName
     * @tparam T
     */
   def test(functionName: String)
+
+  new Sha[Xxx] { Xxx =>
+    test(Xxx.)
+  }
+
+  class Sha[X]() {
+    def test(ll: X => String => Int): Unit = {}
+  }
+
+  class Xxx {
+    def xxx(x: String): Int = 0
+  }
 }
