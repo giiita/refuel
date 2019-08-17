@@ -1,6 +1,7 @@
 package com.phylage.scaladia
 
 import com.phylage.scaladia.Types.@@
+import com.phylage.scaladia.effect.{Effect, Effective}
 import com.phylage.scaladia.exception.DIAutoInitializationException
 import com.phylage.scaladia.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
 import com.phylage.scaladia.provider.{Lazy, Tag}
@@ -197,6 +198,38 @@ object InjectionTest {
 
     object C108 extends C108 with AutoInject[C108]
 
+  }
+
+  object TEST109 {
+
+    trait A109 {
+      val value: String
+    }
+
+//    object EffectA extends Effect {
+//      override def activate: Boolean = false
+//    }
+//    object EffectB extends Effect {
+//      override def activate: Boolean = true
+//    }
+//    object EffectC extends Effect {
+//      override def activate: Boolean = false
+//    }
+
+    // @Effective(EffectA)
+    object A109_1 extends A109 with AutoInject[A109] {
+      val value: String = "A"
+    }
+
+    // @Effective(EffectB)
+    object A109_2 extends A109 with AutoInject[A109] {
+      val value: String = "B"
+    }
+
+    // @Effective(EffectC)
+    object A109_3 extends A109 with AutoInject[A109] {
+      val value: String = "C"
+    }
   }
 
   object TEST201 {
@@ -436,6 +469,12 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       }
 
       inject[C108].b.a._provide shouldBe A108
+    }
+
+    "Effective injection" in {
+      import TEST109._
+
+      inject[A109]._provide shouldBe A109_2
     }
   }
 
