@@ -7,6 +7,5 @@ object Types {
   type @@[+T, +U] = T with Tag[U]
 
   sealed trait Localized
-  private[scaladia] type LocalizedContainer = @@[Container, Types.Localized]
-  private[scaladia] trait Globaly
+  private[scaladia] type LocalizedContainer = Container @@ Types.Localized
 }

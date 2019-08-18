@@ -14,6 +14,7 @@ import com.phylage.scaladia.internal.Macro
   *
   * At that time, by inheriting RefreshInjection at a higher level, AutoInjectable in the class path will be pooled again.
   */
+@deprecated
 trait RefreshInjection extends Injector {
   /**
     * Instantiates injectable objects and updates the pool with the current classpath.
@@ -33,5 +34,6 @@ trait RefreshInjection extends Injector {
     * @tparam T result type
     * @return
     */
+  @deprecated
   def reify[T](fun: T)(implicit ctn: Container, ip: InjectionPool): T = macro Macro.reifyClasspathInjectables[T]
 }
