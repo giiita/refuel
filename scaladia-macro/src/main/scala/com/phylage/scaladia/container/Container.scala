@@ -2,6 +2,7 @@ package com.phylage.scaladia.container
 
 import com.phylage.scaladia.Types.{@@, Localized}
 import com.phylage.scaladia.container.indexer.Indexer
+import com.phylage.scaladia.effect.EffectLike
 import com.phylage.scaladia.injector.scope.InjectableScope
 import com.phylage.scaladia.provider.Accessor
 
@@ -23,9 +24,17 @@ private[scaladia] trait Container {
   /**
     * May return an injectable object.
     *
+    * @param requestFrom Inject caller.
     * @return
     */
   def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T]
+
+  /**
+    * May return an injectable object.
+    *
+    * @return
+    */
+  def findEffect: Option[EffectLike]
 
   /**
     * Generate an indexer.

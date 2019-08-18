@@ -12,13 +12,12 @@ object ScalaCollection {
       * }}}
       * 100 / 3 + 1 = Process 34 cases at a time
       *
-      *
       * @param size denominator.
       * @param func applyment function.
       * @tparam R Result type.
       * @return
       */
-    def sliceDivideApply[R](size: Int)(func: C[T] => R): Iterator[R] = {
+    def sliceDivideApply[R](size: Int)(func: Iterable[T] => R): Iterator[R] = {
       val split = value.size / size + 1
       sliceApply(split)(func)
     }
@@ -32,15 +31,17 @@ object ScalaCollection {
       * }}}
       *
       * each 33, 33, 33, 1
-      * @param size Cut size.
+      *
+      * @param size      Cut size.
       * @param applyment applyment function
       * @tparam R Result type.
       * @return
       */
-    def sliceApply[R](size: Int)(applyment: C[T] => R): Iterator[R] = {
+    def sliceApply[R](size: Int)(applyment: Iterable[T] => R): Iterator[R] = {
       value.sliding(size).map { x =>
-        applyment(x)
+        applyment(x.toSeq.asInstanceOf[Seq[T]])
       }
     }
   }
+
 }

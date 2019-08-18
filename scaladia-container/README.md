@@ -1,10 +1,10 @@
 # scaladia-container
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-container" % "2.5.4"
+libraryDependencies += "com.phylage" %% "scaladia-container" % "2.6.0"
 ````
 
-# Usage
+# Common Usage
 
 The general DI method only inherits `AutoInject[T]` to the target object.<br/>
 To use it, inherit `Injector` and call `inject[T]`.<br/>
@@ -24,9 +24,10 @@ object TestA extends Injector {
 ```
 
 <br/>
-Normally, the `inject[T]` expects `Lazy[T]`.
-If you fix the return type of `inject[T]` to `T`, the dependencies will be resolved<br/>
-at initialization, and you can not change it after assignment.
+
+`inject[T]` expects `Lazy[T]` as the return type.
+<br>However, if you fix the return type of `inject[T]` to `T`, dependencies are assigned immediately; once initialization is complete, it cannot be changed.
+<br>Therefore, it is not recommended.
 
 ```scala
 object TestA extends Injector {
@@ -38,8 +39,8 @@ object TestA extends Injector {
 ```
 
 <br/>
-You can also confirm dependencies at compile time with `confirm[T]`.<br/>
-In this case, nothing happens at runtime that is not foreseen.<br/>
+Instread, You can confirm dependencies at compile time with `confirm[T]`.<br/>
+In this case, anything that is not forseen happens at runtime.<br/>
 
 ```scala
 object TestA extends Injector {
@@ -50,8 +51,10 @@ object TestA extends Injector {
 
 <br/><br/><br/>
 
-Classes that inherit AutoInjector are automatically registered at macro expansion (when compiled).<br/>
-Dependencies defined as inner objects of trait / class other than object can not be registered automatically.<br/>
+## Dependency handling
+
+Classes that inherit AutoInjector are automatically pooled.<br/>
+Dependencies defined as inner objects of trait or class can not be registered automatically.<br/>
 <br/>
 
 In AutoInjector, if multiple dependencies of the same type are registered, scaladia will automatically insert the highest priority first deployed module.
@@ -71,8 +74,8 @@ If you want to control multiple overlapping dependencies, there are several appr
 ### case 1. Custom priority injection
 
 Each injection interface has a priority.<br/>
-During injection, the highest priority object registered in the container is returned.<br/>
-Set priorities appropriately and control with multiple same interfaces.<br/>
+During injection, the highest priority object registered in the container is returned, 
+so set priorities appropriately with multiple same interfaces.<br/>
 You can also create an `AutoInject[_]` interface with any priority by mixing in `CustomPriority[T]`, which inherits from `AutoInject[T]`.
 
 ```scala
@@ -102,8 +105,9 @@ object TestA extends Injector {
 
 ### case 2. Tagging injection
 
-By using the tag `@@` type, you can inject only objects with arbitrary tags.<br/>
-An object that inherits from `AutoInject[T @@ TAG]` will not be injected unless you call `inject[T @@ TAG]`.
+If you want to inject object only with arbitrary tags, you can use the tag `@@`.
+<br/>
+For example, an object that inherits from `AutoInject[T @@ TAG]` will not be injected unless you call `inject[T @@ TAG]`.
 
 ```scala
 trait AliasA
@@ -135,10 +139,56 @@ object TestA extends Injector {
 
 <br/><br/>
 
-## Things to note
+## Effective injection
 
-Many of the functions related to Injector are implemented by macro, <br/>
-so be careful when using them in multi-module project.<br/>
+If you want to load an specific object from different environment, you can use Effective Injection.
+
+
+For example, if you want to load a different `Conf` for each `dev` / `stg` / `prd` and the environment setting is set to `sys.props`, prepare an Effect to judge it for each environment.
+
+```scala
+object Effects {
+  def getKind = sys.props.getOrElse("env", "dev")
+  
+  object DEV extends com.phylage.scaladia.effect.Effect {
+    def activate: Boolean = getKind == "dev"
+  }
+  object STG extends com.phylage.scaladia.effect.Effect {
+    def activate: Boolean = getKind == "stg"
+  }
+  object PRD extends com.phylage.scaladia.effect.Effect {
+    def activate: Boolean = getKind == "prd"
+  }
+}
+```
+
+Then, declare the object that gave the effect to `@Effective`
+
+```scala
+@Effective(DEV)
+object DevConf extends Conf with AutoInject[Conf]
+
+@Effective(STG)
+object StgConf extends Conf with AutoInject[Conf]
+
+@Effective(PRD)
+object PrdConf extends Conf with AutoInject[Conf]
+```
+
+This will assign an appropriate Conf for each environment to `inject[Conf]`.
+<br>You can check the valid Effect by seeing the result of `def activate: Boolean`.
+
+When you call `inject[???]` and `@Effective(???)` appears as an assignment candidate,
+the `inject[???]` is considered as an effective injection, and only objects with a valid effect can be assigned.
+
+
+<br/><br/>
+
+## Injection across modules / projects
+
+Dependencies that can be referenced from the runtime classpath are always loaded.
+Such an injection will also work as expected.
+
 Here is an example.
 https://github.com/giiita/scaladia/tree/master/test-across-module
 
@@ -166,34 +216,14 @@ object UseN extends UseN with AutoInject[UseN]
 
 ```scala
 object NImpl extends N with AutoInject[N] {
-  val value = "I am NImpl in project B."
+  val value = "I am NImpl in project C."
 }
 
 object Main extends App with Injector {
-  println(UseN.exec)
+  println(UseN.exec) // "I am NImpl in project C."
 }
 ```
 
-At this time, InjectDefinitionException occurs.
-At the stage of compiling PROJECT B in which `object UseN` exists <br/>
-in the class path, since` object NImpl` does not exist,<br/>
-NImpl index is not included in the expanded macro.
-
-To avoid this, `inject[UseN]` from `Main` or use `trait RefreshInjection`.
-
-```scala
-object Main extends App with Injector {
-  // Success
-  println(inject[UseN].exec)
-}
-// or 
-object Main extends App with RefreshInjection {
-  // Success
-  reify {
-    println(UseN.exec)
-  }
-}
-```
 
 
 

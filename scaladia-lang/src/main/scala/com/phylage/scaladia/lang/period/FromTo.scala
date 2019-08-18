@@ -25,7 +25,7 @@ trait FromTo {
     * @return
     */
   def overlap[T <: FromTo](arg: T): Boolean = {
-    arg.contains(from) || arg.contains(to)
+    arg.contains(from) || arg.contains(to) || this.contains(arg.from) || this.contains(arg.to)
   }
 
   /**
@@ -65,8 +65,8 @@ trait FromTo {
     *    )
     * }}}
     *
-    * @param sliceAt Size to slice
-    * @param time Unit to slice
+    * @param sliceAt   Size to slice
+    * @param time      Unit to slice
     * @param applyment Recursively decomposed period
     * @tparam X Unit to increments
     * @tparam T period type
@@ -89,9 +89,10 @@ trait FromTo {
     */
   @tailrec
   private[this] final def _slice[X <: TimeAxis, T <: FromTo](sliceAt: Long, time: X = HOUR, result: Seq[T] = Nil)(applyement: (EpochDateTime, EpochDateTime) => T): Seq[T] = {
-    time.increment(result.lastOption.map(_.from).getOrElse(from), sliceAt) match {
-      case next if next >= to => result :+ applyement(from, to)
-      case next               => _slice(sliceAt, time, result :+ applyement(next, time.rounding(next)))(applyement)
+    val nextFrom = result.lastOption.map(x => time.derounding(x.to)).getOrElse(from)
+    time.increment(nextFrom, sliceAt) match {
+      case nextTo if nextTo >= to => result :+ applyement(nextFrom, to)
+      case nextTo => _slice(sliceAt, time, result :+ applyement(nextFrom, time.rounding(nextTo)))(applyement)
     }
   }
 }

@@ -38,6 +38,6 @@ import com.phylage.scaladia.injector.AutoInject
   *   object PrdRuntimeSetting extends Setting with AutoInject[Setting]
   * }}}
   */
-trait Effect extends AutoInject[Effect] {
-  def activate: Boolean
+trait Effect extends AutoInject[Effect] with EffectLike { me =>
+  def tag: scala.reflect.runtime.universe.Type = scala.reflect.runtime.universe.typeOf[me.type]
 }

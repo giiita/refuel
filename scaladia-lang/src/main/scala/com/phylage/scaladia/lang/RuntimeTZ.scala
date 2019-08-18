@@ -22,12 +22,12 @@ object RuntimeTZ extends RuntimeTZ with RecoveredInject[RuntimeTZ] {
   * object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ]
   * }}}
   */
-//class AsiaTokyoTZ extends RuntimeTZ {
-//  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-//  override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
-//  override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
-//  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
-//}
+class AsiaTokyoTZ extends RuntimeTZ {
+  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+  override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
+  override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
+  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+}
 
 /**
   * Runtime timezone settings.
@@ -48,7 +48,7 @@ trait RuntimeTZ { me =>
   /**
     * Set the default time zone for this process.
     */
-//  def setDefault(): Unit = {
-//    TimeZone.setDefault(me.TIME_ZONE)
-//  }
+  final def setDefault(): Unit = {
+    TimeZone.setDefault(me.TIME_ZONE)
+  }
 }
