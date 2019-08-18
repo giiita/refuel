@@ -1,10 +1,10 @@
 package com.phylage.scaladia.lang
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
-import java.util.TimeZone
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 
 import com.phylage.scaladia.injector.Injector
 import com.phylage.scaladia.lang.ScalaTime._
+import com.phylage.scaladia.lang.period.{EpochDateTime, FromTo}
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.util.{Failure, Try}
@@ -12,16 +12,32 @@ import scala.util.{Failure, Try}
 class ScalaTimeTest extends WordSpec with Matchers with Injector {
 
   trait Context {
-    protected val tz: RuntimeTZ = new RuntimeTZ {
-      override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-      override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
-      override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
-      override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
-    }
-    overwrite[RuntimeTZ](tz)
+    val tz = inject[RuntimeTZ]
   }
 
   "ZonedDateTimeBs" should {
+    "periodWith - before case" in new Context {
+
+      case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
+
+      "2018/10/01 11:05:11".datetime.periodWith(_.minusDays(2).minToday)(LocalPeriod) shouldBe
+        LocalPeriod(
+          "2018/9/29 00:00:00".datetime.epoch,
+          "2018/10/01 11:05:11".datetime.toEpochSecond
+        )
+    }
+
+    "periodWith - after case" in new Context {
+
+      case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
+
+      "2018/10/01".datetime.periodWith(_.plusDays(2).maxToday)(LocalPeriod) shouldBe
+        LocalPeriod(
+          "2018/10/01".datetime.epoch,
+          ZonedDateTime.of(2018, 10, 3, 23, 59, 59, 999999999, tz.ZONE_ID).epoch
+        )
+    }
+
     "parse yyyy/MM/dd HH:mm:ss" in new Context {
       "2017/08/26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
     }
@@ -70,7 +86,7 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
       "2017/08/26 11:33:54".datetime.format() shouldBe "2017/8/26 11:33:54"
     }
     "as custom" in new Context {
-      "2017/08/26 11:33:54".datetime.format("yyMd") shouldBe "17826"
+      "2017/08/26 11:33:54".datetime.formatTo("yyMd") shouldBe "17826"
     }
 
     "minToday" in new Context {
@@ -82,15 +98,15 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
     }
 
     "maxToday" in new Context {
-      "2017/08/26 11:33:54".datetime.maxToday shouldBe ZonedDateTime.of(2017, 8, 26, 23, 59, 59, 0, tz.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.maxToday shouldBe ZonedDateTime.of(2017, 8, 26, 23, 59, 59, 999999999, tz.ZONE_ID)
     }
 
     "maxTohour" in new Context {
-      "2017/08/26 11:33:54".datetime.maxTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 59, 59, 0, tz.ZONE_ID)
+      "2017/08/26 11:33:54".datetime.maxTohour shouldBe ZonedDateTime.of(2017, 8, 26, 11, 59, 59, 999999999, tz.ZONE_ID)
     }
 
-    "unixtime" in new Context {
-      "2017/08/26 11:33:54".datetime.unixtime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond
+    "epoch" in new Context {
+      "2017/08/26 11:33:54".datetime.epoch shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond
     }
   }
 
@@ -101,9 +117,9 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
   }
 
   "LocalDateTimeBs" should {
-    "toEpochSec" in new Context {
+    "epoch" in new Context {
       LocalDateTime.of(2017, 8, 26, 11, 33, 54)
-        .toEpochSec shouldBe ZonedDateTime
+        .epoch shouldBe ZonedDateTime
         .of(2017, 8, 26, 11, 33, 54, 0, ZoneId.of("Asia/Tokyo")).toEpochSecond
     }
     "format" in new Context {
