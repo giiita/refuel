@@ -2,6 +2,14 @@ package com.phylage.scaladia.lang.period
 
 trait TimeAxis {
   /**
+    * Time unit down
+    *
+    * @param value Existing time
+    * @return
+    */
+  def down(value: EpochDateTime): EpochDateTime
+
+  /**
     * Time incrementer
     *
     * @param value Existing time
@@ -11,10 +19,18 @@ trait TimeAxis {
   def increment(value: EpochDateTime, at: Long): EpochDateTime
 
   /**
-    * 時間丸め処理
+    * Time rounding
     *
     * @param value 時間
     * @return
     */
   def rounding(value: EpochDateTime): EpochDateTime
+
+  /**
+    * Time derounding
+    *
+    * @param value 時間
+    * @return
+    */
+  def derounding(value: EpochDateTime): EpochDateTime
 }

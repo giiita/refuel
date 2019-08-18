@@ -7,7 +7,7 @@ import com.phylage.scaladia.injector.scope.InjectableScope
 import scala.reflect.runtime.universe._
 
 object InjectionPool {
-  type InjectionApplyment[T] = Container => InjectableScope[T]
+  type InjectionApplyment[T] = Container => Vector[InjectableScope[T]]
 }
 
 trait InjectionPool {
@@ -19,5 +19,5 @@ trait InjectionPool {
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: WeakTypeTag[T]): Vector[InjectionApplyment[T]]
+  def collect[T](implicit wtt: WeakTypeTag[T]): InjectionApplyment[T]
 }

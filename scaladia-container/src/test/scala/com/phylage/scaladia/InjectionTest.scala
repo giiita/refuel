@@ -129,7 +129,7 @@ object InjectionTest {
     object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject[TestIF_105]
 
     trait AccessorTest extends Injector {
-      def get = inject[TestIF_105]
+      def get: Lazy[TestIF_105] = inject[TestIF_105]
     }
 
     object AccessorA extends AccessorTest
@@ -187,13 +187,13 @@ object InjectionTest {
     object A108 extends A108 with AutoInject[A108]
 
     trait B108 extends Injector {
-      val a = inject[A108]
+      val a: Lazy[A108] = inject[A108]
     }
 
     object B108 extends B108 with AutoInject[B108]
 
     trait C108 extends Injector {
-      val b = inject[B108]
+      val b: Lazy[B108] = inject[B108]
     }
 
     object C108 extends C108 with AutoInject[C108]
@@ -206,30 +206,69 @@ object InjectionTest {
       val value: String
     }
 
-//    object EffectA extends Effect {
-//      override def activate: Boolean = false
-//    }
-//    object EffectB extends Effect {
-//      override def activate: Boolean = true
-//    }
-//    object EffectC extends Effect {
-//      override def activate: Boolean = false
-//    }
+    object EffectA extends Effect {
+      override def activate: Boolean = false
+    }
 
-    // @Effective(EffectA)
+    object EffectB extends Effect {
+      override def activate: Boolean = true
+    }
+
+    object EffectC extends Effect {
+      override def activate: Boolean = false
+    }
+
+    @Effective(EffectA)
     object A109_1 extends A109 with AutoInject[A109] {
       val value: String = "A"
     }
 
-    // @Effective(EffectB)
+    @Effective(EffectB)
     object A109_2 extends A109 with AutoInject[A109] {
       val value: String = "B"
     }
 
-    // @Effective(EffectC)
+    @Effective(EffectC)
     object A109_3 extends A109 with AutoInject[A109] {
       val value: String = "C"
     }
+
+  }
+
+
+  object TEST110 {
+
+    trait A110 {
+      val value: String
+    }
+
+    object EffectA extends Effect {
+      override def activate: Boolean = false
+    }
+
+    object EffectB extends Effect {
+      override def activate: Boolean = false
+    }
+
+    object EffectC extends Effect {
+      override def activate: Boolean = false
+    }
+
+    @Effective(EffectA)
+    object A110_1 extends A110 with AutoInject[A110] {
+      val value: String = "A"
+    }
+
+    @Effective(EffectB)
+    object A110_2 extends A110 with AutoInject[A110] {
+      val value: String = "B"
+    }
+
+    @Effective(EffectC)
+    object A110_3 extends A110 with AutoInject[A110] {
+      val value: String = "C"
+    }
+
   }
 
   object TEST201 {
@@ -273,7 +312,7 @@ object InjectionTest {
   object TEST303 {
 
     object Wrap {
-      def apply[T <: TestIF](t: T) = new Wrap_303[T] {
+      def apply[T <: TestIF](t: T): Wrap_303[T] = new Wrap_303[T] {
         override val inst: T = t
       }
     }
@@ -475,6 +514,17 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       import TEST109._
 
       inject[A109]._provide shouldBe A109_2
+    }
+
+    "Effect is desabled all" in {
+      import TEST110._
+
+      Try {
+        inject[A110]._provide
+      } match {
+        case scala.util.Success(_) => fail()
+        case scala.util.Failure(exception) => exception.getMessage shouldBe "interface com.phylage.scaladia.InjectionTest$TEST110$A110 or its internal initialize failed."
+      }
     }
   }
 
