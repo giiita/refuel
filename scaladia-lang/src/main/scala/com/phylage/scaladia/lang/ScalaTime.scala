@@ -76,12 +76,9 @@ object ScalaTime extends Injector {
       * @tparam T Period type.
       * @return
       */
-    def periodWith[T <: FromTo](anotherTimeApplyment: LocalDateTime => LocalDateTime)
+    def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
                                (contruct: (EpochDateTime, EpochDateTime) => T): T = {
-      anotherTimeApplyment(value) match {
-        case x if x.isAfter(value) => contruct(value, x)
-        case x => contruct(x, value)
-      }
+      value.toZonedDateTime.periodWith(anotherTimeApplyment)(contruct)
     }
 
     /**
@@ -89,28 +86,28 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def minToday: LocalDateTime = value.`with`(LocalTime.MIN)
+    def minToday: LocalDateTime = value.toZonedDateTime.minToday.toLocalDateTime
 
     /**
       * LocalDateTime to this hour, HH:00:00.0
       *
       * @return
       */
-    def minTohour: LocalDateTime = value.`with`(LocalTime.MIN.withHour(value.getHour))
+    def minTohour: LocalDateTime = value.toZonedDateTime.minTohour.toLocalDateTime
 
     /**
       * LocalDateTime to this day, 23:59:59.99999999
       *
       * @return
       */
-    def maxToday: LocalDateTime = value.`with`(LocalTime.MAX)
+    def maxToday: LocalDateTime = value.toZonedDateTime.maxToday.toLocalDateTime
 
     /**
       * LocalDateTime to this hour, HH:59:59.99999999
       *
       * @return
       */
-    def maxTohour: LocalDateTime = value.`with`(LocalTime.MAX.withHour(value.getHour))
+    def maxTohour: LocalDateTime = value.toZonedDateTime.maxTohour.toLocalDateTime
 
     /**
       * ZonedDateTime convert to string with default date formatter.
@@ -157,8 +154,8 @@ object ScalaTime extends Injector {
     def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
                                (contruct: (EpochDateTime, EpochDateTime) => T): T = {
       anotherTimeApplyment(value) match {
-        case x if x.isAfter(value) => contruct(value, x)
-        case x => contruct(x, value)
+        case x if x.isAfter(value) => contruct(value.epoch, x.epoch)
+        case x => contruct(x.epoch, value.epoch)
       }
     }
 

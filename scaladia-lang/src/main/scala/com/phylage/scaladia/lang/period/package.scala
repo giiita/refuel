@@ -17,15 +17,32 @@ package object period {
     override def increment(value: EpochDateTime, at: Long): EpochDateTime = value.datetime.plusDays(at).toEpochSecond
 
     /**
-      * 時間丸め処理
+      * Time rounding
       *
-      * @param value 時間
+      * @param value Existing time
       * @return
       */
-    override def rounding(value: EpochDateTime): EpochDateTime = value.datetime.minusSeconds(1).toEpochSecond
+    override def rounding(value: EpochDateTime): EpochDateTime = value.datetime.minusDays(1).maxToday.toEpochSecond
+
+    /**
+      * Time deround
+      *
+      * @param value Existing time
+      * @return
+      */
+    override def derounding(value: EpochDateTime): EpochDateTime = value.datetime.plusDays(1).minToday.toEpochSecond
+
+    /**
+      * Time unit down
+      *
+      * @param value Existing time
+      * @return
+      */
+    override def down(value: EpochDateTime): EpochDateTime = value.datetime.minToday.epoch
   }
 
   case object HOUR extends TimeAxis {
+
 
     /**
       * Time incrementer
@@ -37,12 +54,28 @@ package object period {
     override def increment(value: EpochDateTime, at: Long): EpochDateTime = value.datetime.plusHours(at).toEpochSecond
 
     /**
-      * 時間丸め処理
+      * Time rounding
       *
-      * @param value 時間
+      * @param value Existing time
       * @return
       */
-    override def rounding(value: EpochDateTime): EpochDateTime = value.datetime.minTohour.minusSeconds(1).toEpochSecond
+    override def rounding(value: EpochDateTime): EpochDateTime = value.datetime.minusHours(1).maxTohour.toEpochSecond
+
+    /**
+      * Time derounding
+      *
+      * @param value Existing time
+      * @return
+      */
+    override def derounding(value: EpochDateTime): EpochDateTime = value.datetime.plusHours(1).minTohour.toEpochSecond
+
+    /**
+      * Time unit down
+      *
+      * @param value Existing time
+      * @return
+      */
+    override def down(value: EpochDateTime): EpochDateTime = value.datetime.minTohour.epoch
   }
 
 }
