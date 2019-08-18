@@ -6,6 +6,9 @@ import java.util.TimeZone
 
 import com.phylage.scaladia.injector.RecoveredInject
 
+/**
+  * TimeZone used by default.
+  */
 object RuntimeTZ extends RuntimeTZ with RecoveredInject[RuntimeTZ] {
   override val TIME_ZONE: TimeZone = TimeZone.getDefault
   override val ZONE_ID: ZoneId = java.time.ZoneId.systemDefault()
@@ -15,7 +18,9 @@ object RuntimeTZ extends RuntimeTZ with RecoveredInject[RuntimeTZ] {
 
 /**
   * When using a fixed time zone
-  * ```object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ] ```
+  * {{{
+  * object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ]
+  * }}}
   */
 class AsiaTokyoTZ extends RuntimeTZ {
   override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
@@ -29,6 +34,7 @@ class AsiaTokyoTZ extends RuntimeTZ {
   * By first overwriting, you can change the TimeZone handled by ScalaTime.
   */
 trait RuntimeTZ { me =>
+  /* Time zone */
   val TIME_ZONE: TimeZone
   /* Zone id */
   val ZONE_ID: ZoneId
@@ -38,4 +44,11 @@ trait RuntimeTZ { me =>
   val DEFAULT_FORMAT: String
 
   lazy val format: DateTimeFormatter = DateTimeFormatter.ofPattern(me.DEFAULT_FORMAT)
+
+  /**
+    * Set the default time zone for this process.
+    */
+  final def setDefault(): Unit = {
+    TimeZone.setDefault(me.TIME_ZONE)
+  }
 }

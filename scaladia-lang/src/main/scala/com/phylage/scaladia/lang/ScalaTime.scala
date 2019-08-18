@@ -1,26 +1,25 @@
 package com.phylage.scaladia.lang
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDateTime, ZonedDateTime}
+import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
 import com.phylage.scaladia.injector.Injector
+import com.phylage.scaladia.lang.period.{EpochDateTime, FromTo}
 
 object ScalaTime extends Injector {
-  type DefaultDateType = ZonedDateTime
-
   /**
     * If not setting auto injectable RuntimeTz,
-    * use default RuntimeTZ
+    * use default RuntimeTZ.
     */
-  private val TZ = inject[RuntimeTZ]
+  private[this] val TZ = inject[RuntimeTZ]
 
   /**
     * Get a current time.
     *
-    * <pre>
-    * import jupiter.common.util.JupiterTime._
+    * {{{
+    * import com.phylage.scaladia.lang.ScalaTime._
     * val currentTime = now
-    * <pre>
+    * }}}
     *
     * @return
     */
@@ -46,7 +45,6 @@ object ScalaTime extends Injector {
       */
     def datetime: ZonedDateTime = {
       ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).map { x =>
-        x.normalize(value)
         ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), ScalaTimeSupport.convertWith), TZ.ZONE_ID)
       } getOrElse (throw new IllegalArgumentException(s"Unexpected datetime format. $value"))
     }
@@ -58,7 +56,58 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def toEpochSec: Long = value.toEpochSecond(TZ.ZONE_OFFSET)
+    def epoch: Long = value.toEpochSecond(TZ.ZONE_OFFSET)
+
+    /**
+      * Create period object based on this date.
+      *
+      * {{{
+      *   import com.phylage.scaladia.lang.ScalaTime._
+      *
+      *   "2019-08-05 10:00:00".datetime.periodWith(_.plusDays(6).maxToday)(DeliveryPeriod)
+      *   == DeliveryPeriod("2019-08-05 10:00:00".datetime.epoch, "2019-08-11 23:59:59".datetime.epoch)
+      *
+      *   "2019-08-05 10:00:00".datetime.periodWith(_.minusDays(6).minToday)(DeliveryPeriod)
+      *   == DeliveryPeriod("2019-07-31 00:00:00".datetime.epoch, "2019-08-05 10:00:00".datetime.epoch)
+      * }}}
+      *
+      * @param anotherTimeApplyment How long to create a period from this date.
+      * @param contruct             FromTo subtype constructor.
+      * @tparam T Period type.
+      * @return
+      */
+    def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
+                               (contruct: (EpochDateTime, EpochDateTime) => T): T = {
+      value.toZonedDateTime.periodWith(anotherTimeApplyment)(contruct)
+    }
+
+    /**
+      * LocalDateTime to this day, 00:00:00.0
+      *
+      * @return
+      */
+    def minToday: LocalDateTime = value.toZonedDateTime.minToday.toLocalDateTime
+
+    /**
+      * LocalDateTime to this hour, HH:00:00.0
+      *
+      * @return
+      */
+    def minTohour: LocalDateTime = value.toZonedDateTime.minTohour.toLocalDateTime
+
+    /**
+      * LocalDateTime to this day, 23:59:59.99999999
+      *
+      * @return
+      */
+    def maxToday: LocalDateTime = value.toZonedDateTime.maxToday.toLocalDateTime
+
+    /**
+      * LocalDateTime to this hour, HH:59:59.99999999
+      *
+      * @return
+      */
+    def maxTohour: LocalDateTime = value.toZonedDateTime.maxTohour.toLocalDateTime
 
     /**
       * ZonedDateTime convert to string with default date formatter.
@@ -82,7 +131,33 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def format: String = value.format(TZ.format)
+    def format(): String = value.format(TZ.format)
+
+    /**
+      * Create period object based on this date.
+      *
+      * {{{
+      *   import com.phylage.scaladia.lang.ScalaTime._
+      *
+      *   "2019-08-05 10:00:00".datetime.periodWith(_.plusDays(6).maxToday)(DeliveryPeriod)
+      *   == DeliveryPeriod("2019-08-05 10:00:00".datetime.epoch, "2019-08-11 23:59:59".datetime.epoch)
+      *
+      *   "2019-08-05 10:00:00".datetime.periodWith(_.minusDays(6).minToday)(DeliveryPeriod)
+      *   == DeliveryPeriod("2019-07-31 00:00:00".datetime.epoch, "2019-08-05 10:00:00".datetime.epoch)
+      * }}}
+      *
+      * @param anotherTimeApplyment How long to create a period from this date.
+      * @param contruct             FromTo subtype constructor.
+      * @tparam T Period type.
+      * @return
+      */
+    def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
+                               (contruct: (EpochDateTime, EpochDateTime) => T): T = {
+      anotherTimeApplyment(value) match {
+        case x if x.isAfter(value) => contruct(value.epoch, x.epoch)
+        case x => contruct(x.epoch, value.epoch)
+      }
+    }
 
     /**
       * ZonedDateTime convert to string.
@@ -90,42 +165,42 @@ object ScalaTime extends Injector {
       * @param format customized format: default "yyyy/MM/dd HH:mm:ss"
       * @return
       */
-    def format(format: String = TZ.DEFAULT_FORMAT): String = DateTimeFormatter.ofPattern(format).format(value)
+    def formatTo(format: String = TZ.DEFAULT_FORMAT): String = DateTimeFormatter.ofPattern(format).format(value)
 
     /**
-      * ZonedDateTime to this day, 00:00:00
+      * ZonedDateTime to this day, 00:00:00.0
       *
       * @return
       */
-    def minToday: ZonedDateTime = value.format("yyyy/MM/dd 00:00:00").datetime
+    def minToday: ZonedDateTime = value.`with`(LocalTime.MIN)
 
     /**
-      * ZonedDateTime to this hour, HH:00:00
+      * ZonedDateTime to this hour, HH:00:00.0
       *
       * @return
       */
-    def minTohour: ZonedDateTime = value.format("yyyy/MM/dd HH:00:00").datetime
+    def minTohour: ZonedDateTime = value.`with`(LocalTime.MIN.withHour(value.getHour))
 
     /**
-      * ZonedDateTime to this day, 23:59:59
+      * ZonedDateTime to this day, 23:59:59.99999999
       *
       * @return
       */
-    def maxToday: ZonedDateTime = value.format("yyyy/MM/dd 23:59:59").datetime
+    def maxToday: ZonedDateTime = value.`with`(LocalTime.MAX)
 
     /**
-      * ZonedDateTime to this hour, HH:59:59
+      * ZonedDateTime to this hour, HH:59:59.99999999
       *
       * @return
       */
-    def maxTohour: ZonedDateTime = value.format("yyyy/MM/dd HH:59:59").datetime
+    def maxTohour: ZonedDateTime = value.`with`(LocalTime.MAX.withHour(value.getHour))
 
     /**
       * ZonedDateTime to unixtime
       *
       * @return
       */
-    def unixtime: Long = value.toEpochSecond
+    def epoch: Long = value.toEpochSecond
   }
 
   implicit class UnixTimeBs(value: Long) {

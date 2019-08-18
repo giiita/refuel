@@ -48,27 +48,15 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
   }
 
-  def publish(ip: Tree): Expr[Unit] = {
-    reify {
-      c.Expr[InjectionPool](ip).splice.pool {
-        () => scrapeInjectionTypes.splice
-      }
-    }
-  }
-
   def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
     reify {
-      {
-        publish(ip).splice
-        c.Expr[T](fun).splice
-      }
+      c.Expr[T](fun).splice
     }
   }
 
   def diligentInit[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
     reify[T] {
       {
-        publish(ip).splice
         applymentFunction[T](ctn, ip).splice
         injection[T](ctn, ip, access).splice
       }
@@ -91,10 +79,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
       mayBeInjection.splice orElse {
         applymentFunction[T](ctn, ip).splice
         mayBeInjection.splice
-      } orElse {
-        publish(ip).splice
-        applymentFunction[T](ctn, ip).splice
-        mayBeInjection.splice
       } getOrElse {
         throw new InjectDefinitionException(s"Cannot found ${ttagExpr.splice} implementations.")
       }
@@ -103,7 +87,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Vector[InjectableScope[T]]] = {
     reify {
-      c.Expr[InjectionPool](ip).splice.collect[T].map(_.apply(c.Expr[Container](cnt).splice))
+      c.Expr[InjectionPool](ip).splice.collect[T].apply(c.Expr[Container](cnt).splice)
     }
   }
 
