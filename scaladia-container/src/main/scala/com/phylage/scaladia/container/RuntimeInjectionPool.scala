@@ -66,17 +66,16 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
   private[this] def mayBeEffectiveCollection[T: universe.WeakTypeTag](v: Vector[(Option[universe.Tree], universe.ModuleSymbol)])
                                                                      (c: Container)
   : Vector[InjectableScope[T]] = {
-    v.flatMap(x => x._1.map(_ -> x._2)) match {
-      case x if x.isEmpty => implicitly[InjectionReflector].reflect[T](c)(v.map(_._2))
-      case candidates => getEffect(c).map(_.getClass.getTypeName) match {
-        case None => Vector.empty
-        case Some(activeEff) =>
-          reflector.reflect[T](c)(
-            candidates.collect {
-              case x if reflector.reflectClass(x._1.tpe).getTypeName == activeEff => x._2
-            }
-          )
-      }
+    v.partition(_._1.isEmpty) match {
+      case (nonTagging, tagging) if tagging.isEmpty =>
+        reflector.reflect(c)(nonTagging.map(_._2))
+      case (nonTagging, tagging) =>
+        getEffect(c).map(_.getClass.getTypeName) match {
+          case None => reflector.reflect(c)(nonTagging.map(_._2))
+          case Some(activeEff) => reflector.reflect(c)(nonTagging.map(_._2) ++ {
+            tagging.withFilter(_._1.fold(false)(x => reflector.reflectClass(x.tpe).getTypeName == activeEff)).map(_._2)
+          })
+        }
     }
   }
 }
