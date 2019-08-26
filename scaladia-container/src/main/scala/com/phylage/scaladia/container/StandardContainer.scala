@@ -53,7 +53,7 @@ class StandardContainer(buffer: ContainerPool = TrieMap.empty, val lights: Vecto
     buffer.get(ContainerIndexedKey(implicitly[WeakTypeTag[Effect]])) match {
       case None    => None
       case Some(x) =>
-        x.map(_.value.asInstanceOf[InjectableScope[Effect]])
+        x.map(_.asInstanceOf[InjectableScope[Effect]])
           .filter(_.value.activate)
           .toSeq
           .sortBy(_.priority)(Ordering.Int.reverse)
