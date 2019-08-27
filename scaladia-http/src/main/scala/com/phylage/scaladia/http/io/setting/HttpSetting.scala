@@ -1,8 +1,7 @@
 package com.phylage.scaladia.http.io.setting
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpProtocol, HttpRequest}
+import akka.http.scaladsl.model.{ContentTypes, HttpProtocols, HttpRequest, ResponseEntity}
 import akka.stream.ActorMaterializer
 import com.phylage.scaladia.injector.RecoveredInject
 
@@ -15,14 +14,22 @@ import com.phylage.scaladia.injector.RecoveredInject
   * }}}
   *
   * @param retryThreshold    Retry threshold. When 2 is set, up to one failure is allowed.
-  * @param build             Http request builder.
-  * @param timeout           Request timeout milliseconds.
+  * @param requestBuilder     Http request builder.
+  *                          Default set,
+  *                            protocol: `Http/1.1`
+  *                            ContentType: `application/json`
+  * @param responseBuilder    Http response entity builder.
+  *                          For example, AkkaHttpClient has a capacity for response processing stream size.
+  *                          It is possible to cut this.
+  *                          {{{
+  *                            responseOption = _.withoutSizeLimit()
+  *                          }}}
   * @param actorSystem       Actor system.
   * @param actorMaterializer Actor materializer generator.
   */
 class HttpSetting(val retryThreshold: Int = 1,
-                  val build: HttpRequest => HttpRequest = HttpSetting.DEFAULT,
-                  val timeout: Int = 30 * 1000,
+                  val requestBuilder: HttpRequest => HttpRequest = HttpSetting.DEFAULT,
+                  val responseBuilder: ResponseEntity => ResponseEntity = x => x,
                   val actorSystem: ActorSystem = ActorSystem(),
                   val actorMaterializer: ActorSystem => ActorMaterializer = x => ActorMaterializer()(x))
 
@@ -31,10 +38,11 @@ object HttpSetting {
   val DEFAULT: HttpRequest => HttpRequest = _.setProtocol.setContentType
 
   private[setting] implicit class RichHttpRequest(request: HttpRequest) {
-    def setProtocol: HttpRequest = request.withProtocol(HttpProtocol("HTTP"))
+    def setProtocol: HttpRequest = request.withProtocol(HttpProtocols.`HTTP/1.1`)
 
-    def setContentType: HttpRequest = request.withHeaders(RawHeader("Content-type", "application/json"))
+    def setContentType: HttpRequest = request.withHeaders(akka.http.scaladsl.model.headers.`Content-Type`(ContentTypes.`application/json`))
   }
 
   object RecoveredHttpSetting extends HttpSetting with RecoveredInject[HttpSetting]
+
 }

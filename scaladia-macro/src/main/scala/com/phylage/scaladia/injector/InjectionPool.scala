@@ -2,12 +2,12 @@ package com.phylage.scaladia.injector
 
 import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.injector.InjectionPool.InjectionApplyment
-import com.phylage.scaladia.injector.scope.InjectableScope
+import com.phylage.scaladia.injector.scope.IndexedSymbol
 
 import scala.reflect.runtime.universe._
 
 object InjectionPool {
-  type InjectionApplyment[T] = Container => Vector[InjectableScope[T]]
+  type InjectionApplyment[T] = Container => Set[IndexedSymbol[T]]
 }
 
 trait InjectionPool {

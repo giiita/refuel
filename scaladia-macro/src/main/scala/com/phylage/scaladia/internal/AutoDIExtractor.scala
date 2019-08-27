@@ -2,77 +2,61 @@ package com.phylage.scaladia.internal
 
 import com.phylage.scaladia.Config
 import com.phylage.scaladia.Config.AdditionalPackage
+import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.injector.AutoInjectable
-import com.phylage.scaladia.provider.Tag
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
 
 object AutoDIExtractor {
-  private[this] var buffer: Option[Set[_]] = None
+  private[this] var buffer: Option[AutoInjectableSymbols[_]] = None
 
-  def collectApplyTarget[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Iterable[C#Symbol] = {
-    getList[C, T](c)
-  }
+  def collectApplyTarget[C <: blackbox.Context, T: c.WeakTypeTag](c: C)(ctn: c.Tree): c.Expr[T] = {
 
-  private[this] case class AutoInjectableSet[C <: blackbox.Context](c: C)(value: Vector[C#Symbol]) {
+    val richSets = new AutoInjectableSet[c.type](c)
 
-    def filter[T: C#WeakTypeTag]: Vector[C#Symbol] = {
-      import c.universe._
-      val tag = weakTypeOf[T]
-      value.filter { x =>
-        x.typeSignature.<:<(tag) && ! {
-          x.typeSignature.baseClasses.contains(weakTypeOf[Tag[_]].typeSymbol) &&
-            !tag.<:<(weakTypeOf[Tag[_]])
-        }
-      } match {
-        case x if x.isEmpty =>
-          c.warning(c.enclosingPosition, s"${tag.typeSymbol.fullName}'s automatic injection target can not be found.")
-          x
-        case x =>
-          c.echo(c.enclosingPosition, s"Flash ${tag.typeSymbol.fullName}'s Actual Conditions ${x.map(_.name).mkString(",")}.")
-          x.sortBy(_.fullName)
-      }
+    getList[C, T](c) match {
+      case x => new InjectionCompound[c.type](c).buildOne(ctn)(
+        richSets.filterModuleSymbols[T](x),
+        richSets.findClassSymbol[T](x)
+      )
     }
   }
 
-  private[this] def getList[C <: blackbox.Context, T: C#WeakTypeTag](c: C): Iterable[C#Symbol] = {
-    {
-      buffer match {
-        case None => new AutoDIExtractor(c).run[T]() match {
-          case x =>
-            buffer = Some(x.toSet)
-            x
-        }
-        case Some(x) => x.toVector.asInstanceOf[Vector[C#Symbol]]
+  private[this] def getList[C <: blackbox.Context, T: c.WeakTypeTag](c: C): AutoInjectableSymbols[c.type] = {
+    buffer match {
+      case None    => new AutoDIExtractor[c.type](c).run() match {
+        case x =>
+          buffer = Some(x)
+          x
       }
-    }.sortBy(_.fullName)
+      case Some(x) => x.asInstanceOf[AutoInjectableSymbols[c.type]]
+    }
   }
-
 }
 
 class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  lazy val unloadablePackages: Seq[String] = {
+  lazy val unloadPackages: Seq[String] = {
     val config = Config.blackList
     config.collect {
       case AdditionalPackage(p) => p
     } match {
       case x if x.nonEmpty =>
         c.echo(EmptyTree.pos, s"\nUnscanning injection packages:\n    ${x.mkString("\n    ")}\n\n")
-      case _ =>
+      case _               =>
     }
     config.map(_.value)
   }
 
-  private[this] val autoDITag = weakTypeOf[AutoInjectable[_]]
+  private[this] val autoInjectableTag = weakTypeOf[AutoInjectable[_]]
 
 
-  def run[T: C#WeakTypeTag](): Vector[Symbol] = {
+  def run(): AutoInjectableSymbols[c.type] = {
     recursivePackageExplore(
-      Vector(nealyPackage(c.weakTypeOf[T].typeSymbol))
+      Vector(nealyPackage(c.weakTypeOf[Container].typeSymbol))
     )
   }
 
@@ -80,22 +64,22 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
       case x if x.isPackage && x.fullName == "<root>" => x
-      case x => nealyPackage(x, prevs.+:(x): _*)
+      case x                                          => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
   @tailrec
   private final def recursivePackageExplore(selfPackages: Vector[Symbol],
-                                            result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
+                                            injectableSymbols: AutoInjectableSymbols[c.type] = AutoInjectableSymbols.empty[c.type](c)): AutoInjectableSymbols[c.type] = {
     selfPackages match {
-      case x if x.isEmpty => result
-      case _ =>
+      case x if x.isEmpty => injectableSymbols
+      case _              =>
         val (packages, modules) = selfPackages.flatMap(_.typeSignature.decls).distinct.collect {
-          case x if selfPackages.contains(x) || unloadablePackages.contains(x.fullName) =>
+          case x if selfPackages.contains(x) || unloadPackages.contains(x.fullName) =>
             None -> None
-          case x if x.isPackage =>
+          case x if x.isPackage                                                     =>
             Some(x) -> None
-          case x if x.isModule && !x.isAbstract =>
+          case x if (x.isModule && !x.isAbstract) || x.isInjectableOnce             =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -103,36 +87,51 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
         recursivePackageExplore(
           packages,
-          result ++ recursiveModuleExplore(modules)
+          injectableSymbols ++ recursiveModuleExplore(modules)
         )
+
     }
   }
 
   @tailrec
-  private final def recursiveModuleExplore(n: Vector[Symbol],
-                                           result: Vector[Symbol] = Vector.empty): Vector[Symbol] = {
+  private final def recursiveModuleExplore(n: Vector[c.Symbol],
+                                           injectableSymbols: AutoInjectableSymbols[c.type] = AutoInjectableSymbols.empty[c.type](c))
+  : AutoInjectableSymbols[c.type] = {
     n.accessible match {
-      case accessibleSymbol if accessibleSymbol.isEmpty => result
-      case accessibleSymbol =>
-//        accessibleSymbol
-//          .filter(_.fullName.startsWith("com.phylage"))
-//          .map(x => s"  ${x.companion} : ${x.companion.isClass} : ${!x.companion.isAbstract} :  ${
-//            if (x.companion.isClass && !x.companion.isAbstract && x.companion.asClass.primaryConstructor.isMethod) {
-//              x.companion.asClass.primaryConstructor.asMethod.paramLists
-//            } else ""}").foreach(println)
-        recursiveModuleExplore(
-          accessibleSymbol.withFilter(_.isModule).flatMap(_.typeSignature.members).collect {
-            case x if x.isModule => x
-          },
-          result ++ accessibleSymbol.filter(_.typeSignature.<:<(autoDITag)))
+      case accessibleSymbol if accessibleSymbol.isEmpty => injectableSymbols
+      case accessibleSymbol                             =>
+        accessibleSymbol.collect {
+          case x if x.isModule && x.typeSignature.<:<(autoInjectableTag) => Some(x) -> None
+          case x if x.isInjectableOnce                                   => None -> Some(x)
+          case _                                                         => None -> None
+        } match {
+          case x =>
+            recursiveModuleExplore(
+              accessibleSymbol.withFilter(_.isModule).flatMap(_.typeSignature.members).collect {
+                case r if r.isModule || r.isInjectableOnce => r
+              },
+              injectableSymbols.add(x.flatMap(_._1), x.flatMap(_._2))
+            )
+        }
+
+
     }
   }
 
-  implicit class RichVectorSymbol(value: Vector[Symbol]) {
-    def accessible: Vector[Symbol] = {
+  implicit class RichSymbol(v: c.Symbol) {
+    def isInjectableOnce: Boolean = v match {
+      case x => x.isClass &&
+        !x.isAbstract &&
+        x.asClass.primaryConstructor.isMethod &&
+        x.typeSignature.baseClasses.contains(autoInjectableTag.typeSymbol)
+    }
+  }
+
+  implicit class RichVectorSymbol(value: Vector[c.Symbol]) {
+    def accessible: Vector[c.Symbol] = {
       value.flatMap {
         case x if x.toString.endsWith("package$") => None
-        case x => try {
+        case x                                    => try {
           c.typecheck(
             c.parse(
               x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")

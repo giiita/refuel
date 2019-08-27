@@ -1,7 +1,7 @@
 # scaladia-container
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-container" % "2.6.0"
+libraryDependencies += "com.phylage" %% "scaladia-container" % "2.6.1"
 ````
 
 # Common Usage
@@ -438,31 +438,4 @@ However, caution is required as types inheriting AnyVal are handled internally a
       println(inject[A[List[Double]]]) // C
     }
   }
-```
-
-## Utilities
-
-### [ScalaTime](https://github.com/giiita/scaladia/blob/master/scaladia-container-core/src/main/scala/com/giitan/lang/ScalaTime.scala)
-
-```scala
-import com.phylage.scaladia.lang.ScalaTime._
-```
-Supports conversion between various classes and date classes.
-
-```scala
-"2019-01-01 11:22:33".datetime
-  
-> res0: java.time.ZonedDateTime = 2019-01-01T11:22:33.000+09:00[Asia/Tokyo]
-```
-
-```scala
-"2019-01-01 11:22:33".datetime.maxToday
-  
-> res0: java.time.ZonedDateTime = 2019-01-01T23:59:59.000+09:00[Asia/Tokyo]
-```
-
-```scala
-"2019-01-01 11:22:33".datetime.maxToday.minTohour
-  
-> res0: java.time.ZonedDateTime = 2019-01-01T23:00:00.000+09:00[Asia/Tokyo]
 ```

@@ -3,7 +3,7 @@ package com.phylage.scaladia.container
 import java.net.URLClassLoader
 
 import com.phylage.scaladia.injector.AutoInject
-import com.phylage.scaladia.injector.scope.InjectableScope
+import com.phylage.scaladia.injector.scope.IndexedSymbol
 import com.phylage.scaladia.runtime.InjectionReflector
 
 import scala.annotation.tailrec
@@ -22,9 +22,31 @@ object RuntimeReflector extends InjectionReflector {
     * @tparam T injection type
     * @return
     */
-  override def reflect[T: universe.WeakTypeTag](c: Container)(symbols: Vector[universe.ModuleSymbol]): Vector[InjectableScope[T]] = {
+  override def reflectClass[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
-      mirror.reflectModule(x).instance.asInstanceOf[AutoInject[T]].flush(c)
+      mirror.reflectClass(x)
+        .reflectConstructor(x.primaryConstructor.asMethod)
+        .apply()
+        .asInstanceOf[AutoInject[T]] match {
+        case ai => ai.flush(c)
+      }
+    }
+  }
+
+  /**
+    * Create injection applyment.
+    *
+    * @param symbols module symbols
+    * @tparam T injection type
+    * @return
+    */
+  override def reflectModule[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ModuleSymbol]): Set[IndexedSymbol[T]] = {
+    symbols.map { x =>
+      mirror.reflectModule(x)
+        .instance
+        .asInstanceOf[AutoInject[T]] match {
+        case ai => ai.flush(c)
+      }
     }
   }
 

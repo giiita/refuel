@@ -13,8 +13,14 @@ import scala.reflect.runtime.universe._
 /**
   * It is a rule class to use Injection container.
   */
-private[scaladia] trait ContainerAccessible[C <: Container] {
-  me =>
+private[scaladia] trait MetaMediation[C <: Container] extends CanBeContainer[C] { me =>
+
+  /**
+    * Implicitly injection pool
+    *
+    * @return
+    */
+  protected implicit def _ijp: InjectionPool = implicitly[ContainerLifeCycle].ijp
 
   /**
     * Manually register the new dependency.
@@ -49,7 +55,7 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * Get accessible dependencies.
     *
     * The type information is resolved at compile time, but the injection object is finalized at runtime.
-    * This function is slower than [[com.phylage.scaladia.injector.ContainerAccessible.confirm]], but can be overwritten by flush or narrow.
+    * This function is slower than [[com.phylage.scaladia.injector.MetaMediation.bind]], but can be overwritten by flush or narrow.
     *
     * @param ctn    Container
     * @param access Accessor (This refers to itself)
@@ -59,38 +65,10 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
   protected def inject[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
 
   /**
-    * Provide dependency.
-    *
-    * @param variable Stored dependency object.
-    * @tparam X Variable type
-    * @return
-    */
-  implicit def _implicitProviding[X](variable: Lazy[X]): X = {
-    variable._provide
-  }
-
-  /**
-    * This refers to itself
-    *
-    * @return
-    */
-  protected implicit def _someoneNeeds: Accessor[_] = Accessor(me)
-
-
-  implicit var _cntMutation: C
-
-  /**
-    * Implicitly injection pool
-    *
-    * @return
-    */
-  protected implicit def _ijp: InjectionPool = implicitly[ContainerStore].ijp
-
-  /**
     * Get accessible dependencies.
     * You can detect errors that can not be assigned at compile time.
     *
-    * It is faster than [[com.phylage.scaladia.injector.ContainerAccessible.inject]] because of immediate assignment,
+    * It is faster than [[com.phylage.scaladia.injector.MetaMediation.inject]] because of immediate assignment,
     * but the dependency injected at compile time is determined,
     * and this assignment can not be overwritten with "flush" or "narrow".
     *
@@ -102,6 +80,6 @@ private[scaladia] trait ContainerAccessible[C <: Container] {
     * @tparam T Injection type
     * @return
     */
-  protected def confirm[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
+  protected def bind[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
 
 }

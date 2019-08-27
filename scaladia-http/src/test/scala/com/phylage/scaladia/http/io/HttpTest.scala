@@ -16,7 +16,7 @@ object HttpTest {
                         categories: Seq[String])
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    case class Jokes(`type`: String, value: JokeBody)
+    case class Jokes(status: String, value: JokeBody)
 
   }
 
@@ -33,7 +33,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     case class InnerJokes(value: InnerJokeBody)
 
     "inner class can not deserialize" in {
-      http[GET]("http://api.icndb.com/jokes/random")
+      http[GET]("http://localhost:3000/endpoint")
         .as[InnerJokes]
         .map { x =>
           x.value.joke
@@ -41,11 +41,11 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         .run
         .map(x => fail(x))
         .recover {
-          case e => e.getMessage startsWith "Cannot construct instance of `com.phylage.scaladia.http.io.HttpTest$" shouldBe true
+          case e => e.getMessage should startWith("Cannot deseialize to com.phylage.scaladia.http.io.HttpTest")
         }
     }
     "deserializing" in {
-      http[GET]("http://api.icndb.com/jokes/random")
+      http[GET]("http://localhost:3000/endpoint")
         .as[Jokes]
         .map { x =>
           x.value.joke
@@ -57,7 +57,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "undeserializing" in {
-      http[GET]("http://api.icndb.com/jokes/random")
+      http[GET]("http://localhost:3000/endpoint")
         .map { x =>
           s"Got it [ $x ]"
         }
@@ -68,7 +68,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "asString" in {
-      http[GET]("http://api.icndb.com/jokes/random")
+      http[GET]("http://localhost:3000/endpoint")
         .asString
         .run
         .map { result =>
