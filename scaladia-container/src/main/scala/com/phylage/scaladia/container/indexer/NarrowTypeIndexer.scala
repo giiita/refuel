@@ -1,17 +1,27 @@
 package com.phylage.scaladia.container.indexer
 
 import com.phylage.scaladia.container.Container
-import com.phylage.scaladia.injector.scope.{AcceptedFromTypeScope, InjectableScope}
+import com.phylage.scaladia.injector.scope.{AcceptedFromTypeSymbol, IndexedSymbol}
 
 import scala.reflect.{ClassTag, classTag}
 
-class NarrowTypeIndexer[T](scope: AcceptedFromTypeScope[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+
+/**
+  * Indexer into container.
+  * In some cases, it may index into multiple containers.
+  * An accessible class can be registered for the symbol of this Indexer.
+  *
+  * @param scope Symbol which may be indexed
+  * @param cnt   containers
+  * @tparam T Symbol type
+  */
+class NarrowTypeIndexer[T](scope: AcceptedFromTypeSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
   /**
-    * Create a new object in the injection container.
+    * Index a new symbol in the injection container.
     *
     * @return
     */
-  override def indexing(): InjectableScope[T] = {
+  override def indexing(): IndexedSymbol[T] = {
     cnt.foreach(_.cache(scope))
     scope
   }

@@ -2,8 +2,8 @@ package com.phylage.scaladia.internal
 
 import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.exception.{DIAutoInitializationException, InjectDefinitionException}
-import com.phylage.scaladia.injector.scope.InjectableScope
-import com.phylage.scaladia.injector.{InjectionPool, InjectionType}
+import com.phylage.scaladia.injector.InjectionPool
+import com.phylage.scaladia.injector.scope.IndexedSymbol
 import com.phylage.scaladia.provider.{Accessor, Lazy}
 
 import scala.reflect.macros.blackbox
@@ -12,7 +12,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  def lazyInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[Lazy[T]] = {
+  def lazyInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: Tree): Expr[Lazy[T]] = {
     val injectionRf = c.Expr[T](
       q"""
          ${injection[T](ctn, ip, access)} match {
@@ -48,21 +48,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
   }
 
-  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
-    reify {
-      c.Expr[T](fun).splice
-    }
-  }
-
-  def diligentInit[T: C#WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
-    reify[T] {
-      {
-        applymentFunction[T](ctn, ip).splice
-        injection[T](ctn, ip, access).splice
-      }
-    }
-  }
-
   def injection[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
 
     val ttagExpr = c.Expr {
@@ -70,7 +55,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
 
     val mayBeInjection = reify {
-      c.Expr[Container](ctn).splice.find[T](
+      c.Expr[Container](ctn).splice.find[T, Accessor[_]](
         c.Expr[Accessor[_]](access).splice
       )
     }
@@ -78,23 +63,29 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     reify {
       mayBeInjection.splice orElse {
         applymentFunction[T](ctn, ip).splice
-        mayBeInjection.splice
+          .toVector
+          .sortBy(_.priority)(Ordering.Int.reverse)
+          .headOption
+          .map(_.value)
       } getOrElse {
         throw new InjectDefinitionException(s"Cannot found ${ttagExpr.splice} implementations.")
       }
     }
   }
 
-  private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Vector[InjectableScope[T]]] = {
+  private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Set[IndexedSymbol[T]]] = {
     reify {
       c.Expr[InjectionPool](ip).splice.collect[T].apply(c.Expr[Container](cnt).splice)
     }
   }
 
-  def scrapeInjectionTypes: c.Expr[Iterable[InjectionType[_]]] = {
-    import c.universe._
-    new InjectionCompound[c.type](c).build(
-      AutoDIExtractor.collectApplyTarget[c.type, Container](c)(weakTypeTag[Container])
-    )
+  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
+    reify {
+      c.Expr[T](fun).splice
+    }
+  }
+
+  def diligentInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
+    AutoDIExtractor.collectApplyTarget[c.type, T](c)(ctn)
   }
 }

@@ -1,6 +1,6 @@
 package com.phylage.scaladia.container.indexer
 
-import com.phylage.scaladia.injector.scope.InjectableScope
+import com.phylage.scaladia.injector.scope.IndexedSymbol
 
 import scala.reflect.ClassTag
 
@@ -13,11 +13,11 @@ trait Indexer[T] {
   me =>
 
   /**
-    * Create a new object in the injection container.
+    * Index a new symbol in the injection container.
     *
     * @return
     */
-  def indexing(): InjectableScope[T]
+  def indexing(): IndexedSymbol[T]
 
   /**
     * Create a new authorization class for this indexer.

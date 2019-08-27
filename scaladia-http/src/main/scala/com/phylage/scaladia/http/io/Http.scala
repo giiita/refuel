@@ -54,6 +54,8 @@ object Http extends Injector {
       * @tparam X Deserialized type.
       * @return
       */
+    @deprecated("Custom HttpSetting.responseBuilder instead. " +
+      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
     def asLimit[X: ClassTag](limit: Long): HttpRunner[X] = {
       asStringLimit(limit).map(super.deserialize[X])
     }
@@ -66,6 +68,8 @@ object Http extends Injector {
       * @tparam X
       * @return
       */
+    @deprecated("Custom HttpSetting.responseBuilder instead. " +
+      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
     def asLimitCut[X: ClassTag]: HttpRunner[X] = {
       asStringLimitCut.map(super.deserialize[X])
     }
@@ -76,7 +80,7 @@ object Http extends Injector {
       * @return
       */
     def asString: HttpRunner[String] = {
-      value.flatMap(_.entity.dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
+      value.flatMap(x => setting.responseBuilder(x.entity).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
     }
 
     /**
@@ -88,6 +92,8 @@ object Http extends Injector {
       *
       * @return
       */
+    @deprecated("Custom HttpSetting.responseBuilder instead. " +
+      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
     def asStringLimit(limit: Long): HttpRunner[String] = {
       value.flatMap(_.entity.withSizeLimit(limit).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
     }
@@ -99,6 +105,8 @@ object Http extends Injector {
       *
       * @return
       */
+    @deprecated("Custom HttpSetting.responseBuilder instead. " +
+      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
     def asStringLimitCut: HttpRunner[String] = {
       value.flatMap(_.entity.withoutSizeLimit().dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
     }
@@ -107,7 +115,7 @@ object Http extends Injector {
   /**
     * Create a http request task.
     * {{{
-    *   import com.github.giiita.io.http.Http._
+    *   import com.phylage.scaladia.http.io.Http._
     *
     *   val requets = Map(
     *     "id" -> 1,
@@ -128,10 +136,12 @@ object Http extends Injector {
     * @return
     */
   def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpRunner[HttpResponse] = {
-    logger.info(s"Setup http request [ $urlString ]")
+    println(s"Setup http request [ $urlString ]")
 
     new HttpRunner[HttpResponse](
-      HttpRequest(implicitly[MethodType[T]].method).withUri(Uri(urlString)),
+      setting.requestBuilder(
+        HttpRequest(implicitly[MethodType[T]].method).withUri(Uri(urlString))
+      ),
       new HttpResultTask[HttpResponse] {
         def execute(request: HttpRequest): Future[HttpResponse] = HttpRetryRevolver(setting.retryThreshold).revolving() {
           akka.http.scaladsl.Http()(setting.actorSystem).singleRequest(request)
