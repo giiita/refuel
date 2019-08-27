@@ -8,7 +8,16 @@ package object runtime {
 
     def isModuleSymbol: Boolean = uri.endsWith("$.class")
 
+    def isClassSymbol: Boolean = uri.endsWith(".class")
+
     def slashToDot: String =
       uri.replace('/', '.')
+  }
+
+  implicit class RichPackagePathEntries(v: Set[PackagePathEntries]) {
+    def join: PackagePathEntries = new PackagePathEntries(
+      v.flatMap(_.moduleSymbolPath),
+      v.flatMap(_.classSymbolPath)
+    )
   }
 }

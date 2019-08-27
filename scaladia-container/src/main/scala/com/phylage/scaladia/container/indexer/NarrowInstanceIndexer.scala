@@ -1,7 +1,7 @@
 package com.phylage.scaladia.container.indexer
 
 import com.phylage.scaladia.container.Container
-import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, InjectableScope}
+import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, IndexedSymbol}
 
 import scala.reflect.ClassTag
 
@@ -11,7 +11,7 @@ class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceScope[T], cnt: Vector[
     *
     * @return
     */
-  override def indexing(): InjectableScope[T] = {
+  override def indexing(): IndexedSymbol[T] = {
     cnt.foreach(_.cache(scope))
     scope
   }

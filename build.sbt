@@ -116,7 +116,13 @@ lazy val http = (project in file("scaladia-http"))
       "com.typesafe.akka" %% "akka-stream" % "2.5.23",
       "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8",
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
-    )
+    ),
+    unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
+    testOptions in Test += Tests.Setup { _ =>
+      import scala.sys.process._
+
+      Process("sh sh/setup-testing-http-server.sh").run
+    },
   ).enablePlugins(JavaAppPackaging)
 
 lazy val `test` = (project in file("scaladia-test"))

@@ -1,5 +1,7 @@
 package com.phylage.scaladia.injector.scope
 
+import com.phylage.scaladia.container.Container
+
 import scala.reflect.runtime.universe._
 
 /**
@@ -11,7 +13,7 @@ import scala.reflect.runtime.universe._
   * @param acceptedFrom accepted instance list
   * @tparam T Injection object type
   */
-case class AcceptedFromInstanceScope[T](value: T, priority: Int = Int.MaxValue, x: WeakTypeTag[T], acceptedFrom: Vector[Any]) extends AbstractScope[T](x) {
+private[scaladia] case class AcceptedFromInstanceScope[T](value: T, priority: Int = Int.MaxValue, x: Type, acceptedFrom: Vector[Any], c: Container) extends AbstractScope[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *
