@@ -4,5 +4,5 @@ import scala.reflect.runtime.universe._
 
 case class ContainerIndexedKey(value: String)
 object ContainerIndexedKey {
-  def apply(value: WeakTypeTag[_]): ContainerIndexedKey = ContainerIndexedKey(value.tpe.toString)
+  def apply(value: Type): ContainerIndexedKey = ContainerIndexedKey(value.toString)
 }

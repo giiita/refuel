@@ -3,14 +3,14 @@ package com.phylage.scaladia.container
 import com.phylage.scaladia.Types.{@@, Localized}
 import com.phylage.scaladia.container.indexer.Indexer
 import com.phylage.scaladia.effect.EffectLike
-import com.phylage.scaladia.injector.scope.InjectableScope
-import com.phylage.scaladia.provider.Accessor
+import com.phylage.scaladia.injector.scope.{IndexedSymbol, TypedAcceptContext}
 
+import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
 private[scaladia] trait Container {
 
-  val lights: Vector[Container]
+  private[scaladia] val lights: Vector[Container]
 
   /**
     * Cache in the injection container.
@@ -19,7 +19,7 @@ private[scaladia] trait Container {
     * @tparam T injection type
     * @return
     */
-  def cache[T](value: InjectableScope[T]): InjectableScope[T]
+  private[scaladia] def cache[T](value: IndexedSymbol[T]): IndexedSymbol[T]
 
   /**
     * May return an injectable object.
@@ -27,14 +27,22 @@ private[scaladia] trait Container {
     * @param requestFrom Inject caller.
     * @return
     */
-  def find[T: WeakTypeTag](requestFrom: Accessor[_]): Option[T]
+  private[scaladia] def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T]
+
+  /**
+    * May return an injectable object.
+    *
+    * @param requestFrom Inject caller.
+    * @return
+    */
+  private[scaladia] def find[T: WeakTypeTag, A: TypedAcceptContext](requestFrom: A): Option[T]
 
   /**
     * May return an injectable object.
     *
     * @return
     */
-  def findEffect: Option[EffectLike]
+  private[scaladia] def findEffect: Set[EffectLike]
 
   /**
     * Generate an indexer.
@@ -44,7 +52,17 @@ private[scaladia] trait Container {
     * @tparam T injection type
     * @return
     */
-  def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container] = this.lights): Indexer[T]
+  private[scaladia] def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container] = this.lights): Indexer[T]
 
-  def shading: Container @@ Localized
+  /**
+    * Generate open scope.
+    *
+    * @param x        Injectable object.
+    * @param priority priority
+    * @tparam T injection type
+    * @return
+    */
+  private[scaladia] def createScope[T: WeakTypeTag](x: T, priority: Int): IndexedSymbol[T]
+
+  private[scaladia] def shading: Container @@ Localized
 }

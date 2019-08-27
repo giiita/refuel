@@ -2,6 +2,7 @@ package com.phylage.scaladia.http.io
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.phylage.scaladia.http.exception.DeserializingException
 import com.phylage.scaladia.injector.Injector
 
 import scala.reflect.ClassTag
@@ -27,7 +28,9 @@ trait JacksonParser extends Injector {
     * @tparam T Response type.
     * @return
     */
-  def deserialize[T: ClassTag](v: String): T = {
+  def deserialize[T: ClassTag](v: String): T = try {
     JacksonParser.jackson.readValue(v, implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
+  } catch {
+    case e: Throwable => throw new DeserializingException(s"Cannot deseialize to ${implicitly[ClassTag[T]]}", e)
   }
 }

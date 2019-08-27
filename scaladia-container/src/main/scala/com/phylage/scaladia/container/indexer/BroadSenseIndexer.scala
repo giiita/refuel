@@ -1,17 +1,17 @@
 package com.phylage.scaladia.container.indexer
 
 import com.phylage.scaladia.container.Container
-import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, AcceptedFromTypeScope, InjectableScope, OpenScope}
+import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, AcceptedFromTypeScope, IndexedSymbol}
 
 import scala.reflect.{ClassTag, classTag}
 
-class BroadSenseIndexer[T](scope: OpenScope[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+class BroadSenseIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
   /**
     * Create a new object in the injection container.
     *
     * @return
     */
-  override def indexing(): InjectableScope[T] = {
+  override def indexing(): IndexedSymbol[T] = {
     cnt.foreach(_.cache(scope))
     scope
   }
@@ -28,8 +28,9 @@ class BroadSenseIndexer[T](scope: OpenScope[T], cnt: Vector[Container]) extends 
     AcceptedFromInstanceScope(
       scope.value,
       scope.priority,
-      scope.x,
-      Vector(x)
+      scope.tag,
+      Vector(x),
+      scope.c
     ),
     cnt
   )
@@ -45,8 +46,9 @@ class BroadSenseIndexer[T](scope: OpenScope[T], cnt: Vector[Container]) extends 
     AcceptedFromTypeScope(
       scope.value,
       scope.priority,
-      scope.x,
-      Vector(classTag[X].runtimeClass)
+      scope.tag,
+      Vector(classTag[X].runtimeClass),
+      scope.c
     ),
     cnt
   )

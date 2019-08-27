@@ -1,7 +1,7 @@
 package com.phylage.scaladia.injector
 
 import com.phylage.scaladia.container.Container
-import com.phylage.scaladia.injector.scope.InjectableScope
+import com.phylage.scaladia.injector.scope.IndexedSymbol
 
 import scala.reflect.runtime.universe._
 
@@ -19,14 +19,15 @@ trait AutoInject[T] extends AutoInjectable[T] with Injector { me: T =>
     * Called when indexing into a container.
     * There is no need to call it intentionally.
     *
-    * @param c
-    * @param wtt
+    * @param c container instance
+    * @param wtt weak type tag of self
     * @return
     */
-  private[scaladia] def flush(c: Container)(implicit wtt: WeakTypeTag[T]): InjectableScope[T] = {
+  private[scaladia] def flush(c: Container)(implicit wtt: WeakTypeTag[T]): IndexedSymbol[T] = {
     c.createIndexer[T](
       me,
-      injectionPriority
+      injectionPriority,
+      c.lights
     )(wtt).indexing()
   }
 }
