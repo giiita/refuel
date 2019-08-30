@@ -21,7 +21,7 @@ install_nvm() {
 }
 
 install_npm() {
-  if test `is_installed "npm --version"` -ne 0; then
+  if test `is_installed 'sh -c "npm --version 1 >& /dev/null 2 >& /dev/null"'` -ne 0; then
     echo "NPM installing..."
     nvm install stable
   fi
