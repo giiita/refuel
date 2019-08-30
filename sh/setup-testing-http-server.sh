@@ -2,11 +2,6 @@
 
 script=$(cd $(dirname $0); pwd)
 
-is_installed() {
-  cmd=$1
-  echo `$cmd 1>&/dev/null 2>&/dev/null; echo $?`
-}
-
 install_nvm() {
   if ! test -s $HOME/.nvm; then
     echo "NVM installing..."
@@ -21,7 +16,8 @@ install_nvm() {
 }
 
 install_npm() {
-  if test `is_installed "npm --version 1>&/dev/null 2>&/dev/null"` -ne 0; then
+  npm_exist=`npm --version; echo $?`
+  if test $npm_exist -ne 0; then
     echo "NPM installing..."
     nvm install stable
   fi
