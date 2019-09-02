@@ -1,9 +1,9 @@
 package com.phylage.scaladia.test
 
-import com.phylage.scaladia.injector.{Injector, RefreshInjection}
+import com.phylage.scaladia.injector.Injector
 import com.phylage.scaladia.test.RootIF.Runner
 
-object Executor extends RefreshInjection {
+object Executor extends Injector {
 
   object PureExecution {
     def exec: String = Runner.run

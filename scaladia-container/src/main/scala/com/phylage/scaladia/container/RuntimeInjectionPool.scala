@@ -3,52 +3,61 @@ package com.phylage.scaladia.container
 import com.phylage.scaladia.effect.{Effect, EffectLike, Effective}
 import com.phylage.scaladia.injector.AutoInject
 import com.phylage.scaladia.injector.InjectionPool.InjectionApplyment
-import com.phylage.scaladia.injector.scope.InjectableScope
-import com.phylage.scaladia.runtime.{InjectionReflector, RuntimeAutoDIExtractor}
+import com.phylage.scaladia.injector.scope.IndexedSymbol
+import com.phylage.scaladia.runtime.{InjectionReflector, RuntimeAutoDIExtractor, RuntimeAutoInjectableSymbols}
 
 import scala.reflect.runtime.universe
 
 object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
 
-  /* An injectable buffer that has not yet been initialized */
-  private[this] val buffer: Vector[universe.Symbol] = RuntimeAutoDIExtractor.run()
-
   /* Effective type symbol */
   private[this] lazy val EFFECTIVE_ANNO_TYPE = universe.weakTypeOf[Effective]
-
   /* Reflector */
   private[this] lazy val reflector = implicitly[InjectionReflector]
-
+  /* An injectable buffer that has not yet been initialized */
+  private[this] val buffer: RuntimeAutoInjectableSymbols = RuntimeAutoDIExtractor.run()
   /**
-    * Return function of inject a activated effection.
+    * Return function of inject activated effects.
+    * Regardless of the injection request, all valid effects are returned.
+    * Once acquired, the effect is indexed to the container as an injectable object.
     */
-  private[this] val getEffect: Container => Option[EffectLike] = {
+  private[this] val getEffect: Container => Set[EffectLike] = {
     { c: Container =>
-      c.findEffect.orElse {
-        collect[Effect]
+      c.findEffect match {
+        case x if x.nonEmpty => x
+        case _               => collect[Effect]
           .apply(c)
           .filter(_.value.activate)
-          .sortBy(_.priority)(Ordering.Int.reverse)
-          .headOption
           .map(_.value)
       }
     }
   }
 
   /**
-    * Get a list of injection-enabled declarations of any type
+    * Get a list of injection-enabled declarations of any type.
+    * Next to ModuleSymbol, reflect ClassSymbol.
+    * A class / object with an effective annotation will be indexed into the container if it is an effective effect.
     *
     * @param wtt weak type tag.
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: universe.WeakTypeTag[T]): InjectionApplyment[T] = {
-    val hasTTypes = buffer.collect {
-      case x if x.typeSignature.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
-        x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x.asModule
+  def collect[T](implicit wtt: universe.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
+    mayBeEffectiveApply[T, universe.ModuleSymbol](
+      buffer.modules.collect {
+        case x if x.typeSignature.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
+          x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
+      }
+    )(reflector.reflectModule[T])(c) match {
+      case x if x.nonEmpty => x
+      case _               =>
+        mayBeEffectiveApply[T, universe.ClassSymbol](
+          buffer.classes.collect {
+            case x if x.toType.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
+              x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
+          }
+        )(reflector.reflectClass[T])(c)
     }
-
-    mayBeEffectiveCollection(hasTTypes)
   }
 
   /**
@@ -63,18 +72,19 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
     * @tparam T Requested type.
     * @return
     */
-  private[this] def mayBeEffectiveCollection[T: universe.WeakTypeTag](v: Vector[(Option[universe.Tree], universe.ModuleSymbol)])
-                                                                     (c: Container)
-  : Vector[InjectableScope[T]] = {
+  private[this] def mayBeEffectiveApply[T, S](v: Set[(Option[universe.Tree], S)])
+                                             (f: Container => Set[S] => Set[IndexedSymbol[T]])
+                                             (c: Container)
+  : Set[IndexedSymbol[T]] = {
     v.partition(_._1.isEmpty) match {
-      case (nonTagging, tagging) if tagging.isEmpty =>
-        reflector.reflect(c)(nonTagging.map(_._2))
-      case (nonTagging, tagging) =>
-        getEffect(c).map(_.getClass.getTypeName) match {
-          case None => reflector.reflect(c)(nonTagging.map(_._2))
-          case Some(activeEff) => reflector.reflect(c)(nonTagging.map(_._2) ++ {
-            tagging.withFilter(_._1.fold(false)(x => reflector.reflectClass(x.tpe).getTypeName == activeEff)).map(_._2)
-          })
+      case (nonEffect, effect) if effect.isEmpty =>
+        f(c)(nonEffect.map(_._2))
+      case (nonEffect, effect)                   =>
+        val activeEff = getEffect(c).map(_.getClass.getTypeName)
+        f(c) {
+          nonEffect.map(_._2) ++ {
+            effect.withFilter(_._1.fold(false)(x => activeEff.contains(reflector.reflectClass(x.tpe).getTypeName))).map(_._2)
+          }
         }
     }
   }

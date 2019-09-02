@@ -1,17 +1,19 @@
 package com.phylage.scaladia.injector.scope
 
+import com.phylage.scaladia.container.Container
+
 import scala.reflect.runtime.universe._
 
 /**
-  * Class-Tolerant Scope Object
+  * Instance-Tolerant Scope Object
   *
   * @param value        Injection object
   * @param priority     priority
   * @param x            Injected object WeakTypeTag
-  * @param acceptedFrom accepted type list
+  * @param acceptedFrom accepted instance list
   * @tparam T Injection object type
   */
-case class AcceptedFromTypeScope[T](value: T, priority: Int = Int.MaxValue, x: WeakTypeTag[T], acceptedFrom: Vector[Class[_]]) extends AbstractScope[T](x) {
+private[scaladia] case class AcceptedFromInstanceSymbol[T](value: T, priority: Int = Int.MaxValue, x: Type, acceptedFrom: Vector[Any], c: Container) extends IndexedTagSymbol[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *
@@ -19,7 +21,7 @@ case class AcceptedFromTypeScope[T](value: T, priority: Int = Int.MaxValue, x: W
     * @tparam X class of the request source
     * @return
     */
-  def acceptedClass[X](x: Class[X]): Boolean = acceptedFrom.exists(_.isAssignableFrom(x))
+  def acceptedClass[X](x: Class[X]): Boolean = false
 
   /**
     * When access from any instance is permitted, it returns true if the request source instance matches.
@@ -27,5 +29,7 @@ case class AcceptedFromTypeScope[T](value: T, priority: Int = Int.MaxValue, x: W
     * @param x request source instance
     * @return
     */
-  def acceptedInstance(x: Any): Boolean = false
+  def acceptedInstance(x: Any): Boolean = {
+    acceptedFrom.contains(x)
+  }
 }
