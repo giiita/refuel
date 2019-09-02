@@ -20,7 +20,7 @@ private[scaladia] trait MetaMediation[C <: Container] extends CanBeContainer[C] 
     *
     * @return
     */
-  protected implicit def _ijp: InjectionPool = implicitly[ContainerStore].ijp
+  protected implicit def _ijp: InjectionPool = implicitly[ContainerLifeCycle].ijp
 
   /**
     * Manually register the new dependency.

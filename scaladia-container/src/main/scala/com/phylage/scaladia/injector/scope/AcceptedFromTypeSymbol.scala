@@ -13,7 +13,7 @@ import scala.reflect.runtime.universe._
   * @param acceptedFrom accepted type list
   * @tparam T Injection object type
   */
-private[scaladia] case class AcceptedFromTypeScope[T](value: T, priority: Int = Int.MaxValue, x: Type, acceptedFrom: Vector[Class[_]], c: Container) extends AbstractScope[T](x) {
+private[scaladia] case class AcceptedFromTypeSymbol[T](value: T, priority: Int = Int.MaxValue, x: Type, acceptedFrom: Vector[Class[_]], c: Container) extends IndexedTagSymbol[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *

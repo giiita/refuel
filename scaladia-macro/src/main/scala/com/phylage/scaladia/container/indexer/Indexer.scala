@@ -13,7 +13,7 @@ trait Indexer[T] {
   me =>
 
   /**
-    * Create a new object in the injection container.
+    * Index a new symbol in the injection container.
     *
     * @return
     */

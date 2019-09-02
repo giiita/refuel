@@ -33,10 +33,6 @@ install_json_server() {
 }
 
 run_jsonserver() {
-  if test `ps -ef | grep "json-server --watch" | wc -l` -ne 0; then
-    ps -ef | grep "json-server --watch" | grep -v "grep" | awk '{print $2}' | xargs kill
-  fi
-
   json-server --watch ${script}/mock-response.json &
   sleep 2
 }

@@ -20,7 +20,9 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
   private[this] lazy val reflector = implicitly[InjectionReflector]
 
   /**
-    * Return function of inject a activated effection.
+    * Return function of inject activated effects.
+    * Regardless of the injection request, all valid effects are returned.
+    * Once acquired, the effect is indexed to the container as an injectable object.
     */
   private[this] val getEffect: Container => Set[EffectLike] = {
     { c: Container =>
@@ -35,7 +37,9 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
   }
 
   /**
-    * Get a list of injection-enabled declarations of any type
+    * Get a list of injection-enabled declarations of any type.
+    * Next to ModuleSymbol, reflect ClassSymbol.
+    * A class / object with an effective annotation will be indexed into the container if it is an effective effect.
     *
     * @param wtt weak type tag.
     * @tparam T Type you are trying to get

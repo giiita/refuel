@@ -7,7 +7,7 @@ import scala.reflect.runtime.universe._
 
 /**
   * It is a basic automatic injection interface.
-  * The priority is fixed, use [[com.phylage.scaladia.injector.AutoInjectCustomPriority]] to change it.
+  * Change use [[com.phylage.scaladia.injector.AutoInjectCustomPriority]] or any Injector that inherits AutoInjectCustomPriority
   *
   * @tparam T Type to register
   */

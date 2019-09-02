@@ -2,9 +2,9 @@ package com.phylage.scaladia.container
 
 import com.phylage.scaladia.Types
 import com.phylage.scaladia.Types.@@
-import com.phylage.scaladia.container.indexer.{BroadSenseIndexer, Indexer}
+import com.phylage.scaladia.container.indexer.{CanBeClosedIndexer, Indexer}
 import com.phylage.scaladia.effect.{Effect, EffectLike}
-import com.phylage.scaladia.injector.scope.{IndexedSymbol, OpenScope, TypedAcceptContext}
+import com.phylage.scaladia.injector.scope.{IndexedSymbol, CanBeRestrictedSymbol, TypedAcceptContext}
 import com.phylage.scaladia.provider.Tag
 
 import scala.collection.concurrent.TrieMap
@@ -86,7 +86,7 @@ private[scaladia] class StandardContainer(buffer: ContainerPool = TrieMap.empty,
     * @return
     */
   private[scaladia] def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container]): Indexer[T] = {
-    new BroadSenseIndexer(createScope[T](x, priority), lights :+ this)
+    new CanBeClosedIndexer(createScope[T](x, priority), lights :+ this)
   }
 
   /**
@@ -97,7 +97,7 @@ private[scaladia] class StandardContainer(buffer: ContainerPool = TrieMap.empty,
     * @tparam T injection type
     * @return
     */
-  private[scaladia] override def createScope[T: universe.WeakTypeTag](x: T, priority: Int): IndexedSymbol[T] = OpenScope[T](x, priority, weakTypeTag[T].tpe, this)
+  private[scaladia] override def createScope[T: universe.WeakTypeTag](x: T, priority: Int): IndexedSymbol[T] = CanBeRestrictedSymbol[T](x, priority, weakTypeTag[T].tpe, this)
 
   private[scaladia] override def shading: @@[Container, Types.Localized] = {
     new StandardContainer(

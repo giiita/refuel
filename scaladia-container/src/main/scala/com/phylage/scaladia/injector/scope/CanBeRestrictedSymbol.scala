@@ -4,7 +4,7 @@ import com.phylage.scaladia.container.Container
 
 import scala.reflect.runtime.universe._
 
-private[scaladia] case class OpenScope[T](value: T, priority: Int, x: Type, c: Container) extends AbstractScope[T](x) {
+private[scaladia] case class CanBeRestrictedSymbol[T](value: T, priority: Int, x: Type, c: Container) extends IndexedTagSymbol[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *

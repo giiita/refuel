@@ -1,11 +1,20 @@
 package com.phylage.scaladia.container.indexer
 
 import com.phylage.scaladia.container.Container
-import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceScope, AcceptedFromTypeScope, IndexedSymbol}
+import com.phylage.scaladia.injector.scope.{AcceptedFromInstanceSymbol, AcceptedFromTypeSymbol, IndexedSymbol}
 
 import scala.reflect.{ClassTag, classTag}
 
-class BroadSenseIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+/**
+  * Indexer into container.
+  * In some cases, it may index into multiple containers.
+  * An accessible class or object can be registered for the symbol of this Indexer.
+  *
+  * @param scope Symbol which may be indexed
+  * @param cnt   containers
+  * @tparam T Symbol type
+  */
+class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
   /**
     * Create a new object in the injection container.
     *
@@ -25,7 +34,7 @@ class BroadSenseIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) exte
     * @return
     */
   def accept[X](x: X): Indexer[T] = new NarrowInstanceIndexer(
-    AcceptedFromInstanceScope(
+    AcceptedFromInstanceSymbol(
       scope.value,
       scope.priority,
       scope.tag,
@@ -43,7 +52,7 @@ class BroadSenseIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) exte
     * @return
     */
   def accept[X: ClassTag]: Indexer[T] = new NarrowTypeIndexer(
-    AcceptedFromTypeScope(
+    AcceptedFromTypeSymbol(
       scope.value,
       scope.priority,
       scope.tag,

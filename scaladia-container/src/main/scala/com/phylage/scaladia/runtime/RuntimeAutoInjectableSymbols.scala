@@ -2,13 +2,13 @@ package com.phylage.scaladia.runtime
 
 import scala.reflect.runtime.universe._
 
-object RuntimeAutoInjectableSymbols {
+private[scaladia] object RuntimeAutoInjectableSymbols {
   def empty: RuntimeAutoInjectableSymbols = {
     RuntimeAutoInjectableSymbols(Set.empty, Set.empty)
   }
 }
 
-case class RuntimeAutoInjectableSymbols(modules: Set[ModuleSymbol], classes: Set[ClassSymbol]) {
+private[scaladia] case class RuntimeAutoInjectableSymbols(modules: Set[ModuleSymbol], classes: Set[ClassSymbol]) {
   def add(ms: Set[ModuleSymbol], cs: Set[ClassSymbol]): RuntimeAutoInjectableSymbols = {
     RuntimeAutoInjectableSymbols(modules ++ ms, classes ++ cs)
   }
