@@ -4,7 +4,7 @@ import com.phylage.scaladia.container._
 
 package object injector {
 
-  private[scaladia] implicit object IndirectContainerStore extends ContainerStore {
+  private[scaladia] implicit object ContainerLifeCycleImpl extends ContainerLifeCycle {
     lazy val ctn: Container = new StandardContainer()
     override val ijp: InjectionPool = RuntimeInjectionPool
   }

@@ -88,7 +88,7 @@ trait FromTo {
     * @return
     */
   @tailrec
-  private[this] final def _slice[X <: TimeAxis, T <: FromTo](sliceAt: Long, time: X = HOUR, result: Seq[T] = Nil)(applyement: (EpochDateTime, EpochDateTime) => T): Seq[T] = {
+  private[this] final def _slice[X <: TimeAxis, T <: FromTo](sliceAt: Long, time: X, result: Seq[T] = Nil)(applyement: (EpochDateTime, EpochDateTime) => T): Seq[T] = {
     val nextFrom = result.lastOption.map(x => time.derounding(x.to)).getOrElse(from)
     time.increment(nextFrom, sliceAt) match {
       case nextTo if nextTo >= to => result :+ applyement(nextFrom, to)

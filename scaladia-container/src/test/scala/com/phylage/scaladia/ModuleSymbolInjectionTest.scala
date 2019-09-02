@@ -9,7 +9,7 @@ import org.scalatest.{Assertion, AsyncWordSpec, DiagrammedAssertions, Matchers}
 
 import scala.util.Try
 
-object InjectionTest {
+object ModuleSymbolInjectionTest {
 
 
   object TEST1 {
@@ -126,11 +126,11 @@ object InjectionTest {
 
     trait TestIF_105
 
-    object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject[TestIF_105]
-
     trait AccessorTest extends Injector {
       def get: Lazy[TestIF_105] = inject[TestIF_105]
     }
+
+    object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject[TestIF_105]
 
     object AccessorA extends AccessorTest
 
@@ -144,8 +144,6 @@ object InjectionTest {
 
     trait TestIF_106
 
-    object TestIFImpl_106_AUTO extends TestIF_106 with AutoInject[TestIF_106]
-
     trait AccessorTestA extends Injector {
       def get: Lazy[TestIF_106] = inject[TestIF_106]
     }
@@ -157,6 +155,8 @@ object InjectionTest {
     trait AccessorTestC extends Injector {
       def get: Lazy[TestIF_106] = inject[TestIF_106]
     }
+
+    object TestIFImpl_106_AUTO extends TestIF_106 with AutoInject[TestIF_106]
 
     object AccessorA extends AccessorTestA
 
@@ -180,21 +180,21 @@ object InjectionTest {
 
     trait A108_TRAIT
 
+    trait B108 extends Injector {
+      val a: Lazy[A108] = inject[A108]
+    }
+
+    trait C108 extends Injector {
+      val b: Lazy[B108] = inject[B108]
+    }
+
     class A180_CLASS extends A108_TRAIT with AutoInject[A108_TRAIT]
 
     object A108_REPLACE extends A108
 
     object A108 extends A108 with AutoInject[A108]
 
-    trait B108 extends Injector {
-      val a: Lazy[A108] = inject[A108]
-    }
-
     object B108 extends B108 with AutoInject[B108]
-
-    trait C108 extends Injector {
-      val b: Lazy[B108] = inject[B108]
-    }
 
     object C108 extends C108 with AutoInject[C108]
 
@@ -311,12 +311,6 @@ object InjectionTest {
 
   object TEST303 {
 
-    object Wrap {
-      def apply[T <: TestIF](t: T): Wrap_303[T] = new Wrap_303[T] {
-        override val inst: T = t
-      }
-    }
-
     trait Wrap_303[+T <: TestIF] {
       val inst: T
     }
@@ -326,6 +320,12 @@ object InjectionTest {
     trait TestIF_303_A extends TestIF
 
     trait TestIF_303_B extends TestIF
+
+    object Wrap {
+      def apply[T <: TestIF](t: T): Wrap_303[T] = new Wrap_303[T] {
+        override val inst: T = t
+      }
+    }
 
   }
 
@@ -341,19 +341,19 @@ object InjectionTest {
 
     import scala.reflect.runtime.universe.WeakTypeTag
 
-    abstract class Wrap_305[+T <: TestIF : WeakTypeTag] {
-      val inst: T
-    }
-
     trait TestIF
 
     trait TestIF_305_A extends TestIF
 
+    trait TestIF_305_B extends TestIF
+
+    abstract class Wrap_305[+T <: TestIF : WeakTypeTag] {
+      val inst: T
+    }
+
     object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject[Wrap_305[TestIF_305_A]] {
       val inst: TestIF_305_A = new TestIF_305_A {}
     }
-
-    trait TestIF_305_B extends TestIF
 
     object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject[Wrap_305[TestIF_305_B]] {
       val inst: TestIF_305_B = new TestIF_305_B {}
@@ -363,11 +363,11 @@ object InjectionTest {
 
 }
 
-class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
+class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
 
   trait Context
 
-  import InjectionTest._
+  import ModuleSymbolInjectionTest._
 
   "auto inject" should {
     "default auto inject" in {
@@ -437,7 +437,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       object LOCAL_TestIF_103 extends TestIF_103
 
-      narrow[TestIF_103](LOCAL_TestIF_103).accept[InjectionTest].indexing()
+      narrow[TestIF_103](LOCAL_TestIF_103).accept[ModuleSymbolInjectionTest].indexing()
 
       inject[TestIF_103]._provide shouldBe LOCAL_TestIF_103
     }
@@ -458,7 +458,7 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       object LOCAL_TestIF_104 extends TestIF_104
 
       Try {
-        narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).accept[InjectionTest].indexing()
+        narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).accept[ModuleSymbolInjectionTest].indexing()
       } match {
         case scala.util.Success(_) => fail()
         case scala.util.Failure(exception) => exception.getMessage shouldBe "If you have already authorized any instance, you can not authorize new types."
@@ -492,14 +492,14 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
 
       object LOCAL_TestIF_107 extends TestIF_107
 
-      val inspection = confirm[TestIF_107]
+      val inspection = bind[TestIF_107]
 
-      narrow[TestIF_107](LOCAL_TestIF_107).accept[InjectionTest].indexing()
+      narrow[TestIF_107](LOCAL_TestIF_107).accept[ModuleSymbolInjectionTest].indexing()
 
       inspection shouldBe TestIFImpl_107_AUTO
     }
 
-    "using pattern" in {
+    "shade pattern" in {
       import TEST108._
 
       shade[Assertion] { implicit c =>
@@ -522,8 +522,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       Try {
         inject[A110]._provide
       } match {
-        case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "interface com.phylage.scaladia.InjectionTest$TEST110$A110 or its internal initialize failed."
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
+        case _ => fail()
       }
     }
   }
@@ -538,8 +538,8 @@ class InjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
       Try {
         inject[TestIF_201 @@ TestTagC]._provide
       } match {
-        case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "interface com.phylage.scaladia.InjectionTest$TEST201$TestIF_201 or its internal initialize failed."
+        case scala.util.Failure(_: DIAutoInitializationException) => succeed
+        case _ => fail()
       }
     }
   }
