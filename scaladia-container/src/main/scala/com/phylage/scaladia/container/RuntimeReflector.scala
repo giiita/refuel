@@ -1,27 +1,25 @@
 package com.phylage.scaladia.container
 
-import java.net.URLClassLoader
+import java.net.{URI, URL}
 
 import com.phylage.scaladia.injector.AutoInject
 import com.phylage.scaladia.injector.scope.IndexedSymbol
 import com.phylage.scaladia.runtime.InjectionReflector
 
-import scala.annotation.tailrec
 import scala.reflect.runtime.universe
 
 
 object RuntimeReflector extends InjectionReflector {
-  def classloader: URLClassLoader = getUrlClassloader(getClass.getClassLoader)
 
-  def mirror: universe.Mirror = universe.runtimeMirror(classloader)
+  def mirror: universe.Mirror = universe.runtimeMirror(getClass.getClassLoader)
 
   /**
-    * Create injection applyment.
-    *
-    * @param symbols module symbols
-    * @tparam T injection type
-    * @return
-    */
+   * Create injection applyment.
+   *
+   * @param symbols module symbols
+   * @tparam T injection type
+   * @return
+   */
   override def reflectClass[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
       mirror.reflectClass(x)
@@ -34,12 +32,12 @@ object RuntimeReflector extends InjectionReflector {
   }
 
   /**
-    * Create injection applyment.
-    *
-    * @param symbols module symbols
-    * @tparam T injection type
-    * @return
-    */
+   * Create injection applyment.
+   *
+   * @param symbols module symbols
+   * @tparam T injection type
+   * @return
+   */
   override def reflectModule[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ModuleSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
       mirror.reflectModule(x)
@@ -51,22 +49,36 @@ object RuntimeReflector extends InjectionReflector {
   }
 
   /**
-    * Reflect to a runtime class.
-    *
-    * @param t Type symbol.
-    * @return
-    */
+   * Reflect to a runtime class.
+   *
+   * @param t Type symbol.
+   * @return
+   */
   override def reflectClass(t: universe.Type): universe.RuntimeClass = {
     mirror.runtimeClass(t)
   }
 
-  @tailrec
-  private final def getUrlClassloader(currentClassLoader: ClassLoader, depth: Int = 0): URLClassLoader = {
-    currentClassLoader match {
-      case x: URLClassLoader => x
-      case x if depth < 5 =>
-        getUrlClassloader(x.getParent, depth + 1)
-      case _ => throw new RuntimeException("URLClassloader can not be obtained.")
-    }
+  final def classpathUrls: List[URL] = {
+
+    val FILE_SCHEME = "file:%s"
+    val JAR_SCHEME = "jar:file:%s!/"
+    val IGNORE_PATHS = Seq(
+      " ",
+      "scala-reflect.jar",
+      "scala-library.jar",
+      "sbt-launch.jar"
+    )
+
+    import collection.JavaConverters._
+
+    System.getProperty("java.class.path")
+      .split(":")
+      .++(this.getClass.getClassLoader.getResources("").asScala.map(_.getPath))
+      .distinct
+      .withFilter(x => IGNORE_PATHS.forall(!x.contains(_)))
+      .map {
+        case x if x.endsWith(".jar") => JAR_SCHEME.format(x)
+        case x                       => FILE_SCHEME.format(x)
+      }.map(new URI(_).toURL).toList
   }
 }

@@ -22,7 +22,7 @@ object RuntimeAutoDIExtractor {
     * @return
     */
   def run(): RuntimeAutoInjectableSymbols = {
-    val entries = ParVector.apply(archiveProtocolResolver(RuntimeReflector.classloader.getURLs.toList): _*)
+    val entries = ParVector.apply(RuntimeReflector.classpathUrls: _*)
       .map(findPackageWithFile)
       .seq
       .toSet[PackagePathEntries]
@@ -88,20 +88,6 @@ object RuntimeAutoDIExtractor {
           )
         }
       case _                                  => PackagePathEntries.empty
-    }
-  }
-
-
-  /**
-    * Resolve url protocol.
-    *
-    * @param v urls
-    * @return
-    */
-  private def archiveProtocolResolver(v: List[URL]): List[URL] = {
-    v.map {
-      case url if url.getPath.endsWith(".jar") => new URL(s"jar:file:${url.getPath}!/")
-      case url                                 => url
     }
   }
 
