@@ -29,7 +29,7 @@ private[scaladia] trait MetaMediation[C <: Container] extends CanBeContainer[C] 
     * @param priority Injection priority.
     * @tparam T new dependency type
     */
-  def overwrite[T: WeakTypeTag](x: T, priority: Int = 1100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
+  def overwrite[T: WeakTypeTag](x: T, priority: Int = AutoInject.DEFAULT_INJECTION_PRIORITY + 100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
 
   /**
     * Create a container shade.

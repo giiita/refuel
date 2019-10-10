@@ -5,6 +5,10 @@ import com.phylage.scaladia.injector.scope.IndexedSymbol
 
 import scala.reflect.runtime.universe._
 
+object AutoInject {
+  val DEFAULT_INJECTION_PRIORITY = 1000
+}
+
 /**
   * It is a basic automatic injection interface.
   * Change use [[com.phylage.scaladia.injector.AutoInjectCustomPriority]] or any Injector that inherits AutoInjectCustomPriority
@@ -13,7 +17,7 @@ import scala.reflect.runtime.universe._
   */
 trait AutoInject[T] extends AutoInjectable[T] with Injector { me: T =>
 
-  private[scaladia] val injectionPriority = 1000
+  private[scaladia] val injectionPriority = AutoInject.DEFAULT_INJECTION_PRIORITY
 
   /**
     * Called when indexing into a container.

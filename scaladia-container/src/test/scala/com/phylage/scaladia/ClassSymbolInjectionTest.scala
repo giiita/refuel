@@ -162,8 +162,19 @@ object ClassSymbolInjectionTest {
 
     trait I
 
-    class IImpl extends I with AutoInject[I]
+    class IImpl() extends I with AutoInject[I]
 
+  }
+
+  object TEST_J {
+
+    trait J
+
+    case class JImpl() extends J with AutoInject[J]
+
+    type J_ALIAS = J
+
+    case class JAliasImpl() extends J_ALIAS with AutoInject[J_ALIAS]
   }
 
 }
@@ -242,4 +253,12 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
       pre shouldBe inject[H]._provide
     }
   }
+
+//  "type alias injection" should {
+//    "Can inject each alias" in {
+//      import com.phylage.scaladia.ClassSymbolInjectionTest.TEST_J._
+//      inject[J]._provide shouldBe JImpl()
+//      inject[J_ALIAS]._provide shouldBe JAliasImpl()
+//    }
+//  }
 }
