@@ -16,8 +16,8 @@ install_nvm() {
 }
 
 install_npm() {
-  npm_exist=`npm --version; echo $?`
-  if test $npm_exist -ne 0; then
+  npm_exist=`npm --version 1&>/dev/null; echo $?`
+  if [[ $npm_exist -ne 0 ]]; then
     echo "NPM installing..."
     nvm install stable
   fi
@@ -33,7 +33,7 @@ install_json_server() {
 }
 
 run_jsonserver() {
-  json-server --watch ${script}/mock-response.json &
+  json-server --p 3289 --watch ${script}/mock-response.json &
   sleep 2
 }
 
