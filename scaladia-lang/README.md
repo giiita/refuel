@@ -1,7 +1,7 @@
 ## scaladia-lang
 
 ```
-libraryDependencies += "com.phylage" %% "scaladia-container" % "1.6.0"
+libraryDependencies += "com.phylage" %% "scaladia-lang" % "1.7.0"
 ```
 
 ### [ScalaTime](https://github.com/giiita/scaladia/blob/master/scaladia-lang/src/main/scala/com/phylage/scaladia/lang/ScalaTime.scala)
@@ -47,6 +47,6 @@ RequestPeriod("2019-08-01 00:00:00".datetime.epoch, "2019-08-31 23:59:59".dateti
 <br/>
 <br/>
 
-### [ScalaCollection](https://github.com/giiita/scaladia/blob/master/scaladia-lang/src/main/scala/com/phylage/scaladia/lang/collections/ScalaCollection.scala)
+### [Sliceable](https://github.com/giiita/scaladia/blob/master/scaladia-lang/src/main/scala/com/phylage/scaladia/lang/collections/Sliceable.scala)
 
 Collection extension functions.

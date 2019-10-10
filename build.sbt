@@ -55,7 +55,10 @@ lazy val root = project.in(file("."))
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
   scalaVersion := GLOBAL_SCALA_VERSION,
-  crossScalaVersions := buildTargetVersion
+  crossScalaVersions := buildTargetVersion,
+  resourceDirectories in Compile += {
+    (ThisProject / baseDirectory).value / "project" / "resources"
+  }
 )
 
 lazy val `macro` = (project in file("scaladia-macro"))
@@ -124,10 +127,11 @@ lazy val http = (project in file("scaladia-http"))
         import scala.sys.process._
   
         Process("sh sh/setup-testing-http-server.sh").run
+
+        Http.connect("http://localhost:3289/endpoint")
       },
       Tests.Cleanup { _ =>
         import scala.sys.process._
-
         Process("sh sh/shutdown-testing-http-server.sh").run
       }
     )
