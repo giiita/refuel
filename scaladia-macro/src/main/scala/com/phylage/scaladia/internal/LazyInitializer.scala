@@ -1,6 +1,6 @@
 package com.phylage.scaladia.internal
 
-import com.phylage.scaladia.container.{CanBeContainer, Container}
+import com.phylage.scaladia.container.Container
 import com.phylage.scaladia.exception.{DIAutoInitializationException, InjectDefinitionException}
 import com.phylage.scaladia.injector.InjectionPool
 import com.phylage.scaladia.injector.scope.IndexedSymbol
@@ -12,22 +12,23 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  def lazyInjection[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: Tree): Expr[Lazy[T]] = {
-
-    val ctnExpr = c.Expr[Container](ctn)
-
-    val injectionRf = reify[T] {
-      injection[T](ctn, ip, access).splice match {
-        case x: T with CanBeContainer[Container] =>
-          x._cntMutation = ctnExpr.splice
-          x
-        case x => x
-      }
-    }
+  def lazyInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: Tree): Expr[Lazy[T]] = {
+    val injectionRf = c.Expr[T](
+      q"""
+         ${injection[T](ctn, ip, access)} match {
+           case x: com.phylage.scaladia.injector.Injector =>
+             x._cntMutation = $ctn
+             x
+           case x => x
+         }
+       """
+    )
 
     val typName = c.Expr {
       c.reifyRuntimeClass(weakTypeOf[T])
     }
+
+    val ctnExpr = c.Expr[Container](ctn)
 
     reify[Lazy[T]] {
       new Lazy[T] {
@@ -47,7 +48,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
   }
 
-  private[this] def injection[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
+  def injection[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
 
     val ttagExpr = c.Expr {
       c.reifyRuntimeClass(weakTypeOf[T])
@@ -72,9 +73,19 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
   }
 
-  private[this] def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Set[IndexedSymbol[T]]] = {
+  private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Set[IndexedSymbol[T]]] = {
     reify {
       c.Expr[InjectionPool](ip).splice.collect[T].apply(c.Expr[Container](cnt).splice)
     }
+  }
+
+  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
+    reify {
+      c.Expr[T](fun).splice
+    }
+  }
+
+  def diligentInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
+    AutoDIExtractor.collectApplyTarget[c.type, T](c)(ctn)
   }
 }
