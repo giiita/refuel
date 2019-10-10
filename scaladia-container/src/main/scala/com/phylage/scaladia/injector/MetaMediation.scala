@@ -82,16 +82,4 @@ private[scaladia] trait MetaMediation[C <: Container] extends CanBeContainer[C] 
     */
   protected def bind[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): T = macro Macro.diligentInject[T]
 
-  /**
-    * Collect accessible dependencies.
-    *
-    * The type information is resolved at compile time, but the injection object is finalized at runtime.
-    * This function is slower than [[com.phylage.scaladia.injector.MetaMediation.bind]], but can be overwritten by flush or narrow.
-    *
-    * @param ctn    Container
-    * @param access Accessor (This refers to itself)
-    * @tparam T Injection type
-    * @return
-    */
-  protected def collect[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInject[T]
 }

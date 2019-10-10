@@ -11,7 +11,8 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 object Http extends Injector {
-  private[this] lazy final val URL_PARAM_FORMAT = "%s=%s"
+  private lazy final val URL_PARAM_FORMAT = "%s=%s"
+  private val logger: Logger = Logger("Http")
 
   private[http] val setting = inject[HttpSetting]
 
