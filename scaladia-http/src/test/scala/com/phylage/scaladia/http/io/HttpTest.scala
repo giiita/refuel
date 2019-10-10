@@ -33,7 +33,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     case class InnerJokes(value: InnerJokeBody)
 
     "inner class can not deserialize" in {
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3000/endpoint")
         .as[InnerJokes]
         .map { x =>
           x.value.joke
@@ -45,7 +45,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "deserializing" in {
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3000/endpoint")
         .as[Jokes]
         .map { x =>
           x.value.joke
@@ -57,7 +57,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "undeserializing" in {
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3000/endpoint")
         .map { x =>
           s"Got it [ $x ]"
         }
@@ -68,7 +68,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "asString" in {
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3000/endpoint")
         .asString
         .run
         .map { result =>
