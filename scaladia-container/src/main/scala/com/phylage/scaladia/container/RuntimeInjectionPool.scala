@@ -6,12 +6,12 @@ import com.phylage.scaladia.injector.InjectionPool.InjectionApplyment
 import com.phylage.scaladia.injector.scope.IndexedSymbol
 import com.phylage.scaladia.runtime.{InjectionReflector, RuntimeAutoDIExtractor, RuntimeAutoInjectableSymbols}
 
-import scala.reflect.runtime.universe
+import scala.reflect.runtime.{universe => u}
 
 object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool {
 
   /* Effective type symbol */
-  private[this] lazy val EFFECTIVE_ANNO_TYPE = universe.weakTypeOf[Effective]
+  private[this] lazy val EFFECTIVE_ANNO_TYPE = u.weakTypeOf[Effective]
   /* Reflector */
   private[this] lazy val reflector = implicitly[InjectionReflector]
   /* An injectable buffer that has not yet been initialized */
@@ -42,18 +42,18 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: universe.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
-    mayBeEffectiveApply[T, universe.ModuleSymbol](
+  def collect[T](implicit wtt: u.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
+    mayBeEffectiveApply[T, u.ModuleSymbol](
       buffer.modules.collect {
-        case x if x.typeSignature.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
+        case x if x.typeSignature.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
           x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
       }
     )(reflector.reflectModule[T])(c) match {
       case x if x.nonEmpty => x
       case _               =>
-        mayBeEffectiveApply[T, universe.ClassSymbol](
+        mayBeEffectiveApply[T, u.ClassSymbol](
           buffer.classes.collect {
-            case x if x.toType.<:<(universe.weakTypeTag[AutoInject[T]].tpe) =>
+            case x if x.toType.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
               x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
           }
         )(reflector.reflectClass[T])(c)
@@ -72,7 +72,7 @@ object RuntimeInjectionPool extends com.phylage.scaladia.injector.InjectionPool 
     * @tparam T Requested type.
     * @return
     */
-  private[this] def mayBeEffectiveApply[T, S](v: Set[(Option[universe.Tree], S)])
+  private[this] def mayBeEffectiveApply[T, S](v: Set[(Option[u.Tree], S)])
                                              (f: Container => Set[S] => Set[IndexedSymbol[T]])
                                              (c: Container)
   : Set[IndexedSymbol[T]] = {

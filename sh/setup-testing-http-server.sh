@@ -16,8 +16,13 @@ install_nvm() {
 }
 
 install_npm() {
+<<<<<<< HEAD
   npm_exist=`npm --version; echo $?`
   if test $npm_exist -ne 0; then
+=======
+  echo "NPM INSTALLED STATE [ $npm_exist ] [ `which npm` ]"
+  if test -z `which npm`; then
+>>>>>>> a776232... CircleCI http testing setup shell failed.
     echo "NPM installing..."
     nvm install stable
   fi
@@ -33,8 +38,18 @@ install_json_server() {
 }
 
 run_jsonserver() {
+<<<<<<< HEAD
   json-server --watch ${script}/mock-response.json &
   sleep 2
+=======
+  echo "STARTING JSON SERVER"
+  json-server --p 3289 --watch ${script}/mock-response.json &
+<<<<<<< HEAD
+  sleep 3
+>>>>>>> a776232... CircleCI http testing setup shell failed.
+=======
+  sleep 5
+>>>>>>> a0cea10... unfix
 }
 
 install_nvm

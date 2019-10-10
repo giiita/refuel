@@ -347,7 +347,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_305_B extends TestIF
 
-    abstract class Wrap_305[+T <: TestIF : WeakTypeTag] {
+    abstract class Wrap_305[+T <: TestIF] {
       val inst: T
     }
 

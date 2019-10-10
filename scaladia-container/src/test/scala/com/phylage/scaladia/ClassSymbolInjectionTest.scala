@@ -181,6 +181,15 @@ object ClassSymbolInjectionTest {
 
 class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
   "confirm" should {
+    "TEST" in {
+      class A
+      type B = A
+
+      import scala.reflect.runtime.universe._
+      val tag = weakTypeTag[B]
+      succeed
+    }
+
     "No module, one class" in {
       import com.phylage.scaladia.ClassSymbolInjectionTest.TEST_A._
       bind[A].v shouldBe "AImpl"
