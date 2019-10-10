@@ -3,3 +3,9 @@ addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.2-1")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.4")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.22")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.3.2")
+addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+
+libraryDependencies ++= Seq(
+  "org.skinny-framework" %% "skinny-http-client" % "3.0.3"
+)

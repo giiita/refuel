@@ -1,3 +1,7 @@
+# Dependency tree
+
+<img src="./deptree.svg" />
+
 # scaladia
 
 [![CircleCI](https://circleci.com/gh/giiita/scaladia/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/scaladia/tree/master)
@@ -10,14 +14,32 @@ You can replace second or third party injections from anywhere and easily handle
 
 
 
-## [scaladia-container-core](https://github.com/giiita/scaladia/tree/master/scaladia-container)
+## [scaladia-container](https://github.com/giiita/scaladia/tree/master/scaladia-container)
 
 > DI container core.<br/>
 > Just by Mixining a specific trait, it will be loaded automatically into DIContainer.<br/>
 > It is also possible to easily change dependencies from test cases or allow access only from arbitrary scopes.<br/>
 
 
+## [scaladia-lang](https://github.com/giiita/scaladia/tree/master/scaladia-lang)
+
+> Rich domain model interfaces.<br/>
+> Provides extended functions such as date and time, period, and collection.
+
+
 ## [scaladia-http](https://github.com/giiita/scaladia/tree/master/scaladia-http)
 
 > Http server client with Akka-HTTP.<br/>
 > In future, we plan to implement test stub control by dependency injection..<br/>
+
+## scaladia-json
+
+> In preparation.
+
+## scaladia-test
+
+> In preparation.
+
+## scaladia-local-store
+
+> In preparation.

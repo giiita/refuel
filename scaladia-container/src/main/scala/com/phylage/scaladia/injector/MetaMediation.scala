@@ -38,7 +38,7 @@ private[scaladia] trait MetaMediation[C <: Container] extends CanBeContainer[C] 
     * @tparam T Result type
     * @return
     */
-  def shade[T](ctx: LocalizedContainer => T): T = new ImplicitContainerInheritation(ctx)(_cntMutation.shading)
+  def shade[T](ctx: LocalizedContainer => T): T = new HiddenContainerShade(ctx)(_cntMutation.shading)
 
   /**
     * Gets an indexer for registering new dependencies.

@@ -8,7 +8,6 @@ import com.phylage.scaladia.injector.AutoInjectable
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.collection.parallel.immutable.ParVector
 import scala.reflect.runtime.universe
 
 
@@ -22,9 +21,8 @@ object RuntimeAutoDIExtractor {
     * @return
     */
   def run(): RuntimeAutoInjectableSymbols = {
-    val entries = ParVector.apply(RuntimeReflector.classpathUrls: _*)
+    val entries = RuntimeReflector.classpathUrls
       .map(findPackageWithFile)
-      .seq
       .toSet[PackagePathEntries]
       .join
 
@@ -43,7 +41,7 @@ object RuntimeAutoDIExtractor {
         try {
           RuntimeReflector.mirror.staticClass(x) match {
             case r if r.toType <:< autoDITag => Some(r)
-            case _                               => None
+            case _                           => None
           }
         } catch {
           case _: Throwable => None
@@ -60,12 +58,12 @@ object RuntimeAutoDIExtractor {
     */
   private def findPackageWithFile(x: URL): PackagePathEntries = {
     x match {
-      case url if url.getPath.contains(".jdk") => PackagePathEntries.empty
-      case url if url.getProtocol.isFile       =>
-        filePackageExtraction(Set(new File(url.getPath))).rounding(url.getPath).doFinalize
-      case url if url.getProtocol.isJar        =>
+      case url if url.getPath.contains(".jdk")                          => PackagePathEntries.empty
+      case url if url.getProtocol.isJar || url.getPath.endsWith(".jar") =>
         jarPackageExtraction(url).doFinalize
-      case _                                   => PackagePathEntries.empty
+      case url if url.getProtocol.isFile                                =>
+        filePackageExtraction(Set(new File(url.getPath))).rounding(url.getPath).doFinalize
+      case _                                                            => PackagePathEntries.empty
     }
   }
 

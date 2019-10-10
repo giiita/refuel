@@ -6,6 +6,7 @@ import com.phylage.scaladia.injector.AutoInject
 import com.phylage.scaladia.injector.scope.IndexedSymbol
 import com.phylage.scaladia.runtime.InjectionReflector
 
+import scala.annotation.tailrec
 import scala.reflect.runtime.universe
 
 
@@ -14,12 +15,12 @@ object RuntimeReflector extends InjectionReflector {
   def mirror: universe.Mirror = universe.runtimeMirror(getClass.getClassLoader)
 
   /**
-   * Create injection applyment.
-   *
-   * @param symbols module symbols
-   * @tparam T injection type
-   * @return
-   */
+    * Create injection applyment.
+    *
+    * @param symbols module symbols
+    * @tparam T injection type
+    * @return
+    */
   override def reflectClass[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
       mirror.reflectClass(x)
@@ -32,12 +33,12 @@ object RuntimeReflector extends InjectionReflector {
   }
 
   /**
-   * Create injection applyment.
-   *
-   * @param symbols module symbols
-   * @tparam T injection type
-   * @return
-   */
+    * Create injection applyment.
+    *
+    * @param symbols module symbols
+    * @tparam T injection type
+    * @return
+    */
   override def reflectModule[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ModuleSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
       mirror.reflectModule(x)
@@ -49,13 +50,22 @@ object RuntimeReflector extends InjectionReflector {
   }
 
   /**
-   * Reflect to a runtime class.
-   *
-   * @param t Type symbol.
-   * @return
-   */
+    * Reflect to a runtime class.
+    *
+    * @param t Type symbol.
+    * @return
+    */
   override def reflectClass(t: universe.Type): universe.RuntimeClass = {
     mirror.runtimeClass(t)
+  }
+
+  @tailrec
+  private[this] def getClassLoaderUrls(cl: ClassLoader): Seq[URL] = {
+    cl match {
+      case null                       => Nil
+      case x: java.net.URLClassLoader => x.getURLs.toSeq
+      case x                          => getClassLoaderUrls(x.getParent)
+    }
   }
 
   final def classpathUrls: List[URL] = {
@@ -74,6 +84,7 @@ object RuntimeReflector extends InjectionReflector {
     System.getProperty("java.class.path")
       .split(":")
       .++(this.getClass.getClassLoader.getResources("").asScala.map(_.getPath))
+      .++(getClassLoaderUrls(this.getClass.getClassLoader).map(_.getPath))
       .distinct
       .withFilter(x => IGNORE_PATHS.forall(!x.contains(_)))
       .map {

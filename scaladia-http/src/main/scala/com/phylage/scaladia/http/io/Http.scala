@@ -82,6 +82,7 @@ object Http extends Injector {
      * @return
      */
     def asString: HttpRunner[String] = {
+      value.map(_.entity.dataBytes)
       value.flatMap(_.entity.toStrict(3.seconds))
         .flatMap(setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
     }
