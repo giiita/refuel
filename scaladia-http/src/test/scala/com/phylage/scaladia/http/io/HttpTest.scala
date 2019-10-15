@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.phylage.scaladia.http.io.Http._
 import com.phylage.scaladia.http.io.HttpMethod.GET
 import com.phylage.scaladia.http.io.HttpTest.TestEntity.Jokes
+import com.phylage.scaladia.http.io.setting.HttpSetting
 import com.phylage.scaladia.injector.Injector
 import org.scalatest._
 
@@ -33,7 +34,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     case class InnerJokes(value: InnerJokeBody)
 
     "inner class can not deserialize" in {
-      http[GET]("http://localhost:3000/endpoint")
+      println("RUN 1")
+      http[GET]("http://localhost:3289/endpoint")
         .as[InnerJokes]
         .map { x =>
           x.value.joke
@@ -45,7 +47,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "deserializing" in {
-      http[GET]("http://localhost:3000/endpoint")
+      println("RUN 2")
+      http[GET]("http://localhost:3289/endpoint")
         .as[Jokes]
         .map { x =>
           x.value.joke
@@ -57,7 +60,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "undeserializing" in {
-      http[GET]("http://localhost:3000/endpoint")
+      println("RUN 3")
+      http[GET]("http://localhost:3289/endpoint")
         .map { x =>
           s"Got it [ $x ]"
         }
@@ -68,7 +72,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "asString" in {
-      http[GET]("http://localhost:3000/endpoint")
+      println("RUN 4")
+      http[GET]("http://localhost:3289/endpoint")
         .asString
         .run
         .map { result =>
@@ -77,6 +82,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "UnknownHostException" in {
+      println("RUN 5")
+
       http[GET]("http://aaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc")
         .asString
         .run
@@ -87,6 +94,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "ConnectException" in {
+
+      println("RUN 6")
       http[GET]("http://localhost/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc")
         .asString
         .run

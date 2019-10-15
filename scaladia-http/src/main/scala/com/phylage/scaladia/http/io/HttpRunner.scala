@@ -1,29 +1,28 @@
 package com.phylage.scaladia.http.io
 
-import akka.http.javadsl.model.ContentType.WithCharset
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
+import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extends JacksonParser {
 
-  import akka.http.scaladsl.model.HttpCharsets._
   import akka.http.scaladsl.model.MediaTypes._
 
   private[this] implicit val sys = Http.setting.actorSystem
   private[this] implicit val mat = Http.setting.actorMaterializer(sys)
 
   /**
-    * Set a request body.
-    *
-    * @param value       Request body. It will be serialized by Jackson.
-    * @param withCharset charset
-    * @tparam X Request body type.
-    * @return
-    */
-  def body[X](value: X, withCharset: WithCharset = `text/plain` withCharset `UTF-8`): HttpRunner[T] = {
+   * Set a request body.
+   *
+   * @param value       Request body. It will be serialized by Jackson.
+   * @param withCharset charset
+   * @tparam X Request body type.
+   * @return
+   */
+  def body[X](value: X, withCharset: NonBinary = `application/json`): HttpRunner[T] = {
     new HttpRunner[T](
       request.withEntity(withCharset, serialize(value)),
       task
@@ -31,35 +30,35 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   }
 
   /**
-    * Set a requets header.
-    *
-    * @param key   header key
-    * @param value header value
-    * @return
-    */
+   * Set a requets header.
+   *
+   * @param key   header key
+   * @param value header value
+   * @return
+   */
   def header(key: String, value: String): HttpRunner[T] = new HttpRunner[T](
     request.withHeaders(RawHeader(key, value)),
     task
   )
 
   /**
-    * Set a requets header.
-    *
-    * @param header header
-    * @return
-    */
+   * Set a requets header.
+   *
+   * @param header header
+   * @return
+   */
   def header(header: HttpHeader): HttpRunner[T] = new HttpRunner[T](
     request.withHeaders(header),
     task
   )
 
   /**
-    * To synthesize.
-    *
-    * @param func Synthesis processing.
-    * @tparam R Synthesize return type.
-    * @return
-    */
+   * To synthesize.
+   *
+   * @param func Synthesis processing.
+   * @tparam R Synthesize return type.
+   * @return
+   */
   def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {
@@ -68,19 +67,19 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   )
 
   /**
-    * Execute future functions.
-    *
-    * @return
-    */
+   * Execute future functions.
+   *
+   * @return
+   */
   def run: Future[T] = task.execute(request)
 
   /**
-    * To flatten synthesize.
-    *
-    * @param func Synthesis processing.
-    * @tparam R Synthesize return type.
-    * @return
-    */
+   * To flatten synthesize.
+   *
+   * @param func Synthesis processing.
+   * @tparam R Synthesize return type.
+   * @return
+   */
   def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {

@@ -120,10 +120,12 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   implicit class RichSymbol(v: c.Symbol) {
     def isInjectableOnce: Boolean = v match {
-      case x => x.isClass &&
-        !x.isAbstract &&
-        x.asClass.primaryConstructor.isMethod &&
-        x.typeSignature.baseClasses.contains(autoInjectableTag.typeSymbol)
+      case x => scala.util.Try {
+        x.isClass &&
+          !x.isAbstract &&
+          x.asClass.primaryConstructor.isMethod &&
+          x.typeSignature.baseClasses.contains(autoInjectableTag.typeSymbol)
+      }.getOrElse(false)
     }
   }
 
