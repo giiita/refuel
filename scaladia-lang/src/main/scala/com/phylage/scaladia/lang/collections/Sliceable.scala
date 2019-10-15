@@ -1,6 +1,6 @@
 package com.phylage.scaladia.lang.collections
 
-object ScalaCollection {
+object Sliceable {
 
   implicit class ExpandedCollection[T, +C[_] <: Iterable[_]](value: C[T]) {
 

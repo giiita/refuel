@@ -1,7 +1,7 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
+lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 
 
 
@@ -35,7 +35,7 @@ lazy val commonDependencySettings = Seq(
       "org.scalatest" %% "scalatest" % "3.0.8" % Test
     ) ++ {
       scalaVersion.value match {
-        case "2.13.0" => Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+        case "2.13.1" => Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
         case _ => Nil
       }
     }
@@ -55,7 +55,10 @@ lazy val root = project.in(file("."))
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
   scalaVersion := GLOBAL_SCALA_VERSION,
-  crossScalaVersions := buildTargetVersion
+  crossScalaVersions := buildTargetVersion,
+  resourceDirectories in Compile += {
+    (ThisProject / baseDirectory).value / "project" / "resources"
+  }
 )
 
 lazy val `macro` = (project in file("scaladia-macro"))
@@ -124,10 +127,11 @@ lazy val http = (project in file("scaladia-http"))
         import scala.sys.process._
   
         Process("sh sh/setup-testing-http-server.sh").run
+
+        Http.connect("http://localhost:3289/endpoint")
       },
       Tests.Cleanup { _ =>
         import scala.sys.process._
-
         Process("sh sh/shutdown-testing-http-server.sh").run
       }
     )
@@ -139,10 +143,7 @@ lazy val `test` = (project in file("scaladia-test"))
   .settings(commonDependencySettings)
   .settings(
     name := "scaladia-test",
-    description := "DI testing framework.",
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.8"
-    )
+    description := "DI testing framework."
   ).enablePlugins(JavaAppPackaging)
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
@@ -166,4 +167,4 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
     releaseProcess := Nil
   )
 
-val GLOBAL_SCALA_VERSION = "2.12.8"
+val GLOBAL_SCALA_VERSION = buildTargetVersion.last
