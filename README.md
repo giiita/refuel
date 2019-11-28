@@ -2,44 +2,40 @@
 
 <img src="./deptree.svg" />
 
-# scaladia
+# Refuel
 
-[![CircleCI](https://circleci.com/gh/giiita/scaladia/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/scaladia/tree/master)
+[![CircleCI](https://circleci.com/gh/giiita/refuel/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/refuel/tree/master)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/scaladia-container_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/scaladia_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/refuel_2.12)
 
-Scaladia is not bothersome and is lightweight Scala Dependency Injection library<br/>
+refuel is not bothersome and is lightweight Scala Dependency Injection library<br/>
 Flexible support for basic injection.<br/>
 You can replace second or third party injections from anywhere and easily handle multi-project configuration dependencies.
 
 
 
-## [scaladia-container](https://github.com/giiita/scaladia/tree/master/scaladia-container)
+## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container)
 
 > DI container core.<br/>
 > Just by Mixining a specific trait, it will be loaded automatically into DIContainer.<br/>
 > It is also possible to easily change dependencies from test cases or allow access only from arbitrary scopes.<br/>
 
 
-## [scaladia-lang](https://github.com/giiita/scaladia/tree/master/scaladia-lang)
+## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util)
 
 > Rich domain model interfaces.<br/>
 > Provides extended functions such as date and time, period, and collection.
 
 
-## [scaladia-http](https://github.com/giiita/scaladia/tree/master/scaladia-http)
+## [refuel-http](https://github.com/giiita/refuel/tree/master/refuel-http)
 
 > Http server client with Akka-HTTP.<br/>
 > In future, we plan to implement test stub control by dependency injection..<br/>
 
-## scaladia-json
+## refuel-json
 
 > In preparation.
 
-## scaladia-test
-
-> In preparation.
-
-## scaladia-local-store
+## refuel-test
 
 > In preparation.

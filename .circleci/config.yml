@@ -43,8 +43,10 @@ jobs:
             - ~/.ivy2
             - ~/.sbt
             - ~/target
-            - ~/scaladia-macro/target
-            - ~/scaladia-container/target
-            - ~/scaladia-lang/target
-            - ~/scaladia-http/target
+            - ~/refuel-macro/target
+            - ~/refuel-container/target
+            - ~/refuel-util/target
+            - ~/refuel-cipher/target
+            - ~/refuel-json/target
+            - ~/refuel-http/target
           key: v1-dependencies--{{ checksum "build.sbt" }}

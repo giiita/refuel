@@ -1,6 +1,6 @@
 # scaladia
 
-[![CircleCI](https://circleci.com/gh/giiita/scaladia/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/scaladia/tree/release/v1.6.3)
+[![CircleCI](https://circleci.com/gh/giiita/scaladia/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/private[refuel]/tree/release/v1.6.3)
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.giiita/scaladia_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/scaladia_2.12)
 
