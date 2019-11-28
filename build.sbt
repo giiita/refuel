@@ -170,7 +170,6 @@ lazy val http = (project in file("refuel-http"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
     ),
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
-    fork in Test := true,
     testOptions in Test ++= Seq(
       Tests.Setup { _ =>
         import scala.sys.process._
