@@ -144,8 +144,7 @@ lazy val json = (project in file("refuel-json"))
       "com.typesafe.play" %% "play-json" % "2.7.4"
     ),
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
-    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions in Compile ++= notScl213(Seq("-Xmax-classfile-name", "255")).value
+    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
 
 lazy val cipher = (project in file("refuel-cipher"))

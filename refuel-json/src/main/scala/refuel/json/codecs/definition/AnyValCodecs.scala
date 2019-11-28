@@ -3,7 +3,7 @@ package refuel.json.codecs.definition
 import java.time.ZonedDateTime
 
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
-import refuel.json.entry.{JsAnyVal, JsString}
+import refuel.json.entry.{JsAnyVal, JsNull, JsString}
 import refuel.json.{Codec, Json}
 
 import scala.util.{Failure, Success, Try}
@@ -24,7 +24,10 @@ private[codecs] trait AnyValCodecs {
 
     override final def deserialize(bf: Json): Either[DeserializeFailed, T] = {
       Try {
-        parse(bf)
+        bf match {
+          case JsNull => throw UnsupportedOperation("Null value cannot deserialize to String.")
+          case _ => parse(bf)
+        }
       } match {
         case Success(x) => Right(x)
         case Failure(x) => Left(fail(bf, x))

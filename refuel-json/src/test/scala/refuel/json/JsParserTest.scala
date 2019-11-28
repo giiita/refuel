@@ -1,7 +1,9 @@
 package refuel.json
 
-import refuel.json.error.IllegalJsonFormat
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.json.codecs.factory.ConstCodec
+import refuel.json.error.IllegalJsonFormat
+import refuel.json.model.TestJson.JString
 
 class JsParserTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
   "Json tree build" should {
@@ -19,6 +21,13 @@ class JsParserTest extends AsyncWordSpec with Matchers with DiagrammedAssertions
       intercept[IllegalJsonFormat] {
         s"""{"value":"3}""".jsonTree
       }.getMessage shouldBe "EOF in an unexpected position.\n{\"value\":\"<ERROR FROM>3}"
+    }
+    "fail case - Not found key name" in {
+      s"""{"value":"3"}""".as(ConstCodec.from("hoge")(JString.apply)(JString.unapply)) match {
+        case Left(e) =>
+          e.getMessage shouldBe "Cannot deserialize to String -> null"
+        case Right(r)       => fail(r.toString)
+      }
     }
   }
 }
