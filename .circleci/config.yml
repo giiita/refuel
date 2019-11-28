@@ -50,3 +50,4 @@ jobs:
             - ~/refuel-json/target
             - ~/refuel-http/target
           key: v1-dependencies--{{ checksum "build.sbt" }}
+
