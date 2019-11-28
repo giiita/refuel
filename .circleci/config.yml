@@ -27,9 +27,15 @@ jobs:
           - v1-dependencies-
 
       - run:
-          name: Full version build
+          name: Cross version compile
           command: |
-            sbt -mem 4000 +clean +compile +test
+            sbt -mem 4000 +clean +compile
+          no_output_timeout: 60m
+
+      - run:
+          name: Cross version test
+          command: |
+            sbt -mem 4000 +test
           no_output_timeout: 60m
 
       - save_cache:
@@ -37,8 +43,10 @@ jobs:
             - ~/.ivy2
             - ~/.sbt
             - ~/target
-            - ~/scaladia-macro/target
-            - ~/scaladia-container/target
-            - ~/scaladia-lang/target
-            - ~/scaladia-http/target
+            - ~/refuel-macro/target
+            - ~/refuel-container/target
+            - ~/refuel-util/target
+            - ~/refuel-cipher/target
+            - ~/refuel-json/target
+            - ~/refuel-http/target
           key: v1-dependencies--{{ checksum "build.sbt" }}

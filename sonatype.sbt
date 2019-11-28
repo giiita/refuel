@@ -1,6 +1,6 @@
 sonatypeProfileName := "com.phylage"
 
-homepage := Some(url("https://github.com/giiita/scaladia"))
+homepage := Some(url("https://github.com/giiita/refuel"))
 
 licenses := Seq(
   "Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")
@@ -8,8 +8,8 @@ licenses := Seq(
 
 scmInfo := Some(
   ScmInfo(
-    url("https://github.com/giiita/scaladia"),
-    "scm:git@github.com:giiita/scaladia.git"
+    url("https://github.com/giiita/refuel"),
+    "scm:git@github.com:giiita/refuel.git"
   )
 )
 developers := List(
