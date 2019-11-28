@@ -1,10 +1,12 @@
 ## refuel-util
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-lang" % "1.7.0"
+libraryDependencies += "com.phylage" %% "refuel-util" % "1.0.0-RC1"
 ```
 
-### [ScalaTime](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/com/phylage/refuel/lang/ScalaTime.scala)
+## Usage
+
+### [ScalaTime](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/refuel/lang/ScalaTime.scala)
 
 ```scala
 import refuel.lang.ScalaTime._
@@ -32,7 +34,7 @@ object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ]
 <br/>
 <br/>
 
-### [FromTo](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/com/phylage/refuel/lang/period/FromTo.scala)
+### [FromTo](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/refuel/lang/period/FromTo.scala)
 
 FromTo is interface that represents a period.
 Classes that inherit this can use certain features.
@@ -47,6 +49,6 @@ RequestPeriod("2019-08-01 00:00:00".datetime.epoch, "2019-08-31 23:59:59".dateti
 <br/>
 <br/>
 
-### [Sliceable](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/com/phylage/refuel/lang/collections/Sliceable.scala)
+### [Sliceable](https://github.com/giiita/refuel/blob/master/refuel-util/src/main/scala/refuel/lang/collections/Sliceable.scala)
 
 Collection extension functions.

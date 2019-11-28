@@ -1,15 +1,21 @@
 package refuel.json.codecs.factory
 
-import refuel.json.JTransform
+import refuel.json.JsParser
 import refuel.json.codecs.factory.ConstCodecTest._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JTransform {
+class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
   "Construct based codec inspection" should {
     "tuple 1 construnct codec" in {
       s"""{"name": "xxxxx"}""".as(ConstCodec.from("name")(Const1.apply)(Const1.unapply)) match {
         case Left(_)  => fail()
         case Right(r) => r.value shouldBe "xxxxx"
+      }
+    }
+    "Wrapped type codec" in {
+      s"""{"hoge":{"value":"xxx"}}""".as(ConstCodec.from("hoge")(WrappedType.apply)(WrappedType.unapply)) match {
+        case Left(_)  => fail()
+        case Right(r) => r shouldBe WrappedType(InnerType("xxx"))
       }
     }
     "tuple 2 construnct codec" in {
@@ -29,6 +35,10 @@ class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
 }
 
 object ConstCodecTest {
+
+  case class WrappedType(wrap: InnerType)
+
+  case class InnerType(value: String)
 
   case class Const1(value: String)
 

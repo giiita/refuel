@@ -5,7 +5,7 @@ import refuel.json.codecs.All
 import refuel.json.error.DeserializeFailed
 import refuel.json.internal.JsonTokenizer
 
-trait JTransform extends Injector with All {
+trait JsParser extends Injector with All {
   private[this] final val _jer = inject[JsonTokenizer]
 
   protected implicit class JScribe[T](t: T) {

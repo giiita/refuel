@@ -3,7 +3,7 @@ package refuel.json
 import refuel.json.error.IllegalJsonFormat
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class JTransformTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JTransform {
+class JsParserTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
   "Json tree build" should {
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {

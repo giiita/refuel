@@ -1,10 +1,10 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "3.0.0"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.0-RC1"
 ````
 
-# Common Usage
+# Usage
 
 The general DI method only inherits `AutoInject[T]` to the target object.<br/>
 To use it, inherit `Injector` and call `inject[T]`.<br/>

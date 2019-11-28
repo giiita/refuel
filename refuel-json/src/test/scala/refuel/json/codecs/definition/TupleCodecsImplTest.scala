@@ -1,12 +1,12 @@
 package refuel.json.codecs.definition
 
-import refuel.json.JTransform
+import refuel.json.JsParser
 import refuel.json.codecs.factory.CaseClassCodec
 import refuel.json.model.TestJson
 import refuel.json.model.TestJson.{JTuple2, JTuple22}
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class TupleCodecsImplTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JTransform {
+class TupleCodecsImplTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
   "json deserialize" should {
     "Tuple2 wrapper deserialize" in {
       s"""{"value":{"_1":1,"_2":2}}""".as(CaseClassCodec.from[JTuple2]) shouldBe Right {
