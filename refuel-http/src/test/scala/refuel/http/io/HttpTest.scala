@@ -1,12 +1,11 @@
 package refuel.http.io
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.scalatest._
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
 import refuel.http.io.HttpTest.TestEntity.Jokes
-import refuel.http.io.setting.HttpSetting
 import refuel.injector.Injector
-import org.scalatest._
 
 object HttpTest {
 
