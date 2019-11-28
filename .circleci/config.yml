@@ -3,6 +3,7 @@
 # Check https://circleci.com/docs/2.0/sample-config/ for more details
 #
 version: 2
+
 jobs:
   build:
     docker:
@@ -29,7 +30,7 @@ jobs:
       - run:
           name: Cross version compile
           command: |
-            sbt -mem 4000 +clean +compile
+            sbt -mem 4000 sbtVersion +clean +compile
           no_output_timeout: 60m
 
       - run:
