@@ -5,7 +5,7 @@ script=$(cd $(dirname $0); pwd)
 install_nvm() {
   if ! test -s $HOME/.nvm; then
     echo "NVM installing..."
-    curl -o https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
   fi
 
   export NVM_DIR="$HOME/.nvm"
