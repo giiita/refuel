@@ -9,6 +9,7 @@ import refuel.json.Codec
   * so you need field name to adapt to the type type of apply function.
   *
   * {{{
+  *   // strValue, intValue, datetime is json string key name.
   *   ConstCodec.from("strValue", "intValue", "datetime")
   *                  ((s, i, d) => Obj(s, i, d))
   *                  (z => Some((z.s, z.i, z.d)))
