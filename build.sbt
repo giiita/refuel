@@ -1,7 +1,7 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.11.12", "2.12.8", "2.13.0")
+lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 
 
 
@@ -68,25 +68,9 @@ lazy val commonDependencySettings = Seq(
   libraryDependencies ++= {
     Seq(
       "org.scalatest" %% "scalatest" % "3.0.8" % Test
-<<<<<<< HEAD
-<<<<<<< HEAD
-    ) ++ {
-      scalaVersion.value match {
-        case "2.13.0" => Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
-        case _ => Nil
-      }
-    }
-  }
-=======
-    ) ++ scl213(scalaVersion.value, Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0"))
-  },
-  scalacOptions ++= scl213(scalaVersion.value, Seq("--Xmax-classfile-name", "200"))
->>>>>>> f9eb751... a
-=======
     )
   },
   libraryDependencies ++= scl213(Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")).value
->>>>>>> db87346... a
 )
 
 lazy val root = project.in(file("."))
@@ -109,10 +93,10 @@ lazy val root = project.in(file("."))
   }
 )
 
-lazy val `macro` = (project in file("scaladia-macro"))
+lazy val `macro` = (project in file("refuel-macro"))
   .settings(assemblySettings, commonDependencySettings)
   .settings(
-    name := "scaladia-macro",
+    name := "refuel-macro",
     description := "Lightweight DI container for Scala.",
     libraryDependencies ++= {
       Seq(
@@ -123,11 +107,11 @@ lazy val `macro` = (project in file("scaladia-macro"))
     scalacOptions += "-language:experimental.macros"
   )
 
-lazy val container = (project in file("scaladia-container"))
+lazy val container = (project in file("refuel-container"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(`macro`)
   .settings(
-    name := "scaladia-container",
+    name := "refuel-container",
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
@@ -142,19 +126,19 @@ lazy val container = (project in file("scaladia-container"))
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   ).enablePlugins(JavaAppPackaging)
 
-lazy val util = (project in file("scaladia-util"))
+lazy val util = (project in file("refuel-util"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(container)
   .settings(
-    name := "scaladia-util",
+    name := "refuel-util",
     parallelExecution in Test := true
   ).enablePlugins(JavaAppPackaging)
 
-lazy val json = (project in file("scaladia-json"))
+lazy val json = (project in file("refuel-json"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(util)
   .settings(
-    name := "scaladia-json",
+    name := "refuel-json",
     description := "Various classes serializer / deserializer",
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.7.4"
@@ -164,20 +148,20 @@ lazy val json = (project in file("scaladia-json"))
     scalacOptions in Compile ++= notScl213(Seq("-Xmax-classfile-name", "255")).value
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
 
-lazy val cipher = (project in file("scaladia-cipher"))
+lazy val cipher = (project in file("refuel-cipher"))
   .dependsOn(json)
   .settings(assemblySettings, commonDependencySettings)
   .settings(
-    name := "scaladia-cipher",
+    name := "refuel-cipher",
     description := "Cipher module for Scala.",
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
   ).enablePlugins(JavaAppPackaging)
 
-lazy val http = (project in file("scaladia-http"))
+lazy val http = (project in file("refuel-http"))
   .dependsOn(json)
   .settings(assemblySettings, commonDependencySettings)
   .settings(
-    name := "scaladia-http",
+    name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-actor" % "2.5.23",
@@ -186,6 +170,7 @@ lazy val http = (project in file("scaladia-http"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
     ),
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
+    fork in Test := true,
     testOptions in Test ++= Seq(
       Tests.Setup { _ =>
         import scala.sys.process._
@@ -201,15 +186,17 @@ lazy val http = (project in file("scaladia-http"))
     )
   ).enablePlugins(JavaAppPackaging)
 
-lazy val `test` = (project in file("scaladia-test"))
+lazy val `test` = (project in file("refuel-test"))
   .dependsOn(json)
   .settings(assemblySettings, commonDependencySettings)
   .settings(
-    name := "scaladia-test",
+    name := "refuel-test",
     description := "DI testing framework.",
-    libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.0.8"
-    )
+    libraryDependencies ++= {
+      Seq(
+        "org.scalatest" %% "scalatest" % "3.0.8"
+      )
+    }
   ).enablePlugins(JavaAppPackaging)
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
@@ -236,32 +223,4 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
     releaseProcess := Nil
   )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 val GLOBAL_SCALA_VERSION = buildTargetVersion.last
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion(1)
->>>>>>> f472156... REBASE 8 LazyList was only 2.13...
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion.last
->>>>>>> 5bf57dc... REBASE 10
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion.head
->>>>>>> 2028a13... a
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion.last
->>>>>>> 65cd8d0... a
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion(1)
->>>>>>> 9276f54... aa
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion.last
->>>>>>> a04020f... a
-=======
-val GLOBAL_SCALA_VERSION = buildTargetVersion.last
->>>>>>> 17c1351... change sbt 1.2.8
