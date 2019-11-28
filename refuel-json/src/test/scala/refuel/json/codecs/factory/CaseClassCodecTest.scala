@@ -5,10 +5,10 @@ import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.codecs.factory.UsedImplicitlyCodec._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.error.DeserializeFailed
-import refuel.json.{Codec, JTransform, Json}
+import refuel.json.{Codec, JsParser, Json}
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class CaseClassCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JTransform {
+class CaseClassCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
   "Load implicit codec" should {
     "custom implicit codec type" in {
       val r =

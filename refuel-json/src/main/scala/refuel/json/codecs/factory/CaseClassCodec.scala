@@ -17,7 +17,7 @@ import refuel.json.Codec
   * it is preferentially incorporated into the Codec.
   *
   * In other words, because the codec of Tuple, AnyRef and AnyVal is used implicitly,
-  * the scope of [[refuel.json.JTransform]] is required.
+  * the scope of [[refuel.json.JsParser]] is required.
   *
   * Currently, any AnyVal, AnyRef, Tuples codec override is not supported.
   * In the future, the codec will be indexed into the DI container and will be handled by the injection priority as before.

@@ -3,7 +3,7 @@
 ## Usage
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-http" % "0.8.0"
+libraryDependencies += "com.phylage" %% "refuel-http" % "1.0.0-RC1"
 ````
 
 ## Examples
