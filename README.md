@@ -6,7 +6,7 @@
 
 [![CircleCI](https://circleci.com/gh/giiita/refuel/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/refuel/tree/master)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_2.12/badge.svg)](https://search.maven.org/artifact/com.github.giiita/refuel_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_2.12/badge.svg)](https://search.maven.org/artifact/com.phylage/refuel-container_2.12)
 
 Refuel is a simple and lightweight DI framework<br/>
 Provides DI, utility, JSON parser, HTTPClient, etc. suitable for layered architecture.<br/>
