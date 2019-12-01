@@ -79,12 +79,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
   }
 
-  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
-    reify {
-      c.Expr[T](fun).splice
-    }
-  }
-
   def diligentInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: c.Tree): Expr[T] = {
     AutoDIExtractor.collectApplyTarget[c.type, T](c)(ctn)
   }

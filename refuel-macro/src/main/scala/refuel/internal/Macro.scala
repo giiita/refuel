@@ -5,13 +5,11 @@ import refuel.provider.Lazy
 import scala.reflect.macros.blackbox
 
 
-object Macro {
+class Macro(val c: blackbox.Context) {
 
-  def reifyClasspathInjectables[T: c.WeakTypeTag](c: blackbox.Context)(fun: c.Tree)(ctn: c.Tree, ip: c.Tree): c.Expr[T] = {
-    new LazyInitializer[c.type](c).classpathRepooling[T](fun, ctn, ip)
-  }
+  // def reinjectPrimaryConstruction[T: c.WeakTypeTag](apl: c.Expr[T]):
 
-  def lazyInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
+  def lazyInjectDyn[T: c.WeakTypeTag](t: c.Tree)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     new LazyInitializer[c.type](c).lazyInit[T](
       ctn,
       ip,
@@ -19,7 +17,15 @@ object Macro {
     )
   }
 
-  def diligentInject[T: c.WeakTypeTag](c: blackbox.Context)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[T] = {
+  def lazyInject[T: c.WeakTypeTag](ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
+    new LazyInitializer[c.type](c).lazyInit[T](
+      ctn,
+      ip,
+      access
+    )
+  }
+
+  def diligentInject[T: c.WeakTypeTag](ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[T] = {
     new LazyInitializer[c.type](c).diligentInit[T](
       ctn,
       ip,
@@ -27,7 +33,7 @@ object Macro {
     )
   }
 
-  def scratch(c: blackbox.Context): c.Tree = {
+  def scratch: c.Tree = {
     import c.universe._
     q"""
       throw new refuel.exception.UnExceptedOperateException("If you have already authorized any instance, you can not authorize new types.")

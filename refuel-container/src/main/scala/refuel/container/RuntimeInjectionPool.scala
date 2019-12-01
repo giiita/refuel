@@ -56,7 +56,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
             case x if x.toType.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
               x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
           }
-        )(reflector.reflectClass[T])(c)
+        )(reflector.reflectClass[T](this))(c)
     }
   }
 
