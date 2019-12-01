@@ -1,7 +1,6 @@
 package refuel.internal
 
-import refuel.container.{Container, CanBeContainer}
-import refuel.exception.InjectDefinitionException
+import refuel.container.{CanBeContainer, Container}
 import refuel.injector.AutoInjectable
 
 import scala.reflect.macros.blackbox
@@ -13,13 +12,13 @@ class InjectionCompound[C <: blackbox.Context](val c: C) {
   def buildOne[T: c.WeakTypeTag](ctn: c.Tree)(msList: Iterable[c.Symbol], mayBeCs: Option[c.Symbol]): c.Expr[T] = {
 
     (msList, mayBeCs) match {
-      case (x, None) if x.isEmpty =>
+      case (x, None) if x.isEmpty     =>
         c.error(c.enclosingPosition, s"Cannot found automatic injection target of ${weakTypeOf[T].typeSymbol.fullName}.")
-        throw new InjectDefinitionException(s"Automatic injection target can not be found.")
+        c.abort(c.enclosingPosition, s"Automatic injection target can not be found.")
       case (x, Some(cs)) if x.isEmpty =>
         c.echo(c.enclosingPosition, s"Actual candidates ${cs.name}.")
         createNewInstance(ctn)(cs)
-      case (x, _) =>
+      case (x, _)                     =>
         c.echo(c.enclosingPosition, s"Actual candidates [${x.map(_.name).mkString(", ")}]")
         val flushed = x.map { name =>
           c.Expr[AutoInjectable[T]](

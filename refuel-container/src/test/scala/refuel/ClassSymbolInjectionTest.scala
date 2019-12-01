@@ -146,7 +146,7 @@ object ClassSymbolInjectionTest {
       val first: G_FIRST_PARAM
     }
 
-    class G_IMPL(val first: G_FIRST_PARAM)(val inner: G_INNER[G_TYPE_PARAM_A]) extends G with AutoInject[G]
+    class G_IMPL(val first: G_FIRST_PARAM, val inner: G_INNER[G_TYPE_PARAM_A]) extends G with AutoInject[G]
 
   }
 
@@ -240,11 +240,12 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
       import refuel.ClassSymbolInjectionTest.TEST_G._
 
       try {
-        inject[G]._provide
-        fail()
+        val result = inject[G]._provide
+        result.inner.t shouldBe G_TYPE_PARAM_A()
+        result.first shouldBe G_FIRST_PARAM_IMPL
       } catch {
         case _: DIAutoInitializationException => succeed
-        case _: Throwable => fail()
+        case e: Throwable => fail(e.getMessage)
       }
     }
   }
