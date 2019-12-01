@@ -2,6 +2,7 @@ package refuel.container
 
 import java.net.{URI, URL}
 
+import refuel.exception.DIAutoInitializationException
 import refuel.injector.scope.IndexedSymbol
 import refuel.injector.{AutoInject, InjectionPool, Injector}
 import refuel.internal.ClassTypeAcceptContext
@@ -24,24 +25,24 @@ object RuntimeReflector extends InjectionReflector with Injector {
     */
   override def reflectClass[T: universe.WeakTypeTag](ip: InjectionPool)(c: Container)(symbols: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
-//      println(x)
-//      println(x.primaryConstructor.asMethod.paramLists.flatten)
       val pcInject = x.primaryConstructor.asMethod.paramLists.flatten.map { prm =>
         val tpe: universe.WeakTypeTag[_] = universe.WeakTypeTag(implicitly[universe.WeakTypeTag[T]].mirror, new reflect.api.TypeCreator {
           def apply[U <: reflect.api.Universe with Singleton](m: reflect.api.Mirror[U]) = {
             assert(m eq mirror, s"TypeTag[$prm] defined in $mirror cannot be migrated to $m.")
-            println(prm)
             prm.typeSignature.asInstanceOf[U#Type]
           }
         })
-        c.find(this.getClass)(tpe, ClassTypeAcceptContext).getOrElse {
+        c.find(this.getClass)(tpe, ClassTypeAcceptContext).orElse {
           ip.collect(tpe).apply(c).toVector
             .sortBy(_.priority)(Ordering.Int.reverse)
             .headOption
             .map(_.value)
+        } match {
+          case Some(r) => r
+          case None => throw new DIAutoInitializationException(s"Injectable parameter ${tpe.tpe} of ${implicitly[universe.WeakTypeTag[T]].tpe} constructor not found", null)
         }
       }
-//      println
+
       mirror.reflectClass(x)
         .reflectConstructor(x.primaryConstructor.asMethod)
         .apply(pcInject: _*)

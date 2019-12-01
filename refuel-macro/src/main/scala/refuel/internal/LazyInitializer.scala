@@ -42,7 +42,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
           })
         } catch {
           case e: Throwable =>
-            throw new DIAutoInitializationException(s"${typName.splice} or its internal initialize failed.", e)
+            throw new DIAutoInitializationException(s"Failed to initialize ${typName.splice}.", e)
         }
       }
     }

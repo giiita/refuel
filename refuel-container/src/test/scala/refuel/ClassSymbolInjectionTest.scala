@@ -6,6 +6,7 @@ import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, InjectOnce, Injector}
 import refuel.provider.Tag
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.ClassSymbolInjectionTest.TEST_G.{G, G_TYPE_PARAM_A}
 
 
 object ClassSymbolInjectionTest {
@@ -177,6 +178,11 @@ object ClassSymbolInjectionTest {
     case class JAliasImpl() extends J_ALIAS with AutoInject[J_ALIAS]
   }
 
+  object TEST_K {
+    trait K
+    case class KImpl(vvv: String) extends K with AutoInject[K]
+  }
+
 }
 
 class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
@@ -236,15 +242,24 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
       a should not be b
     }
 
-    "If primary constructor has parameters, inject[T] is fail" in {
+    "If primary constructor has parameters, inject[T] is recursive inject" in {
       import refuel.ClassSymbolInjectionTest.TEST_G._
 
-      try {
         val result = inject[G]._provide
         result.inner.t shouldBe G_TYPE_PARAM_A()
         result.first shouldBe G_FIRST_PARAM_IMPL
+    }
+
+    "If primary constructor has parameters, and not found target, inject[T] is fail" in {
+      import refuel.ClassSymbolInjectionTest.TEST_K._
+
+      try {
+        inject[K]._provide
+        fail()
       } catch {
-        case _: DIAutoInitializationException => succeed
+        case e: DIAutoInitializationException =>
+          e.printStackTrace()
+          succeed
         case e: Throwable => fail(e.getMessage)
       }
     }
