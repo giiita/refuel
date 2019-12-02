@@ -13,7 +13,7 @@ trait InjectionReflector {
     * @tparam T injection type
     * @return
     */
-  def reflectClass[T: universe.WeakTypeTag](ip: InjectionPool)(c: Container)(x: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]]
+  def reflectClass[T: universe.WeakTypeTag](clazz: Class[_], ip: InjectionPool)(c: Container)(x: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]]
 
   /**
     * Create injection applyment.
