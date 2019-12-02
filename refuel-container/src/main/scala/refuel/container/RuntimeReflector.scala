@@ -23,17 +23,17 @@ object RuntimeReflector extends InjectionReflector with Injector {
     * @tparam T injection type
     * @return
     */
-  override def reflectClass[T: universe.WeakTypeTag](ip: InjectionPool)(c: Container)(symbols: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]] = {
+  override def reflectClass[T](clazz: Class[_], ip: InjectionPool)(c: Container)(symbols: Set[universe.ClassSymbol])(implicit wtt: universe.WeakTypeTag[T]): Set[IndexedSymbol[T]] = {
     symbols.map { x =>
       val pcInject = x.primaryConstructor.asMethod.paramLists.flatten.map { prm =>
-        val tpe: universe.WeakTypeTag[_] = universe.WeakTypeTag(implicitly[universe.WeakTypeTag[T]].mirror, new reflect.api.TypeCreator {
+        val tpe: universe.WeakTypeTag[_] = universe.WeakTypeTag(wtt.mirror, new reflect.api.TypeCreator {
           def apply[U <: reflect.api.Universe with Singleton](m: reflect.api.Mirror[U]) = {
             assert(m eq mirror, s"TypeTag[$prm] defined in $mirror cannot be migrated to $m.")
             prm.typeSignature.asInstanceOf[U#Type]
           }
         })
-        c.find(this.getClass)(tpe, ClassTypeAcceptContext).orElse {
-          ip.collect(tpe).apply(c).toVector
+        c.find(clazz)(tpe, ClassTypeAcceptContext).orElse {
+          ip.collect(clazz)(tpe).apply(c).toVector
             .sortBy(_.priority)(Ordering.Int.reverse)
             .headOption
             .map(_.value)
