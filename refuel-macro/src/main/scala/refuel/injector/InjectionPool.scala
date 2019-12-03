@@ -19,5 +19,5 @@ trait InjectionPool {
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: WeakTypeTag[T]): InjectionApplyment[T]
+  def collect[T](clazz: Class[_])(implicit wtt: WeakTypeTag[T]): InjectionApplyment[T]
 }

@@ -40,7 +40,8 @@ object RuntimeAutoDIExtractor {
       entries.classSymbolPath.flatMap { x =>
         try {
           RuntimeReflector.mirror.staticClass(x) match {
-            case r if r.toType <:< autoDITag => Some(r)
+            case r if r.toType <:< autoDITag =>
+              Some(r)
             case _                           => None
           }
         } catch {

@@ -10,6 +10,8 @@ import scala.reflect.runtime.{universe => u}
 
 object RuntimeInjectionPool extends refuel.injector.InjectionPool {
 
+  private[this] trait Dummy
+
   /* Effective type symbol */
   private[this] lazy val EFFECTIVE_ANNO_TYPE = u.weakTypeOf[Effective]
   /* Reflector */
@@ -25,7 +27,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
     { c: Container =>
       c.findEffect match {
         case x if x.nonEmpty => x
-        case _               => collect[Effect]
+        case _ => collect[Effect](classOf[Effect])
           .apply(c)
           .filter(_.value.activate)
           .map(_.value)
@@ -42,7 +44,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
     * @tparam T Type you are trying to get
     * @return
     */
-  def collect[T](implicit wtt: u.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
+  def collect[T](clazz: Class[_])(implicit wtt: u.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
     mayBeEffectiveApply[T, u.ModuleSymbol](
       buffer.modules.collect {
         case x if x.typeSignature.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
@@ -50,13 +52,13 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
       }
     )(reflector.reflectModule[T])(c) match {
       case x if x.nonEmpty => x
-      case _               =>
+      case _ =>
         mayBeEffectiveApply[T, u.ClassSymbol](
           buffer.classes.collect {
             case x if x.toType.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
               x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
           }
-        )(reflector.reflectClass[T])(c)
+        )(reflector.reflectClass[T](clazz, this))(c)
     }
   }
 
@@ -79,7 +81,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
     v.partition(_._1.isEmpty) match {
       case (nonEffect, effect) if effect.isEmpty =>
         f(c)(nonEffect.map(_._2))
-      case (nonEffect, effect)                   =>
+      case (nonEffect, effect) =>
         val activeEff = getEffect(c).map(_.getClass.getTypeName)
         f(c) {
           nonEffect.map(_._2) ++ {

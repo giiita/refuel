@@ -20,7 +20,7 @@ package object internal {
 
   implicit case object ClassTypeAcceptContext extends TypedAcceptContext[Class[_]] {
     override def accepted: IndexedSymbol[_] => Class[_] => Boolean = { x => y =>
-      x.isOpen || x.acceptedClass(y.getClass)
+      x.isOpen || x.acceptedClass(y)
     }
   }
 }

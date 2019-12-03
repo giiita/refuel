@@ -1,11 +1,12 @@
 package refuel
 
+import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.ClassSymbolInjectionTest.TEST_K.K
 import refuel.Types.@@
 import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, InjectOnce, Injector}
 import refuel.provider.Tag
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
 
 object ClassSymbolInjectionTest {
@@ -146,7 +147,7 @@ object ClassSymbolInjectionTest {
       val first: G_FIRST_PARAM
     }
 
-    class G_IMPL(val first: G_FIRST_PARAM)(val inner: G_INNER[G_TYPE_PARAM_A]) extends G with AutoInject[G]
+    class G_IMPL(val first: G_FIRST_PARAM, val inner: G_INNER[G_TYPE_PARAM_A]) extends G with AutoInject[G]
 
   }
 
@@ -175,6 +176,26 @@ object ClassSymbolInjectionTest {
     type J_ALIAS = J
 
     case class JAliasImpl() extends J_ALIAS with AutoInject[J_ALIAS]
+
+  }
+
+  object TEST_K {
+
+    trait K
+
+    case class KImpl(vvv: String) extends K with AutoInject[K]
+
+  }
+
+  object TEST_L {
+
+    trait L {
+      val value: LInner
+    }
+    trait LInner
+
+    case class LImpl(value: LInner) extends L with AutoInject[L]
+
   }
 
 }
@@ -236,16 +257,38 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
       a should not be b
     }
 
-    "If primary constructor has parameters, inject[T] is fail" in {
+    "If primary constructor has parameters, inject[T] is recursive inject" in {
       import refuel.ClassSymbolInjectionTest.TEST_G._
 
+      val result = inject[G]._provide
+      result.inner.t shouldBe G_TYPE_PARAM_A()
+      result.first shouldBe G_FIRST_PARAM_IMPL
+    }
+
+    "If primary constructor has parameters, and not found target, inject[T] is fail" in {
+      import refuel.ClassSymbolInjectionTest.TEST_K._
+
       try {
-        inject[G]._provide
+        inject[K]._provide
         fail()
       } catch {
-        case _: DIAutoInitializationException => succeed
-        case _: Throwable => fail()
+        case e: DIAutoInitializationException =>
+          succeed
+        case e: Throwable => fail(e.getMessage)
       }
+    }
+
+    "If primary constructor has parameters, and bounds are specified, switched inject result." in {
+      import refuel.ClassSymbolInjectionTest.TEST_L._
+
+      val inner1 = new LInner {
+      }
+      val inner2 = new LInner {
+      }
+      val inner3 = new LInner {
+      }
+      narrow[LInner](inner2).accept[L].indexing()
+      inject[L]._provide.value shouldBe inner2
     }
   }
 
@@ -263,11 +306,11 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
     }
   }
 
-//  "type alias injection" should {
-//    "Can inject each alias" in {
-//      import refuel.ClassSymbolInjectionTest.TEST_J._
-//      inject[J]._provide shouldBe JImpl()
-//      inject[J_ALIAS]._provide shouldBe JAliasImpl()
-//    }
-//  }
+  //  "type alias injection" should {
+  //    "Can inject each alias" in {
+  //      import refuel.ClassSymbolInjectionTest.TEST_J._
+  //      inject[J]._provide shouldBe JImpl()
+  //      inject[J_ALIAS]._provide shouldBe JAliasImpl()
+  //    }
+  //  }
 }

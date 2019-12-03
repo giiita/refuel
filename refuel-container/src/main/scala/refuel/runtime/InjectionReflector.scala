@@ -1,6 +1,7 @@
 package refuel.runtime
 
 import refuel.container.Container
+import refuel.injector.InjectionPool
 import refuel.injector.scope.IndexedSymbol
 
 import scala.reflect.runtime.universe
@@ -12,7 +13,7 @@ trait InjectionReflector {
     * @tparam T injection type
     * @return
     */
-  def reflectClass[T: universe.WeakTypeTag](c: Container)(x: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]]
+  def reflectClass[T: universe.WeakTypeTag](clazz: Class[_], ip: InjectionPool)(c: Container)(x: Set[universe.ClassSymbol]): Set[IndexedSymbol[T]]
 
   /**
     * Create injection applyment.
