@@ -1,6 +1,6 @@
 package refuel.json.codecs.factory
 
-import refuel.json.JsParser
+import refuel.json.{Codec, JsParser}
 import refuel.json.codecs.factory.ConstCodecTest._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
@@ -67,4 +67,17 @@ object ConstCodecTest {
                      u: Int,
                      v: Int)
 
+  case class From(value: Option[Int])
+
+  case class To[T](value: T)
+
+  object CodecBuildTest extends JsParser {
+
+    def apply(): Codec[To[Int]] =
+      ConstCodec.from[From, To[Int]]("test") { x =>
+        To(x.value.get)
+      } { x =>
+        Some(From(Some(x.value)))
+      }
+  }
 }

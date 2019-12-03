@@ -66,6 +66,19 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] { 
 
   /**
     * Get accessible dependencies.
+    *
+    * The type information is resolved at compile time, but the injection object is finalized at runtime.
+    * This function is slower than [[refuel.injector.MetaMediation.bind]], but can be overwritten by flush or narrow.
+    *
+    * @param ctn    Container
+    * @param access Accessor (This refers to itself)
+    * @tparam T Injection type
+    * @return
+    */
+  protected def inject[T](t: TypeTag[T])(implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInjectDyn[T]
+
+  /**
+    * Get accessible dependencies.
     * You can detect errors that can not be assigned at compile time.
     *
     * It is faster than [[refuel.injector.MetaMediation.inject]] because of immediate assignment,

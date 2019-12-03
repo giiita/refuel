@@ -32,7 +32,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
              $jsonEntryPkg.JsObject()
                .++($jsonEntryPkg.JsString($n1))
                .++(_)
-           """).splice.apply(recall(weakTypeOf[A]).splice.serialize(upl.splice.apply(t)))
+           """).splice.apply(recall(weakTypeOf[A]).splice.serialize(upl.splice.apply(t).get))
         }
       }
     }

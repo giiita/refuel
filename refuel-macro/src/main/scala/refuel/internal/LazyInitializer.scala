@@ -42,7 +42,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
           })
         } catch {
           case e: Throwable =>
-            throw new DIAutoInitializationException(s"${typName.splice} or its internal initialize failed.", e)
+            throw new DIAutoInitializationException(s"Failed to initialize ${typName.splice}.", e)
         }
       }
     }
@@ -75,13 +75,10 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Set[IndexedSymbol[T]]] = {
     reify {
-      c.Expr[InjectionPool](ip).splice.collect[T].apply(c.Expr[Container](cnt).splice)
-    }
-  }
-
-  def classpathRepooling[T: C#WeakTypeTag](fun: Tree, ctn: c.Tree, ip: Tree): Expr[T] = {
-    reify {
-      c.Expr[T](fun).splice
+      c.Expr[InjectionPool](ip)
+        .splice
+        .collect[T](c.Expr[Class[T]](c.reifyRuntimeClass(weakTypeOf[T])).splice)
+        .apply(c.Expr[Container](cnt).splice)
     }
   }
 
