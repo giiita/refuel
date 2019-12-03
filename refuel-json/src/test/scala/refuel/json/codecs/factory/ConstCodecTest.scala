@@ -32,9 +32,36 @@ class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
       }
     }
   }
+
+
+  "Customized case" should {
+    "sss" in {
+      s"""{"hoge": {"min": 0, "max": 1}}""".as(
+        ConstCodec.from[From, To]("hoge"){
+          case From(Some(a), Some(b)) => To(a, b)
+        }{
+          case To(a, b) => Some(From(Some(a), Some(b)))
+        }
+      ) shouldBe Right(To(0, 1))
+    }
+    "to" in {
+      To(0, 1).toJson(
+        ConstCodec.from[From, To]("hoge"){
+          case From(Some(a), Some(b)) => To(a, b)
+        }{
+          case To(a, b) => Some(From(Some(a), Some(b)))
+        }
+      ).toString shouldBe s"""{"hoge":{"min":0,"max":1}}"""
+    }
+  }
+
 }
 
 object ConstCodecTest {
+
+  case class To(min: Int, max: Int)
+
+  case class From(min: Option[Int], max: Option[Int])
 
   case class WrappedType(wrap: InnerType)
 
