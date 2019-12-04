@@ -1,10 +1,10 @@
 package refuel.json.codecs.factory
 
-import refuel.json.{Codec, JsParser}
+import refuel.json.{Codec, JsContext}
 import refuel.json.codecs.factory.ConstCodecTest._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
+class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
   "Construct based codec inspection" should {
     "tuple 1 construnct codec" in {
       s"""{"name": "xxxxx"}""".as(ConstCodec.from("name")(Const1.apply)(Const1.unapply)) match {
@@ -71,7 +71,7 @@ object ConstCodecTest {
 
   case class To[T](value: T)
 
-  object CodecBuildTest extends JsParser {
+  object CodecBuildTest extends JsContext {
 
     def apply(): Codec[To[Int]] =
       ConstCodec.from[From, To[Int]]("test") { x =>

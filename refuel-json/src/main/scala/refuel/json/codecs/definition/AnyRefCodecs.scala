@@ -15,7 +15,7 @@ private[codecs] trait AnyRefCodecs {
     * @param c    Empty value.
     * @param j    Iterable append function.
     * @param tct  Inner type parameter codec symbol.
-    * @param ev$1 Type tag of inner type parameter.
+    *
     * @tparam T Inner type parameter.
     * @tparam C Collection types.
     */
