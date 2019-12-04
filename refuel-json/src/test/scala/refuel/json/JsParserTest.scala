@@ -17,6 +17,15 @@ class JsParserTest extends AsyncWordSpec with Matchers with DiagrammedAssertions
         s"""{"value": }""".jsonTree
       }.getMessage shouldBe "The conversion was successful, but the generated JsonTree is invalid.\n{\"value\": }"
     }
+//    "fail case - Syntax error" in {
+//      val a = s"""{"value: "aaa"}""".jsonTree
+//
+//      val r = intercept[IllegalJsonFormat] {
+//        s"""{"value: "aaa"}""".jsonTree
+//      }.getMessage
+//      println(r)
+//      r shouldBe "The conversion was successful, but the generated JsonTree is invalid.\n{\"value\": }"
+//    }
     "fail case - EOF position 2" in {
       intercept[IllegalJsonFormat] {
         s"""{"value":"3}""".jsonTree
