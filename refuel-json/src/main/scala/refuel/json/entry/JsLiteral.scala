@@ -1,7 +1,7 @@
 package refuel.json.entry
 
 import refuel.json.Json
-import refuel.json.error.IllegalJsonSyntaxTreeBuilding
+import refuel.json.error.{CannotAccessJsonKey, IllegalJsonSyntaxTreeBuilding}
 
 trait JsLiteral extends JsVariable with CharSequence {
   private[entry] val literal: String
@@ -23,4 +23,6 @@ trait JsLiteral extends JsVariable with CharSequence {
   def toKey(jso: JsObject): JsKeyBuffer = new JsKeyBuffer(this, jso)
 
   override def ++(js: Json): Json = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsLiteral.")
+
+  override def named(key: String): Json = throw CannotAccessJsonKey(s"Cannot access key : $key of $toString")
 }

@@ -1,6 +1,6 @@
 package refuel.json
 
-import refuel.json.error.{CannotAccessJsonKey, DeserializeFailed}
+import refuel.json.error.DeserializeFailed
 
 trait Json extends Serializable {
   def toString: String
@@ -12,7 +12,8 @@ trait Json extends Serializable {
 
   def isIndependent: Boolean = false
 
-  def to[T](implicit c: Codec[T]): Either[DeserializeFailed, T] = c.deserialize(this)
+  def to[T](implicit c: Codec[T]): Either[DeserializeFailed, T] =
+    c.deserialize(this)
 
-  def named(key: String): Json = throw CannotAccessJsonKey(s"Cannot access key : $key of $toString")
+  def named(key: String): Json
 }
