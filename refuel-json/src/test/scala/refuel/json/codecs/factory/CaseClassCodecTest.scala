@@ -89,7 +89,7 @@ class CaseClassCodecTest
       val bbbs =
         Seq(new BBB(4, None), new BBB(5, Some(AAA(7, 8))), new BBB(6, None))
 
-      implicit val _ddd: Codec[DDD] = new Codec[DDD] {
+      implicit def _ddd: Codec[DDD] = new Codec[DDD] {
         override def serialize(t: DDD): Json = ???
 
         override def deserialize(bf: Json): Either[DeserializeFailed, DDD] =
