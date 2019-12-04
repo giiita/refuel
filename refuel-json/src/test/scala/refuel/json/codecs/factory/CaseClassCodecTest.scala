@@ -5,7 +5,7 @@ import refuel.json.codecs.All
 import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.error.DeserializeFailed
-import refuel.json.{Codec, JsParser, Json}
+import refuel.json.{Codec, JsContext, Json}
 
 object CaseClassCodecTest {
   case class BBBB(id: Long, value: String)
@@ -39,7 +39,7 @@ class CaseClassCodecTest
     extends AsyncWordSpec
     with Matchers
     with DiagrammedAssertions
-    with JsParser {
+    with JsContext {
 
   implicit val aLocalCodec: Codec[A] = CaseClassCodec.from[A]
   implicit val bLocalCodec: Codec[B] = CaseClassCodec.from[B]

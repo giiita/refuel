@@ -1,11 +1,11 @@
 package refuel.json.codecs.definition
 
-import refuel.json.JsParser
+import refuel.json.JsContext
 import refuel.json.codecs.factory.CaseClassCodec
 import refuel.json.model.TestJson._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class AnyValCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsParser {
+class AnyValCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
   "json deserialize" should {
 
     "Int deserialize" in {

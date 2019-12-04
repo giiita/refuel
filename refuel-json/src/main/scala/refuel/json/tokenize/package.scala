@@ -6,7 +6,6 @@ import scala.collection.mutable.ArrayBuffer
 
 package object tokenize {
 
-
   type ResultBuff[T] = ArrayBuffer[T]
   type ReadStream = StringReader
 
