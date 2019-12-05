@@ -38,8 +38,12 @@ object JsObject {
 
   def dummy = new JsObject(IndexedSeq.empty)
 
-  def apply(unbuiltJsons: ResultBuff[Json]): Json = {
+  def apply(unbuiltJsons: Iterable[Json]): Json = {
     unbuiltJsons.foldLeft[Json](dummy)(_ ++ _)
+  }
+
+  def apply(unbuiltJsons: ResultBuff[Json]): Json = {
+    this.apply(unbuiltJsons.toList)
   }
 
   def apply(unbuiltJsons: (String, Json)*): Json = {

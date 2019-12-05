@@ -3,9 +3,15 @@ package refuel.json.codecs.factory
 import refuel.json.{Codec, JsContext}
 import refuel.json.codecs.factory.ConstCodecTest._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.json.model.TestJson.JLong
 
 class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
   "Construct based codec inspection" should {
+    "construnct codec with AnyVal" in {
+      s"""{"value":100}""".as(
+        ConstCodec.from[Long, JLong]("value")(JLong.apply)(JLong.unapply)
+      ) shouldBe Right(JLong(100))
+    }
     "tuple 1 construnct codec" in {
       s"""{"name": "xxxxx"}""".as(ConstCodec.from("name")(Const1.apply)(Const1.unapply)) match {
         case Left(_)  => fail()

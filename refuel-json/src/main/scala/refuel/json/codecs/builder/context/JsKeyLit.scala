@@ -39,6 +39,11 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps {
     override private[json] val k: JsKeyLitOps = self
   }
 
+  //  def parsed[A: Codec, B: Codec, C: Codec, D: Codec, E: Codec, F: Codec, G: Codec, H: Codec, I: Codec, J: Codec, K: Codec, L: Codec, M: Codec, N: Codec, O: Codec, P: Codec, Q: Codec, R: Codec, S: Codec, T: Codec, U: Codec, V: Codec]
+  //  : CBuildComp22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V] = new CBuildComp22 {
+  //    override private[json] val k: JsKeyLitOps = self
+  //  }
+
   /**
     * Follow the target JsonObject recursively from the constructed key literal.
     *
@@ -51,6 +56,7 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps {
 
   /**
     * TODO: Temporary implementation
+    *
     * @return
     */
   override def toString: String = v.mkString
