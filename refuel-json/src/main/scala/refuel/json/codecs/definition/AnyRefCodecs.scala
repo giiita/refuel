@@ -15,7 +15,7 @@ private[codecs] trait AnyRefCodecs {
     * @param c    Empty value.
     * @param j    Iterable append function.
     * @param tct  Inner type parameter codec symbol.
-    * @param ev$1 Type tag of inner type parameter.
+    *
     * @tparam T Inner type parameter.
     * @tparam C Collection types.
     */
@@ -186,7 +186,7 @@ private[codecs] trait AnyRefCodecs {
     override def serialize(t: Map[K, V]): Json = {
       JsObject(
         t.toIndexedSeq.map {
-          case (k, v) => _x._1.serialize(k) -> _x._2.serialize(v)
+          case (k, v) => _x._1.serialize(k).asInstanceOf[JsLiteral] -> _x._2.serialize(v)
         }
       )
     }
