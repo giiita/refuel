@@ -4,7 +4,7 @@ import refuel.json.Json
 import refuel.json.error.UnsupportedOperation
 import refuel.json.tokenize.ResultBuff
 
-case class JsObject private[entry](bf: IndexedSeq[(Json, Json)]) extends JsVariable {
+case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends JsVariable {
 
   override def toString: String = s"""{${bf.map {
     case (_, JsEmpty) => s""
