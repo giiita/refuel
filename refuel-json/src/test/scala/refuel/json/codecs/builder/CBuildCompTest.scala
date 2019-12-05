@@ -3,6 +3,8 @@ package refuel.json.codecs.builder
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 import refuel.json.JsContext
 
+import scala.util.{Failure, Success, Try}
+
 object CBuildCompTest {
   case class A(test1: String, test2: String, test3: Option[String])
   case class AA(value: String)
@@ -56,6 +58,12 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
 
 
     "deserialize verification of complex codec build" in {
+      Try {
+        rawJson.jsonTree.named("root").named("1/4")
+      } match {
+        case Success(r) => println(s"TESTTEST : $r")
+        case Failure(e) => e.printStackTrace()
+      }
       rawJson.as(CodecC) shouldBe Right(casedValue)
     }
     "serialize verification of complex codec build" in {

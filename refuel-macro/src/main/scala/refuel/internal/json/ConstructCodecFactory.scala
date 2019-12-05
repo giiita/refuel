@@ -2,40 +2,36 @@ package refuel.internal.json
 
 import refuel.internal.PropertyDebugModeEnabler
 import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.{Codec, Json}
 import refuel.json.error.DeserializeFailed
+import refuel.json.{Codec, Json}
 
 import scala.reflect.macros.blackbox
 
-class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecFactory(c) with  PropertyDebugModeEnabler {
+class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecFactory(c) with PropertyDebugModeEnabler {
 
   import c.universe._
 
-  private[this] val jsonPkg = q"refuel.json"
-  private[this] val jsonEntryPkg = q"refuel.json.entry"
+  private[this] final val JsonPkg = q"refuel.json"
+  private[this] final val Codecs = q"refuel.json.codecs"
+  private[this] final val JsonEntryPkg = q"refuel.json.entry"
 
   def fromConst1[A: c.WeakTypeTag, Z: c.WeakTypeTag](n1: c.Expr[JsKeyLitOps])
                                                     (apl: c.Expr[A => Z])
                                                     (upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          recall(weakTypeOf[A]).splice
-            .deserialize(n1.splice.rec(bf)) match {
-            case Right(x) => Right(apl.splice.apply(x))
-            case Left(e) => Left(e)
-          }
-        }
-
-        override def serialize(t: Z): Json = {
-          c.Expr[Json => Json](
-            q"""
-             $jsonEntryPkg.JsObject()
-               .++($jsonEntryPkg.JsString($n1))
-               .++(_)
-           """).splice.apply(recall(weakTypeOf[A]).splice.serialize(upl.splice.apply(t).get))
-        }
-      }
+    val describer: c.Expr[Json => Json] = reify { bf =>
+      n1.splice.rec(bf)
+    }
+    val scriber: c.Expr[Json => Json] = c.Expr[Json => Json](
+      q"""{ a =>
+                   $JsonEntryPkg.JsObject()
+                     .++($JsonEntryPkg.JsString($n1))
+                     .++(a)
+               }: ($JsonPkg.Json => $JsonPkg.Json)
+          """)
+    c.Expr[Codec[Z]] {
+      q"""
+           new $Codecs.JoinableCodec.T1($describer)($scriber)($apl)($upl)(${recall(weakTypeOf[A])})
+         """
     }
   }
 
@@ -43,32 +39,25 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B) => Z])
   (upl: c.Expr[Z => Option[(A, B)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .asTuple2[A, B]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json)] = reify { bf =>
+      n1.splice.rec(bf) -> n2.splice.rec(bf)
+    }
+    val scriber: c.Expr[(Json, Json) => Json] = c.Expr[(Json, Json) => Json](
+      q"""({
                case (a, b) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-             }: ($jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2)
-          )
-        }
-      }
+             }: ($JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
+           """)
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T2($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}
+         )
+       """
     }
   }
 
@@ -76,77 +65,58 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C) => Z])
   (upl: c.Expr[Z => Option[(A, B, C)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .asTuple3[A, B, C]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json)] = reify { bf =>
+      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf))
+    }
+    val scriber: c.Expr[(Json, Json, Json) => Json] = c.Expr[(Json, Json, Json) => Json](
+      q"""({
                case (a, b, c) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3)
-          )
-        }
-      }
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
+           """)
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T3($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}
+         )
+       """
     }
   }
+
 
   def fromConst4[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, Z: c.WeakTypeTag]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .asTuple4[A, B, C, D]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json, Json)] = reify { bf =>
+      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf), n4.splice.rec(bf))
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json) => Json] = c.Expr[(Json, Json, Json, Json) => Json](
+      q"""({
                case (a, b, c, d) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4)
-          )
-        }
-      }
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
+           """)
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T4($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}, ${recall(weakTypeOf[D])}
+         )
+       """
     }
   }
 
@@ -171,18 +141,18 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -217,20 +187,20 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -267,22 +237,22 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -321,24 +291,24 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -379,26 +349,26 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -441,28 +411,28 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -507,30 +477,30 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -577,32 +547,32 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -651,34 +621,34 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -729,36 +699,36 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -811,38 +781,38 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -897,40 +867,40 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -987,42 +957,42 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -1081,44 +1051,44 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-                   .++($jsonEntryPkg.JsString($n18))
+                   .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -1179,46 +1149,46 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-                   .++($jsonEntryPkg.JsString($n18))
+                   .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-                   .++($jsonEntryPkg.JsString($n19))
+                   .++($JsonEntryPkg.JsString($n19))
                    .++(s)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -1281,48 +1251,48 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-                   .++($jsonEntryPkg.JsString($n18))
+                   .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-                   .++($jsonEntryPkg.JsString($n19))
+                   .++($JsonEntryPkg.JsString($n19))
                    .++(s)
-                   .++($jsonEntryPkg.JsString($n20))
+                   .++($JsonEntryPkg.JsString($n20))
                    .++(_t)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -1387,50 +1357,50 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t, _u) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-                   .++($jsonEntryPkg.JsString($n18))
+                   .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-                   .++($jsonEntryPkg.JsString($n19))
+                   .++($JsonEntryPkg.JsString($n19))
                    .++(s)
-                   .++($jsonEntryPkg.JsString($n20))
+                   .++($JsonEntryPkg.JsString($n20))
                    .++(_t)
-                   .++($jsonEntryPkg.JsString($n21))
+                   .++($JsonEntryPkg.JsString($n21))
                    .++(_u)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
@@ -1497,52 +1467,52 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
             q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t, _u, v) =>
-                 $jsonEntryPkg.JsObject()
-                   .++($jsonEntryPkg.JsString($n1))
+                 $JsonEntryPkg.JsObject()
+                   .++($JsonEntryPkg.JsString($n1))
                    .++(a)
-                   .++($jsonEntryPkg.JsString($n2))
+                   .++($JsonEntryPkg.JsString($n2))
                    .++(b)
-                   .++($jsonEntryPkg.JsString($n3))
+                   .++($JsonEntryPkg.JsString($n3))
                    .++(c)
-                   .++($jsonEntryPkg.JsString($n4))
+                   .++($JsonEntryPkg.JsString($n4))
                    .++(d)
-                   .++($jsonEntryPkg.JsString($n5))
+                   .++($JsonEntryPkg.JsString($n5))
                    .++(e)
-                   .++($jsonEntryPkg.JsString($n6))
+                   .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-                   .++($jsonEntryPkg.JsString($n7))
+                   .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-                   .++($jsonEntryPkg.JsString($n8))
+                   .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-                   .++($jsonEntryPkg.JsString($n9))
+                   .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-                   .++($jsonEntryPkg.JsString($n10))
+                   .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-                   .++($jsonEntryPkg.JsString($n11))
+                   .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-                   .++($jsonEntryPkg.JsString($n12))
+                   .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-                   .++($jsonEntryPkg.JsString($n13))
+                   .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-                   .++($jsonEntryPkg.JsString($n14))
+                   .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-                   .++($jsonEntryPkg.JsString($n15))
+                   .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-                   .++($jsonEntryPkg.JsString($n16))
+                   .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-                   .++($jsonEntryPkg.JsString($n17))
+                   .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-                   .++($jsonEntryPkg.JsString($n18))
+                   .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-                   .++($jsonEntryPkg.JsString($n19))
+                   .++($JsonEntryPkg.JsString($n19))
                    .++(s)
-                   .++($jsonEntryPkg.JsString($n20))
+                   .++($JsonEntryPkg.JsString($n20))
                    .++(_t)
-                   .++($jsonEntryPkg.JsString($n21))
+                   .++($JsonEntryPkg.JsString($n21))
                    .++(_u)
-                   .++($jsonEntryPkg.JsString($n22))
+                   .++($JsonEntryPkg.JsString($n22))
                    .++(v)
-             }: ($jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json, $jsonPkg.Json) => $jsonPkg.Json)
+             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
            """).splice.apply(
             recall(weakTypeOf[A]).splice.serialize(z._1),
             recall(weakTypeOf[B]).splice.serialize(z._2),
