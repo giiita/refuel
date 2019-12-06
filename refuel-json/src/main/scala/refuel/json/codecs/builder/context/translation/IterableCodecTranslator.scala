@@ -3,6 +3,7 @@ package refuel.json.codecs.builder.context.translation
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.{Codec, Json}
 import refuel.json.codecs.definition.AnyRefCodecs
+import refuel.json.entry.JsNull
 import refuel.json.error.DeserializeFailed
 
 import scala.reflect.ClassTag
@@ -18,7 +19,11 @@ trait IterableCodecTranslator extends AnyRefCodecs {
 
   def option[T](codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] {
     override def keyLiteralRef: JsKeyLitOps = codec.keyLiteralRef
-    override def deserialize(bf: Json): Either[DeserializeFailed, Option[T]] = OptionCodec(codec).deserialize(keyLiteralRef.rec(bf))
+    override def deserialize(bf: Json): Either[DeserializeFailed, Option[T]] =
+      keyLiteralRef.rec(bf).reduce(_ ++ _) match {
+        case JsNull => Right(None)
+        case _ => codec.deserialize(bf).map(Some(_))
+      }
     override def serialize(t: Option[T]): Json = codec.serialize(t)
   }
 }

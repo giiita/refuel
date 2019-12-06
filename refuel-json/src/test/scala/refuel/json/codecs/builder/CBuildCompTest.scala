@@ -87,7 +87,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
         case 1 => "3/4".parsed(
           CaseClassCodec.from[Depth3LineA]
         )(Depth2LineB.apply)(Depth2LineB.unapply)
-        case 2 => "3/4".parsed(
+        case 2 => "4/4".parsed(
           CaseClassCodec.from[Depth3LineA]
         )(Depth2LineB.apply)(Depth2LineB.unapply)
       }

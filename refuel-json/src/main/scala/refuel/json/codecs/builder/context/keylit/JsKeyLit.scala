@@ -1,4 +1,4 @@
-package refuel.json.codecs.builder.context
+package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.builder.CBuildComp
@@ -26,7 +26,7 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps {
    */
   def /(add: String): JsKeyLit = JsKeyLit(v :+ add)
 
-  def ++(that: JsKeyLitOps): JsKeyLitOps = copy(v ++ that.v)
+  def ++(that: JsKeyLitOps): JsKeyLitOps = MultipleKeyLit(Seq(this, that))
 
   /**
    * Generate a Codec to serialize / deserialize this constructed literal.
@@ -39,7 +39,7 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps {
    * @return
    */
   def parsed[A: Codec]: CBuildComp[A] = new CBuildComp[A] {
-    override private[json] val k: JsKeyLitOps = self.++(implicitly[Codec[A]].keyLiteralRef)
+    override private[json] val k: JsKeyLitOps = self
   }
 
   def parsed[A: Codec, B: Codec]
@@ -384,7 +384,7 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps {
    * @param x Root json object
    * @return
    */
-  override def rec(x: Json): Json = {
+  override def rec(x: Json): Seq[Json] = Seq {
     v.foldLeft(x)(_ named _)
   }
 

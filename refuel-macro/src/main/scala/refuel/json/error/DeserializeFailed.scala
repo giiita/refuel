@@ -9,3 +9,5 @@ final case class UnexpectedDeserializeType(msg: String, th: Throwable) extends D
 final case class UnexpectedDeserializedCollectionSize(msg: String) extends DeserializeFailed(msg, null)
 
 final case class CannotAccessJsonKey(msg: String) extends DeserializeFailed(msg, null)
+
+final case class CodecBuildException(msg: String) extends Exception(msg)

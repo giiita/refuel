@@ -1,24 +1,24 @@
 package refuel.json.codecs
 
 import refuel.internal.json.DeserializeResult
+import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.entry.JsNull
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
 import refuel.json.{Codec, Json}
 
 object JoinableCodec {
 
-  class T1[A, Z](describer: Json => Json)
-                (scriber: Json => Json)
-                (apl: A => Z)
-                (upl: Z => Option[A])
-                (implicit n1: Codec[A]) extends Codec[Z] {
+  abstract class T1[A, Z](scriber: Json => Json)
+                         (apl: A => Z)
+                         (upl: Z => Option[A])
+                         (implicit n1: Codec[A]) extends Codec[Z] {
     override def serialize(t: Z): Json = upl(t) match {
       case Some(a) => scriber.apply(n1.serialize(a))
       case None => JsNull
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      n1.deserialize(describer(bf)) match {
+      n1.deserialize(keyLiteralRef.rec(bf).head) match {
         case Right(x) => Right(apl(x))
         case Left(e) => Left(
           DeserializeFailPropagation(s"Internal structure analysis raised an exception at $bf", e)
@@ -27,8 +27,7 @@ object JoinableCodec {
     }
   }
 
-  class T2[A, B, Z](describer: Json => (Json, Json))
-                   (scriber: (Json, Json) => Json)
+  abstract class T2[A, B, Z](scriber: (Json, Json) => Json)
                    (apl: (A, B) => Z)
                    (upl: Z => Option[(A, B)])
                    (implicit n1: Codec[A], n2: Codec[B]) extends Codec[Z] {
@@ -41,9 +40,9 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
           .asTuple2 match {
           case Right(x) => Right(apl.tupled(x))
           case Left(e) => Left(
@@ -52,10 +51,14 @@ object JoinableCodec {
         }
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef
+    }
   }
 
-  class T3[A, B, C, Z](describer: Json => (Json, Json, Json))
-                      (scriber: (Json, Json, Json) => Json)
+  abstract class T3[A, B, C, Z](scriber: (Json, Json, Json) => Json)
                       (apl: (A, B, C) => Z)
                       (upl: Z => Option[(A, B, C)])
                       (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C]) extends Codec[Z] {
@@ -69,10 +72,10 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
           .asTuple3 match {
           case Right(x) => Right(apl.tupled(x))
           case Left(e) => Left(
@@ -81,10 +84,15 @@ object JoinableCodec {
         }
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef
+    }
   }
 
-  class T4[A, B, C, D, Z](describer: Json => (Json, Json, Json, Json))
-                         (scriber: (Json, Json, Json, Json) => Json)
+  abstract class T4[A, B, C, D, Z](scriber: (Json, Json, Json, Json) => Json)
                          (apl: (A, B, C, D) => Z)
                          (upl: Z => Option[(A, B, C, D)])
                          (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D]) extends Codec[Z] {
@@ -99,11 +107,11 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
           .asTuple4 match {
           case Right(x) => Right(apl.tupled(x))
           case Left(e) => Left(
@@ -112,10 +120,16 @@ object JoinableCodec {
         }
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef
+    }
   }
 
-  class T5[A, B, C, D, E, Z]
-  (describer: Json => (Json, Json, Json, Json, Json))
+  abstract class T5[A, B, C, D, E, Z]
   (scriber: (Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E) => Z)
   (upl: Z => Option[(A, B, C, D, E)])
@@ -132,20 +146,27 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
           .asTuple5
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef
+    }
   }
 
-  class T6[A, B, C, D, E, F, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json))
+  abstract class T6[A, B, C, D, E, F, Z]
   (scriber: (Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F) => Z)
   (upl: Z => Option[(A, B, C, D, E, F)])
@@ -163,21 +184,29 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
           .asTuple6
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef
+    }
   }
 
-  class T7[A, B, C, D, E, F, G, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json))
+  abstract class T7[A, B, C, D, E, F, G, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G)])
@@ -196,22 +225,31 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
           .asTuple7
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef
+    }
   }
 
-  class T8[A, B, C, D, E, F, G, H, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T8[A, B, C, D, E, F, G, H, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H)])
@@ -231,23 +269,33 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
           .asTuple8
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef
+    }
   }
 
-  class T9[A, B, C, D, E, F, G, H, I, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T9[A, B, C, D, E, F, G, H, I, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I)])
@@ -268,24 +316,35 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
           .asTuple9
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef
+    }
   }
 
-  class T10[A, B, C, D, E, F, G, H, I, J, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T10[A, B, C, D, E, F, G, H, I, J, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J)])
@@ -307,25 +366,37 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
           .asTuple10
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef
+    }
   }
 
-  class T11[A, B, C, D, E, F, G, H, I, J, K, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T11[A, B, C, D, E, F, G, H, I, J, K, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K)])
@@ -348,26 +419,39 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
           .asTuple11
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef
+    }
   }
 
-  class T12[A, B, C, D, E, F, G, H, I, J, K, L, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T12[A, B, C, D, E, F, G, H, I, J, K, L, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L)])
@@ -391,27 +475,41 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
           .asTuple12
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef
+    }
   }
 
-  class T13[A, B, C, D, E, F, G, H, I, J, K, L, M, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T13[A, B, C, D, E, F, G, H, I, J, K, L, M, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M)])
@@ -436,28 +534,43 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
           .asTuple13
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef
+    }
   }
 
-  class T14[A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T14[A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)])
@@ -483,29 +596,45 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
           .asTuple14
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef
+    }
   }
 
-  class T15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)])
@@ -532,30 +661,47 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
           .asTuple15
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef
+    }
   }
 
-  class T16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)])
@@ -583,31 +729,49 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
           .asTuple16
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef
+    }
   }
 
-  class T17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)])
@@ -636,32 +800,51 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
           .asTuple17
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef ++
+        n17.keyLiteralRef
+    }
   }
 
-  class T18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)])
@@ -691,33 +874,53 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
-          .and(n18.deserialize(r))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
+          .and(n18.deserialize(a(17)))
           .asTuple18
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef ++
+        n17.keyLiteralRef ++
+        n18.keyLiteralRef
+    }
   }
 
-  class T19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)])
@@ -748,34 +951,55 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
-          .and(n18.deserialize(r))
-          .and(n19.deserialize(s))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
+          .and(n18.deserialize(a(17)))
+          .and(n19.deserialize(a(18)))
           .asTuple19
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef ++
+        n17.keyLiteralRef ++
+        n18.keyLiteralRef ++
+        n19.keyLiteralRef
+    }
   }
 
-  class T20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)])
@@ -807,35 +1031,57 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
-          .and(n18.deserialize(r))
-          .and(n19.deserialize(s))
-          .and(n20.deserialize(t))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
+          .and(n18.deserialize(a(17)))
+          .and(n19.deserialize(a(18)))
+          .and(n20.deserialize(a(19)))
           .asTuple20
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef ++
+        n17.keyLiteralRef ++
+        n18.keyLiteralRef ++
+        n19.keyLiteralRef ++
+        n20.keyLiteralRef
+    }
   }
 
-  class T21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)])
@@ -868,36 +1114,59 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
-          .and(n18.deserialize(r))
-          .and(n19.deserialize(s))
-          .and(n20.deserialize(t))
-          .and(n21.deserialize(u))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
+          .and(n18.deserialize(a(17)))
+          .and(n19.deserialize(a(18)))
+          .and(n20.deserialize(a(19)))
+          .and(n21.deserialize(a(20)))
           .asTuple21
           .right.map(apl.tupled)
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = {
+      n1.keyLiteralRef ++
+        n2.keyLiteralRef ++
+        n3.keyLiteralRef ++
+        n4.keyLiteralRef ++
+        n5.keyLiteralRef ++
+        n6.keyLiteralRef ++
+        n7.keyLiteralRef ++
+        n8.keyLiteralRef ++
+        n9.keyLiteralRef ++
+        n10.keyLiteralRef ++
+        n11.keyLiteralRef ++
+        n12.keyLiteralRef ++
+        n13.keyLiteralRef ++
+        n14.keyLiteralRef ++
+        n15.keyLiteralRef ++
+        n16.keyLiteralRef ++
+        n17.keyLiteralRef ++
+        n18.keyLiteralRef ++
+        n19.keyLiteralRef ++
+        n20.keyLiteralRef ++
+        n21.keyLiteralRef
+    }
   }
 
-  class T22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, Z]
-  (describer: Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json))
+  abstract class T22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, Z]
   (scriber: (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json)
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)])
@@ -931,29 +1200,29 @@ object JoinableCodec {
     }
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-      describer(bf) match {
-        case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v) => DeserializeResult(n1.deserialize(a))
-          .and(n2.deserialize(b))
-          .and(n3.deserialize(c))
-          .and(n4.deserialize(d))
-          .and(n5.deserialize(e))
-          .and(n6.deserialize(f))
-          .and(n7.deserialize(g))
-          .and(n8.deserialize(h))
-          .and(n9.deserialize(i))
-          .and(n10.deserialize(j))
-          .and(n11.deserialize(k))
-          .and(n12.deserialize(l))
-          .and(n13.deserialize(m))
-          .and(n14.deserialize(n))
-          .and(n15.deserialize(o))
-          .and(n16.deserialize(p))
-          .and(n17.deserialize(q))
-          .and(n18.deserialize(r))
-          .and(n19.deserialize(s))
-          .and(n20.deserialize(t))
-          .and(n21.deserialize(u))
-          .and(n22.deserialize(v))
+      keyLiteralRef.rec(bf) match {
+        case a => DeserializeResult(n1.deserialize(a.head))
+          .and(n2.deserialize(a(1)))
+          .and(n3.deserialize(a(2)))
+          .and(n4.deserialize(a(3)))
+          .and(n5.deserialize(a(4)))
+          .and(n6.deserialize(a(5)))
+          .and(n7.deserialize(a(6)))
+          .and(n8.deserialize(a(7)))
+          .and(n9.deserialize(a(8)))
+          .and(n10.deserialize(a(9)))
+          .and(n11.deserialize(a(10)))
+          .and(n12.deserialize(a(11)))
+          .and(n13.deserialize(a(12)))
+          .and(n14.deserialize(a(13)))
+          .and(n15.deserialize(a(14)))
+          .and(n16.deserialize(a(15)))
+          .and(n17.deserialize(a(16)))
+          .and(n18.deserialize(a(17)))
+          .and(n19.deserialize(a(18)))
+          .and(n20.deserialize(a(19)))
+          .and(n21.deserialize(a(20)))
+          .and(n22.deserialize(a(21)))
           .asTuple22
           .right.map(apl.tupled)
       }

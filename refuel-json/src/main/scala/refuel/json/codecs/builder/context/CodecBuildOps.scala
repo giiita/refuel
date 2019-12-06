@@ -1,5 +1,6 @@
 package refuel.json.codecs.builder.context
 
+import refuel.json.codecs.builder.context.keylit.JsKeyLit
 import refuel.json.codecs.builder.context.translation.{IterableCodecTranslator, TupleCodecTranslator}
 import refuel.json.internal.JsonTokenizer
 import refuel.json.tokenize.ObjectTokenizer
