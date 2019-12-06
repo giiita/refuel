@@ -35,18 +35,13 @@ object DeserializeResult {
   type RT[T] = Either[DeserializeFailed, T]
 
   def apply[T](that: RT[T]): DeserializeResult = that match {
-    case Left(e) =>
-      println(s"fail $e")
-      FailureConfirmation(e)
+    case Left(e) => FailureConfirmation(e)
     case Right(r) => DeserializeResult1(r)
   }
 
   private[this] case class FailureConfirmation(fail: DeserializeFailed) extends DeserializeResult {
     override final val size = 0
-    override def and[NEW](that: RT[NEW]): DeserializeResult = {
-      println(s"propagated $fail with $that")
-      this
-    }
+    override def and[NEW](that: RT[NEW]): DeserializeResult = this
 
     override def asTuple2[A, B]: RT[(A, B)] = Left(fail)
     override def asTuple3[A, B, C]: RT[(A, B, C)] = Left(fail)

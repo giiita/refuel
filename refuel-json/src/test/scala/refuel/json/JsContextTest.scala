@@ -34,7 +34,8 @@ class JsContextTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
     "fail case - Not found key name" in {
       s"""{"value":"3"}""".as(ConstCodec.from("hoge")(JString.apply)(JString.unapply)) match {
         case Left(e) =>
-          e.getMessage shouldBe "Cannot deserialize to String -> null"
+          e.getMessage shouldBe s"""Internal structure analysis raised an exception at {"value":"3"}"""
+          e.getCause.getMessage shouldBe s"""Cannot deserialize to String -> null"""
         case Right(r)       => fail(r.toString)
       }
     }

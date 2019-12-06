@@ -1,5 +1,7 @@
 package refuel.json.codecs
 
+import refuel.internal.json.codec.builder.JsKeyLitOps
+import refuel.internal.json.codec.builder.JsKeyLitOps.SelfCirculationLit
 import refuel.json.Json
 import refuel.json.error.DeserializeFailed
 
@@ -17,4 +19,6 @@ trait Read[T] {
     * @return
     */
   def deserialize(bf: Json): Either[DeserializeFailed, T]
+
+  def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
 }
