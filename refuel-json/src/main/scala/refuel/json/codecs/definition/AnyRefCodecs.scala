@@ -1,5 +1,7 @@
 package refuel.json.codecs.definition
 
+import refuel.internal.json.codec.builder.JsKeyLitOps
+import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
 import refuel.json.entry._
 import refuel.json.{Codec, Json}
@@ -60,6 +62,8 @@ private[codecs] trait AnyRefCodecs {
     override def serialize(t: C[T]): Json = {
       JsArray(t.map(this.tct.serialize))
     }
+
+    override val keyLiteralRef: JsKeyLitOps = SelfCirculationLit
   }
 
   /**
@@ -135,6 +139,8 @@ private[codecs] trait AnyRefCodecs {
     override def serialize(t: Array[T]): Json = {
       JsArray(t.map(_x.serialize))
     }
+
+    override val keyLiteralRef: JsKeyLitOps = SelfCirculationLit
   }
 
   /**
@@ -190,6 +196,8 @@ private[codecs] trait AnyRefCodecs {
         }
       )
     }
+
+    override val keyLiteralRef: JsKeyLitOps = SelfCirculationLit
   }
 
   /**
@@ -218,6 +226,8 @@ private[codecs] trait AnyRefCodecs {
           _x.serialize(x)
         }
       }
+
+      override val keyLiteralRef: JsKeyLitOps = _x.keyLiteralRef
     }
   }
 }

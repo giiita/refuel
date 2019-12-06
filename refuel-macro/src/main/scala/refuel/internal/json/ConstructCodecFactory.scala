@@ -17,9 +17,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   def fromConst1[A: c.WeakTypeTag, Z](n1: c.Expr[JsKeyLitOps])
                                      (apl: c.Expr[A => Z])
                                      (upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => Json] = reify { bf =>
-      n1.splice.rec(bf)
-    }
     val scriber: c.Expr[Json => Json] = c.Expr[Json => Json](
       q"""{ a =>
                    $JsonEntryPkg.JsObject()
@@ -29,7 +26,9 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
           """)
     c.Expr[Codec[Z]] {
       q"""
-           new $Codecs.JoinableCodec.T1($describer)($scriber)($apl)($upl)(${recall(weakTypeOf[A])})
+        new $Codecs.JoinableCodec.T1($scriber)($apl)($upl)(${recall(weakTypeOf[A])}){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${reify(n1.splice)}
+        }
          """
     }
   }
@@ -38,9 +37,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B) => Z])
   (upl: c.Expr[Z => Option[(A, B)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json)] = reify { bf =>
-      n1.splice.rec(bf) -> n2.splice.rec(bf)
-    }
     val scriber: c.Expr[(Json, Json) => Json] = c.Expr[(Json, Json) => Json](
       q"""({
                case (a, b) =>
@@ -53,9 +49,16 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            """)
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T2($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T2($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice
+        }
+      }
+        }
        """
     }
   }
@@ -64,9 +67,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C) => Z])
   (upl: c.Expr[Z => Option[(A, B, C)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json)] = reify { bf =>
-      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf))
-    }
     val scriber: c.Expr[(Json, Json, Json) => Json] = c.Expr[(Json, Json, Json) => Json](
       q"""({
                case (a, b, c) =>
@@ -81,9 +81,17 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            """)
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T3($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T3($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice
+        }
+      }
+        }
        """
     }
   }
@@ -92,9 +100,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json)] = reify { bf =>
-      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf), n4.splice.rec(bf))
-    }
     val scriber: c.Expr[(Json, Json, Json, Json) => Json] = c.Expr[(Json, Json, Json, Json) => Json](
       q"""({
                case (a, b, c, d) =>
@@ -111,9 +116,18 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            """)
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T4($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T4($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}, ${recall(weakTypeOf[D])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice
+        }
+      }
+        }
        """
     }
   }
@@ -122,9 +136,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json)] = reify { bf =>
-      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf), n4.splice.rec(bf), n5.splice.rec(bf))
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json) => Json] = c.Expr[(Json, Json, Json, Json, Json) => Json](
       q"""({
                case (a, b, c, d, e) =>
@@ -143,9 +154,19 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            """)
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T5($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T5($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}, ${recall(weakTypeOf[D])}, ${recall(weakTypeOf[E])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice
+        }
+      }
+        }
        """
     }
   }
@@ -154,16 +175,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -193,14 +204,25 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T6($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T6($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
            ${recall(weakTypeOf[D])},
            ${recall(weakTypeOf[E])},
            ${recall(weakTypeOf[F])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice
+        }
+      }
+        }
        """
     }
   }
@@ -209,17 +231,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -252,7 +263,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T7($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T7($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -260,7 +271,19 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[E])},
            ${recall(weakTypeOf[F])},
            ${recall(weakTypeOf[G])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice
+        }
+      }
+        }
        """
     }
   }
@@ -269,18 +292,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -316,7 +327,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T8($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T8($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -325,7 +336,20 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[F])},
            ${recall(weakTypeOf[G])},
            ${recall(weakTypeOf[H])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice
+        }
+      }
+        }
        """
     }
   }
@@ -334,19 +358,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -385,7 +396,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T9($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T9($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -395,7 +406,21 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[G])},
            ${recall(weakTypeOf[H])},
            ${recall(weakTypeOf[I])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice
+        }
+      }
+        }
        """
     }
   }
@@ -404,20 +429,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -459,7 +470,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T10($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T10($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -470,7 +481,22 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[H])},
            ${recall(weakTypeOf[I])},
            ${recall(weakTypeOf[J])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice
+        }
+      }
+        }
        """
     }
   }
@@ -479,21 +505,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K)]]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -538,7 +549,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T11($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T11($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -550,7 +561,23 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[I])},
            ${recall(weakTypeOf[J])},
            ${recall(weakTypeOf[K])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice
+        }
+      }
+        }
        """
     }
   }
@@ -559,22 +586,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -622,7 +633,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T12($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T12($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -635,7 +646,24 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[J])},
            ${recall(weakTypeOf[K])},
            ${recall(weakTypeOf[L])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice
+        }
+      }
+        }
        """
     }
   }
@@ -644,23 +672,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -711,7 +722,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T13($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T13($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -725,7 +736,25 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[K])},
            ${recall(weakTypeOf[L])},
            ${recall(weakTypeOf[M])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice
+        }
+      }
+        }
        """
     }
   }
@@ -734,24 +763,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -805,7 +816,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T14($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T14($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -820,7 +831,26 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[L])},
            ${recall(weakTypeOf[M])},
            ${recall(weakTypeOf[N])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice
+        }
+      }
+        }
        """
     }
   }
@@ -829,25 +859,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -904,7 +915,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T15($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T15($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -920,7 +931,27 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[M])},
            ${recall(weakTypeOf[N])},
            ${recall(weakTypeOf[O])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice
+        }
+      }
+        }
        """
     }
   }
@@ -929,26 +960,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1008,7 +1019,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T16($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T16($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1025,7 +1036,28 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[N])},
            ${recall(weakTypeOf[O])},
            ${recall(weakTypeOf[P])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1034,27 +1066,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1117,7 +1128,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T17($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T17($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1135,7 +1146,29 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[O])},
            ${recall(weakTypeOf[P])},
            ${recall(weakTypeOf[Q])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1144,28 +1177,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf),
-        n18.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1231,7 +1242,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T18($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T18($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1250,7 +1261,30 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[P])},
            ${recall(weakTypeOf[Q])},
            ${recall(weakTypeOf[R])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice ++
+            n18.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1259,29 +1293,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf),
-        n18.splice.rec(bf),
-        n19.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1350,7 +1361,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T19($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T19($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1370,7 +1381,31 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[Q])},
            ${recall(weakTypeOf[R])},
            ${recall(weakTypeOf[S])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice ++
+            n18.splice ++
+            n19.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1379,30 +1414,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf),
-        n18.splice.rec(bf),
-        n19.splice.rec(bf),
-        n20.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1474,7 +1485,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T20($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T20($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1495,7 +1506,32 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[R])},
            ${recall(weakTypeOf[S])},
            ${recall(weakTypeOf[T])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice ++
+            n18.splice ++
+            n19.splice ++
+            n20.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1504,31 +1540,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps], n21: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf),
-        n18.splice.rec(bf),
-        n19.splice.rec(bf),
-        n20.splice.rec(bf),
-        n21.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1603,7 +1614,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T21($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T21($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1625,7 +1636,33 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[S])},
            ${recall(weakTypeOf[T])},
            ${recall(weakTypeOf[_U])}
-         )
+         ){
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice ++
+            n18.splice ++
+            n19.splice ++
+            n20.splice ++
+            n21.splice
+        }
+      }
+        }
        """
     }
   }
@@ -1634,32 +1671,6 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps], n21: c.Expr[JsKeyLitOps], n22: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U, V) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U, V)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
-      (
-        n1.splice.rec(bf),
-        n2.splice.rec(bf),
-        n3.splice.rec(bf),
-        n4.splice.rec(bf),
-        n5.splice.rec(bf),
-        n6.splice.rec(bf),
-        n7.splice.rec(bf),
-        n8.splice.rec(bf),
-        n9.splice.rec(bf),
-        n10.splice.rec(bf),
-        n11.splice.rec(bf),
-        n12.splice.rec(bf),
-        n13.splice.rec(bf),
-        n14.splice.rec(bf),
-        n15.splice.rec(bf),
-        n16.splice.rec(bf),
-        n17.splice.rec(bf),
-        n18.splice.rec(bf),
-        n19.splice.rec(bf),
-        n20.splice.rec(bf),
-        n21.splice.rec(bf),
-        n22.splice.rec(bf)
-      )
-    }
     val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
       c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
         q"""({
@@ -1737,7 +1748,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
     c.Expr[Codec[Z]] {
       q"""
-         new $Codecs.JoinableCodec.T22($describer)($scriber)($apl)($upl)(
+         new $Codecs.JoinableCodec.T22($scriber)($apl)($upl)(
            ${recall(weakTypeOf[A])},
            ${recall(weakTypeOf[B])},
            ${recall(weakTypeOf[C])},
@@ -1760,7 +1771,34 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
            ${recall(weakTypeOf[T])},
            ${recall(weakTypeOf[_U])},
            ${recall(weakTypeOf[V])}
-         )
+         ) {
+          override val keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = ${
+        reify {
+          n1.splice ++
+            n2.splice ++
+            n3.splice ++
+            n4.splice ++
+            n5.splice ++
+            n6.splice ++
+            n7.splice ++
+            n8.splice ++
+            n9.splice ++
+            n10.splice ++
+            n11.splice ++
+            n12.splice ++
+            n13.splice ++
+            n14.splice ++
+            n15.splice ++
+            n16.splice ++
+            n17.splice ++
+            n18.splice ++
+            n19.splice ++
+            n20.splice ++
+            n21.splice ++
+            n22.splice
+        }
+      }
+        }
        """
     }
   }
