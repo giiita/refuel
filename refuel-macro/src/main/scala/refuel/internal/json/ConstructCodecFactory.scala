@@ -2,7 +2,6 @@ package refuel.internal.json
 
 import refuel.internal.PropertyDebugModeEnabler
 import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.error.DeserializeFailed
 import refuel.json.{Codec, Json}
 
 import scala.reflect.macros.blackbox
@@ -15,9 +14,9 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   private[this] final val Codecs = q"refuel.json.codecs"
   private[this] final val JsonEntryPkg = q"refuel.json.entry"
 
-  def fromConst1[A: c.WeakTypeTag, Z: c.WeakTypeTag](n1: c.Expr[JsKeyLitOps])
-                                                    (apl: c.Expr[A => Z])
-                                                    (upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
+  def fromConst1[A: c.WeakTypeTag, Z](n1: c.Expr[JsKeyLitOps])
+                                     (apl: c.Expr[A => Z])
+                                     (upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
     val describer: c.Expr[Json => Json] = reify { bf =>
       n1.splice.rec(bf)
     }
@@ -35,7 +34,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
   }
 
-  def fromConst2[A: c.WeakTypeTag, B: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst2[A: c.WeakTypeTag, B: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B) => Z])
   (upl: c.Expr[Z => Option[(A, B)]]): c.Expr[Codec[Z]] = {
@@ -61,7 +60,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
   }
 
-  def fromConst3[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst3[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C) => Z])
   (upl: c.Expr[Z => Option[(A, B, C)]]): c.Expr[Codec[Z]] = {
@@ -89,8 +88,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
   }
 
-
-  def fromConst4[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst4[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D)]]): c.Expr[Codec[Z]] = {
@@ -120,26 +118,15 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
     }
   }
 
-  def fromConst5[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst5[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .asTuple5[A, B, C, D, E]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json)] = reify { bf =>
+      (n1.splice.rec(bf), n2.splice.rec(bf), n3.splice.rec(bf), n4.splice.rec(bf), n5.splice.rec(bf))
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json) => Json] = c.Expr[(Json, Json, Json, Json, Json) => Json](
+      q"""({
                case (a, b, c, d, e) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -153,39 +140,33 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++($JsonEntryPkg.JsString($n5))
                    .++(e)
              }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5)
-          )
-        }
-      }
+           """)
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T5($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])}, ${recall(weakTypeOf[B])}, ${recall(weakTypeOf[C])}, ${recall(weakTypeOf[D])}, ${recall(weakTypeOf[E])}
+         )
+       """
     }
   }
 
-  def fromConst6[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst6[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .asTuple6[A, B, C, D, E, F]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -200,42 +181,48 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(e)
                    .++($JsonEntryPkg.JsString($n6))
                    .++(f)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T6($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])}
+         )
+       """
     }
   }
 
-  def fromConst7[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst7[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .asTuple7[A, B, C, D, E, F, G]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -252,44 +239,51 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(f)
                    .++($JsonEntryPkg.JsString($n7))
                    .++(g)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T7($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])}
+         )
+       """
     }
   }
 
-  def fromConst8[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst8[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .asTuple8[A, B, C, D, E, F, G, H]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -308,46 +302,54 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(g)
                    .++($JsonEntryPkg.JsString($n8))
                    .++(h)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T8($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])}
+         )
+       """
     }
   }
 
-  def fromConst9[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst9[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .asTuple9[A, B, C, D, E, F, G, H, I]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -368,48 +370,57 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(h)
                    .++($JsonEntryPkg.JsString($n9))
                    .++(i)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T9($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])}
+         )
+       """
     }
   }
 
-  def fromConst10[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst10[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .asTuple10[A, B, C, D, E, F, G, H, I, J]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -432,50 +443,60 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(i)
                    .++($JsonEntryPkg.JsString($n10))
                    .++(j)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T10($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])}
+         )
+       """
     }
   }
 
-  def fromConst11[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst11[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .asTuple11[A, B, C, D, E, F, G, H, I, J, K]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -500,52 +521,63 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(j)
                    .++($JsonEntryPkg.JsString($n11))
                    .++(k)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T11($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])}
+         )
+       """
     }
   }
 
-  def fromConst12[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst12[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .asTuple12[A, B, C, D, E, F, G, H, I, J, K, L]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -572,54 +604,66 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(k)
                    .++($JsonEntryPkg.JsString($n12))
                    .++(l)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T12($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])}
+         )
+       """
     }
   }
 
-  def fromConst13[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst13[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .asTuple13[A, B, C, D, E, F, G, H, I, J, K, L, M]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -648,56 +692,69 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(l)
                    .++($JsonEntryPkg.JsString($n13))
                    .++(m)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T13($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])}
+         )
+       """
     }
   }
 
-  def fromConst14[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst14[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .asTuple14[A, B, C, D, E, F, G, H, I, J, K, L, M, N]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -728,58 +785,72 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(m)
                    .++($JsonEntryPkg.JsString($n14))
                    .++(n)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T14($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])}
+         )
+       """
     }
   }
 
-  def fromConst15[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst15[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .asTuple15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -812,60 +883,75 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(n)
                    .++($JsonEntryPkg.JsString($n15))
                    .++(o)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T15($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])}
+         )
+       """
     }
   }
 
-  def fromConst16[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst16[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .asTuple16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -900,62 +986,78 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(o)
                    .++($JsonEntryPkg.JsString($n16))
                    .++(p)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T16($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])}
+         )
+       """
     }
   }
 
-  def fromConst17[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst17[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .asTuple17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -992,64 +1094,81 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(p)
                    .++($JsonEntryPkg.JsString($n17))
                    .++(q)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T17($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])}
+         )
+       """
     }
   }
 
-  def fromConst18[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst18[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .and(recall(weakTypeOf[R]).splice.deserialize(n18.splice.rec(bf)))
-            .asTuple18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf),
+        n18.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -1088,66 +1207,84 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(q)
                    .++($JsonEntryPkg.JsString($n18))
                    .++(r)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17),
-            recall(weakTypeOf[R]).splice.serialize(z._18)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T18($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])},
+           ${recall(weakTypeOf[R])}
+         )
+       """
     }
   }
 
-  def fromConst19[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst19[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .and(recall(weakTypeOf[R]).splice.deserialize(n18.splice.rec(bf)))
-            .and(recall(weakTypeOf[S]).splice.deserialize(n19.splice.rec(bf)))
-            .asTuple19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf),
+        n18.splice.rec(bf),
+        n19.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -1188,68 +1325,87 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(r)
                    .++($JsonEntryPkg.JsString($n19))
                    .++(s)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17),
-            recall(weakTypeOf[R]).splice.serialize(z._18),
-            recall(weakTypeOf[S]).splice.serialize(z._19)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T19($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])},
+           ${recall(weakTypeOf[R])},
+           ${recall(weakTypeOf[S])}
+         )
+       """
     }
   }
 
-  def fromConst20[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, T: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst20[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, T: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .and(recall(weakTypeOf[R]).splice.deserialize(n18.splice.rec(bf)))
-            .and(recall(weakTypeOf[S]).splice.deserialize(n19.splice.rec(bf)))
-            .and(recall(weakTypeOf[T]).splice.deserialize(n20.splice.rec(bf)))
-            .asTuple20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf),
+        n18.splice.rec(bf),
+        n19.splice.rec(bf),
+        n20.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -1292,70 +1448,90 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(s)
                    .++($JsonEntryPkg.JsString($n20))
                    .++(_t)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17),
-            recall(weakTypeOf[R]).splice.serialize(z._18),
-            recall(weakTypeOf[S]).splice.serialize(z._19),
-            recall(weakTypeOf[T]).splice.serialize(z._20)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T20($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])},
+           ${recall(weakTypeOf[R])},
+           ${recall(weakTypeOf[S])},
+           ${recall(weakTypeOf[T])}
+         )
+       """
     }
   }
 
-  def fromConst21[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, T: c.WeakTypeTag, _U: c.WeakTypeTag, Z: c.WeakTypeTag]
+  def fromConst21[A: c.WeakTypeTag, B: c.WeakTypeTag, C: c.WeakTypeTag, D: c.WeakTypeTag, E: c.WeakTypeTag, F: c.WeakTypeTag, G: c.WeakTypeTag, H: c.WeakTypeTag, I: c.WeakTypeTag, J: c.WeakTypeTag, K: c.WeakTypeTag, L: c.WeakTypeTag, M: c.WeakTypeTag, N: c.WeakTypeTag, O: c.WeakTypeTag, P: c.WeakTypeTag, Q: c.WeakTypeTag, R: c.WeakTypeTag, S: c.WeakTypeTag, T: c.WeakTypeTag, _U: c.WeakTypeTag, Z]
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps], n21: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U) => Z])
-  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U)]]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .and(recall(weakTypeOf[R]).splice.deserialize(n18.splice.rec(bf)))
-            .and(recall(weakTypeOf[S]).splice.deserialize(n19.splice.rec(bf)))
-            .and(recall(weakTypeOf[T]).splice.deserialize(n20.splice.rec(bf)))
-            .and(recall(weakTypeOf[_U]).splice.deserialize(n21.splice.rec(bf)))
-            .asTuple21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+  (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf),
+        n18.splice.rec(bf),
+        n19.splice.rec(bf),
+        n20.splice.rec(bf),
+        n21.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t, _u) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -1400,32 +1576,57 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(_t)
                    .++($JsonEntryPkg.JsString($n21))
                    .++(_u)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17),
-            recall(weakTypeOf[R]).splice.serialize(z._18),
-            recall(weakTypeOf[S]).splice.serialize(z._19),
-            recall(weakTypeOf[T]).splice.serialize(z._20),
-            recall(weakTypeOf[_U]).splice.serialize(z._21)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T21($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])},
+           ${recall(weakTypeOf[R])},
+           ${recall(weakTypeOf[S])},
+           ${recall(weakTypeOf[T])},
+           ${recall(weakTypeOf[_U])}
+         )
+       """
     }
   }
 
@@ -1433,39 +1634,35 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
   (n1: c.Expr[JsKeyLitOps], n2: c.Expr[JsKeyLitOps], n3: c.Expr[JsKeyLitOps], n4: c.Expr[JsKeyLitOps], n5: c.Expr[JsKeyLitOps], n6: c.Expr[JsKeyLitOps], n7: c.Expr[JsKeyLitOps], n8: c.Expr[JsKeyLitOps], n9: c.Expr[JsKeyLitOps], n10: c.Expr[JsKeyLitOps], n11: c.Expr[JsKeyLitOps], n12: c.Expr[JsKeyLitOps], n13: c.Expr[JsKeyLitOps], n14: c.Expr[JsKeyLitOps], n15: c.Expr[JsKeyLitOps], n16: c.Expr[JsKeyLitOps], n17: c.Expr[JsKeyLitOps], n18: c.Expr[JsKeyLitOps], n19: c.Expr[JsKeyLitOps], n20: c.Expr[JsKeyLitOps], n21: c.Expr[JsKeyLitOps], n22: c.Expr[JsKeyLitOps])
   (apl: c.Expr[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U, V) => Z])
   (upl: c.Expr[Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U, V)]])(implicit zt: c.WeakTypeTag[Z]): c.Expr[Codec[Z]] = {
-    reify {
-      new Codec[Z] {
-        override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
-          DeserializeResult(recall(weakTypeOf[A]).splice.deserialize(n1.splice.rec(bf)))
-            .and(recall(weakTypeOf[B]).splice.deserialize(n2.splice.rec(bf)))
-            .and(recall(weakTypeOf[C]).splice.deserialize(n3.splice.rec(bf)))
-            .and(recall(weakTypeOf[D]).splice.deserialize(n4.splice.rec(bf)))
-            .and(recall(weakTypeOf[E]).splice.deserialize(n5.splice.rec(bf)))
-            .and(recall(weakTypeOf[F]).splice.deserialize(n6.splice.rec(bf)))
-            .and(recall(weakTypeOf[G]).splice.deserialize(n7.splice.rec(bf)))
-            .and(recall(weakTypeOf[H]).splice.deserialize(n8.splice.rec(bf)))
-            .and(recall(weakTypeOf[I]).splice.deserialize(n9.splice.rec(bf)))
-            .and(recall(weakTypeOf[J]).splice.deserialize(n10.splice.rec(bf)))
-            .and(recall(weakTypeOf[K]).splice.deserialize(n11.splice.rec(bf)))
-            .and(recall(weakTypeOf[L]).splice.deserialize(n12.splice.rec(bf)))
-            .and(recall(weakTypeOf[M]).splice.deserialize(n13.splice.rec(bf)))
-            .and(recall(weakTypeOf[N]).splice.deserialize(n14.splice.rec(bf)))
-            .and(recall(weakTypeOf[O]).splice.deserialize(n15.splice.rec(bf)))
-            .and(recall(weakTypeOf[P]).splice.deserialize(n16.splice.rec(bf)))
-            .and(recall(weakTypeOf[Q]).splice.deserialize(n17.splice.rec(bf)))
-            .and(recall(weakTypeOf[R]).splice.deserialize(n18.splice.rec(bf)))
-            .and(recall(weakTypeOf[S]).splice.deserialize(n19.splice.rec(bf)))
-            .and(recall(weakTypeOf[T]).splice.deserialize(n20.splice.rec(bf)))
-            .and(recall(weakTypeOf[_U]).splice.deserialize(n21.splice.rec(bf)))
-            .and(recall(weakTypeOf[V]).splice.deserialize(n22.splice.rec(bf)))
-            .asTuple22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, _U, V]
-            .right.map(apl.splice.tupled.apply)
-        }
-
-        override def serialize(t: Z): Json = {
-          val z = upl.splice.apply(t).get
-          c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
-            q"""({
+    val describer: c.Expr[Json => (Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json)] = reify { bf =>
+      (
+        n1.splice.rec(bf),
+        n2.splice.rec(bf),
+        n3.splice.rec(bf),
+        n4.splice.rec(bf),
+        n5.splice.rec(bf),
+        n6.splice.rec(bf),
+        n7.splice.rec(bf),
+        n8.splice.rec(bf),
+        n9.splice.rec(bf),
+        n10.splice.rec(bf),
+        n11.splice.rec(bf),
+        n12.splice.rec(bf),
+        n13.splice.rec(bf),
+        n14.splice.rec(bf),
+        n15.splice.rec(bf),
+        n16.splice.rec(bf),
+        n17.splice.rec(bf),
+        n18.splice.rec(bf),
+        n19.splice.rec(bf),
+        n20.splice.rec(bf),
+        n21.splice.rec(bf),
+        n22.splice.rec(bf)
+      )
+    }
+    val scriber: c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json] = {
+      c.Expr[(Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json, Json) => Json](
+        q"""({
                case (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, _t, _u, v) =>
                  $JsonEntryPkg.JsObject()
                    .++($JsonEntryPkg.JsString($n1))
@@ -1512,33 +1709,59 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
                    .++(_u)
                    .++($JsonEntryPkg.JsString($n22))
                    .++(v)
-             }: ($JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json, $JsonPkg.Json) => $JsonPkg.Json)
-           """).splice.apply(
-            recall(weakTypeOf[A]).splice.serialize(z._1),
-            recall(weakTypeOf[B]).splice.serialize(z._2),
-            recall(weakTypeOf[C]).splice.serialize(z._3),
-            recall(weakTypeOf[D]).splice.serialize(z._4),
-            recall(weakTypeOf[E]).splice.serialize(z._5),
-            recall(weakTypeOf[F]).splice.serialize(z._6),
-            recall(weakTypeOf[G]).splice.serialize(z._7),
-            recall(weakTypeOf[H]).splice.serialize(z._8),
-            recall(weakTypeOf[I]).splice.serialize(z._9),
-            recall(weakTypeOf[J]).splice.serialize(z._10),
-            recall(weakTypeOf[K]).splice.serialize(z._11),
-            recall(weakTypeOf[L]).splice.serialize(z._12),
-            recall(weakTypeOf[M]).splice.serialize(z._13),
-            recall(weakTypeOf[N]).splice.serialize(z._14),
-            recall(weakTypeOf[O]).splice.serialize(z._15),
-            recall(weakTypeOf[P]).splice.serialize(z._16),
-            recall(weakTypeOf[Q]).splice.serialize(z._17),
-            recall(weakTypeOf[R]).splice.serialize(z._18),
-            recall(weakTypeOf[S]).splice.serialize(z._19),
-            recall(weakTypeOf[T]).splice.serialize(z._20),
-            recall(weakTypeOf[_U]).splice.serialize(z._21),
-            recall(weakTypeOf[V]).splice.serialize(z._22)
-          )
-        }
-      }
+             }: (
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json,
+             $JsonPkg.Json
+             ) => $JsonPkg.Json)
+           """)
+    }
+    c.Expr[Codec[Z]] {
+      q"""
+         new $Codecs.JoinableCodec.T22($describer)($scriber)($apl)($upl)(
+           ${recall(weakTypeOf[A])},
+           ${recall(weakTypeOf[B])},
+           ${recall(weakTypeOf[C])},
+           ${recall(weakTypeOf[D])},
+           ${recall(weakTypeOf[E])},
+           ${recall(weakTypeOf[F])},
+           ${recall(weakTypeOf[G])},
+           ${recall(weakTypeOf[H])},
+           ${recall(weakTypeOf[I])},
+           ${recall(weakTypeOf[J])},
+           ${recall(weakTypeOf[K])},
+           ${recall(weakTypeOf[L])},
+           ${recall(weakTypeOf[M])},
+           ${recall(weakTypeOf[N])},
+           ${recall(weakTypeOf[O])},
+           ${recall(weakTypeOf[P])},
+           ${recall(weakTypeOf[Q])},
+           ${recall(weakTypeOf[R])},
+           ${recall(weakTypeOf[S])},
+           ${recall(weakTypeOf[T])},
+           ${recall(weakTypeOf[_U])},
+           ${recall(weakTypeOf[V])}
+         )
+       """
     }
   }
 }

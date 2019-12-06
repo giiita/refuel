@@ -52,7 +52,7 @@ class CaseCodecFactory(val c: blackbox.Context)
   }
 
   def fromInferOrCase[T: c.WeakTypeTag]: Expr[Codec[T]] = {
-    println(s"Get for ${weakTypeOf[T]}")
+    debuglog(c)(s"Get for ${weakTypeOf[T]}")
     c.inferImplicitValue(weakTypeOf[Codec[T]]) match {
       case x if x.isEmpty => generateCodec[T]
       case x => c.Expr[Codec[T]](x)

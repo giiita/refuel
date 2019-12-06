@@ -67,7 +67,7 @@ lazy val commonDependencySettings = Seq(
   
   libraryDependencies ++= {
     Seq(
-      "org.scalatest" %% "scalatest" % "3.0.8" % Test
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test
     )
   },
   libraryDependencies ++= scl213(Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")).value
@@ -189,12 +189,12 @@ lazy val `test` = (project in file("refuel-test"))
   .settings(assemblySettings, commonDependencySettings)
   .settings(
     name := "refuel-test",
-    description := "DI testing framework.",
-    libraryDependencies ++= {
-      Seq(
-        "org.scalatest" %% "scalatest" % "3.0.8"
-      )
-    }
+    description := "DI testing framework."
+//    libraryDependencies ++= {
+//      Seq(
+//        "org.scalatest" %% "scalatest" % "3.1.0"
+//      )
+//    }
   ).enablePlugins(JavaAppPackaging)
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
