@@ -1,7 +1,7 @@
 # refuel-json
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-json" % "1.0.0-RC3"
+libraryDependencies += "com.phylage" %% "refuel-json" % "1.0.0-RC4"
 ```
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.
@@ -56,3 +56,54 @@ val value = b
 ```
 
 Similarly, ConstCodec does not need to declare the inner class Codec.<br/>
+
+## Codec build DSL
+
+It is possible to build arbitrary Codec by combining specific Codec.
+
+```
+{
+  "area1": {
+    "parent1": [
+      {
+        "childId": 1,
+        "props": ["xxx", "yyy"]
+      },
+      {
+        "childId": 2,
+        "props": ["aaa"],
+        "ability": ["???"]
+      }
+    ],
+    "parent3": [
+      {
+        "childId": 3,
+        "props": [],
+        "ability": ["???", "???", "???"]
+      },
+      {
+        "childId": 4,
+        "props": ["aaa"],
+      }
+    ]
+  }
+}
+```
+
+```scala
+  val parentsCodec = (
+    option("parent1".parsed(vector(ChildCodec))) ++
+    option("parent1".parsed(vector(ChildCodec))) ++
+    option("parent1".parsed(vector(ChildCodec)))
+  )(Parents.apply)(Parents.unapply)
+
+  val rootCodec = (
+    "area1".parsed(option(parentsCodec)) ++
+    "area2".parsed(option(parentsCodec)) ++
+    "area3".parsed(option(parentsCodec))
+  )(Root.apply)(Root.unapply)
+```
+
+In this way, codecs can be generated according to JsonFormat, domain model, etc.
+
+

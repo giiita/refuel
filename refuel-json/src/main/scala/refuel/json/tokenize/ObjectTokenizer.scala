@@ -23,7 +23,7 @@ private[json] object ObjectTokenizer
     read(v) match {
       case OBJECT_START              =>
       case x if SKIP_OBJ.contains(x) => shiftValidStart(v)
-      case _                         => throw IllegalJsonFormat("Json stream must be started '{'")
+      case x                         => throw IllegalJsonFormat(s"Json stream must be started '{' but was '$x'")
     }
   }
 

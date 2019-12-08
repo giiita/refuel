@@ -20,9 +20,8 @@ trait IterableCodecTranslator extends AnyRefCodecs {
   def option[T](codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] {
     override def keyLiteralRef: JsKeyLitOps = codec.keyLiteralRef
     override def deserialize(bf: Json): Either[DeserializeFailed, Option[T]] =
-      keyLiteralRef.rec(bf).reduce(_ ++ _) match {
-        case JsNull => Right(None)
-        case _ => codec.deserialize(bf).map(Some(_))
+      if (keyLiteralRef.rec(bf).contains(JsNull)) Right(None) else {
+        codec.deserialize(bf).right.map(Some(_))
       }
     override def serialize(t: Option[T]): Json = codec.serialize(t)
   }
