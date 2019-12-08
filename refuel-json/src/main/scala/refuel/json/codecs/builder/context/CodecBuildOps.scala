@@ -1,12 +1,13 @@
 package refuel.json.codecs.builder.context
 
-import refuel.json.codecs.builder.context.translation.{IterableCodecTranslator, TupleCodecTranslator}
+import refuel.json.codecs.builder.context.keylit.JsKeyLit
+import refuel.json.codecs.builder.context.translation.{IterableCodecTranslator, RootCodecTranslator, TupleCodecTranslator}
 import refuel.json.internal.JsonTokenizer
 import refuel.json.tokenize.ObjectTokenizer
 
 import scala.language.implicitConversions
 
-trait CodecBuildOps extends IterableCodecTranslator with TupleCodecTranslator {
+trait CodecBuildOps extends IterableCodecTranslator with TupleCodecTranslator with RootCodecTranslator {
   _: JsTokenizeOps =>
 
   /**

@@ -6,7 +6,6 @@ lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 
 
 lazy val assemblySettings = Seq(
-  scalaVersion := GLOBAL_SCALA_VERSION,
   publishTo := Some(
     if (isSnapshot.value)
       Opts.resolver.sonatypeSnapshots
@@ -39,16 +38,6 @@ lazy val assemblySettings = Seq(
   )
 )
 
-//lazy val sc213 = scalaVersion.map {
-//  case "2.13.1" => {
-//    Seq(
-//      libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0",
-//      scalacOptions ++= Seq("-Xmax-classfile-name", "256")
-//    )
-//  }
-//  case _ => Nil
-//}
-
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => f
@@ -67,7 +56,7 @@ lazy val commonDependencySettings = Seq(
   
   libraryDependencies ++= {
     Seq(
-      "org.scalatest" %% "scalatest" % "3.0.8" % Test
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test
     )
   },
   libraryDependencies ++= scl213(Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")).value
@@ -86,7 +75,6 @@ lazy val root = project.in(file("."))
   ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
-  scalaVersion := GLOBAL_SCALA_VERSION,
   crossScalaVersions := buildTargetVersion,
   resourceDirectories in Compile += {
     (ThisProject / baseDirectory).value / "project" / "resources"
@@ -140,9 +128,6 @@ lazy val json = (project in file("refuel-json"))
   .settings(
     name := "refuel-json",
     description := "Various classes serializer / deserializer",
-    libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % "2.7.4"
-    ),
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
     javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
@@ -189,12 +174,7 @@ lazy val `test` = (project in file("refuel-test"))
   .settings(assemblySettings, commonDependencySettings)
   .settings(
     name := "refuel-test",
-    description := "DI testing framework.",
-    libraryDependencies ++= {
-      Seq(
-        "org.scalatest" %% "scalatest" % "3.0.8"
-      )
-    }
+    description := "DI testing framework."
   ).enablePlugins(JavaAppPackaging)
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
@@ -202,15 +182,21 @@ lazy val root_interfaces = (project in file("test-across-module/root_interfaces"
   .settings(commonDependencySettings, assemblySettings)
   .settings(
     publishArtifact := false,
-    releaseProcess := Nil
-  )
+    releaseProcess := Nil,
+    publish := {},
+    publishLocal := {},
+    publishTo := None
+  ).enablePlugins(JmhPlugin)
 
 lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
   .dependsOn(root_interfaces)
   .settings(commonDependencySettings, assemblySettings)
   .settings(
     publishArtifact := false,
-    releaseProcess := Nil
+    releaseProcess := Nil,
+    publish := {},
+    publishLocal := {},
+    publishTo := None
   )
 
 lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
@@ -218,7 +204,8 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
   .settings(commonDependencySettings, assemblySettings)
   .settings(
     publishArtifact := false,
-    releaseProcess := Nil
+    releaseProcess := Nil,
+    publish := {},
+    publishLocal := {},
+    publishTo := None
   )
-
-val GLOBAL_SCALA_VERSION = buildTargetVersion.last

@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
   * On the other hand, AnyRefCodecImpl is a wrapper to automatically derive recursive AnyRefCodec.
   *
   */
-trait AnyRefCodecsImpl extends AnyRefCodecs {
+trait AnyRefCodecsExport extends AnyRefCodecs {
   /**
     * [[Seq]] codec generator.
     *

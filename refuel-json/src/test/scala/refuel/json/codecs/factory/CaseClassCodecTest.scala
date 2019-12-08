@@ -1,7 +1,9 @@
 package refuel.json.codecs.factory
 
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.All
+import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.error.DeserializeFailed
@@ -61,6 +63,8 @@ class CaseClassCodecTest
         .++(JsString("aaa"))
         .++(CaseClassCodec.from[Option[AAA]].serialize(t.aaa))
     }
+
+    override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
   }
 
   "Load implicit codec" should {
@@ -94,6 +98,8 @@ class CaseClassCodecTest
 
         override def deserialize(bf: Json): Either[DeserializeFailed, DDD] =
           Right(DDD(2, CCC(3, bbbs)))
+
+        override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
       }
 
       s"""{"eeeId":1,"ddd":{"overwrite":"insertion value"}}""".as(

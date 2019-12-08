@@ -32,7 +32,7 @@ trait DeserializeResult {
 
 object DeserializeResult {
   
-  private[json] type RT[T] = Either[DeserializeFailed, T]
+  type RT[T] = Either[DeserializeFailed, T]
 
   def apply[T](that: RT[T]): DeserializeResult = that match {
     case Left(e) => FailureConfirmation(e)
@@ -71,7 +71,9 @@ object DeserializeResult {
     override final val size = 1
     override def and[NEW](that: RT[NEW]): DeserializeResult = that match {
       case Right(z) => DeserializeResult2(a, z)
-      case Left(e) => FailureConfirmation(e)
+      case Left(e) =>
+        println(s"fail $e")
+        FailureConfirmation(e)
     }
   }
   private[this] case class DeserializeResult2[AR, BR](a: AR, b: BR) extends DeserializeResult {
