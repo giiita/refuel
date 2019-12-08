@@ -1,8 +1,9 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
+
+
 
 lazy val assemblySettings = Seq(
   publishTo := Some(
@@ -23,11 +24,10 @@ lazy val assemblySettings = Seq(
     "-language:higherKinds",
     "-language:implicitConversions"
   ),
+  releaseCrossBuild := true,
+  crossScalaVersions := buildTargetVersion,
   licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-  scalaVersion in ThisBuild := buildTargetVersion.last,
-  crossScalaVersions in ThisBuild := buildTargetVersion,
-  releaseCrossBuild in ThisBuild := true,
-  releaseProcess in ThisBuild := Seq[ReleaseStep](
+  releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
     runClean,
@@ -41,19 +41,19 @@ lazy val assemblySettings = Seq(
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => f
-    case _ => Nil
+    case _        => Nil
   }
 }
 
 def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => Nil
-    case _ => f
+    case _        => f
   }
 }
 
 lazy val commonDependencySettings = Seq(
-
+  
   libraryDependencies ++= {
     Seq(
       "org.scalatest" %% "scalatest" % "3.1.0" % Test
@@ -75,7 +75,7 @@ lazy val root = project.in(file("."))
   ).settings(
   publishLocal in ThisProject := {},
   publishArtifact in ThisProject := false,
-  crossScalaVersions in ThisBuild := buildTargetVersion,
+  crossScalaVersions := buildTargetVersion,
   resourceDirectories in Compile += {
     (ThisProject / baseDirectory).value / "project" / "resources"
   }
