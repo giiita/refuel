@@ -13,9 +13,25 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
 
   def ++(js: Json): Json = {
     js match {
-      case x: JsObject         => JsObject(bf ++ x.bf)
+      case x: JsObject         =>
+        println(s"$this +++++ $js")
+        x.bf.foldLeft[Json](this) {
+          case (a, b) => a ++ JsEntry(b._1, b._2)
+        }
       case JsEntry(_, JsEmpty) => this
-      case JsEntry(key, value) => JsObject(bf.:+(key -> value))
+      case JsEntry(key, value) =>
+        JsObject {
+          bf.partition(_._1 == key) match {
+            case (found, _) if found.isEmpty => bf.:+(key -> value)
+            case (found +: x, others) => others :+ {
+              key -> {
+                x.foldLeft(found._2) {
+                  case (a, b) => a ++ b._2
+                } ++ value
+              }
+            }
+          }
+        }
       case x: JsKeyBuffer      => JsKeyBuffer(x.bf, ++(x.jso))
       case x: JsLiteral        => x.toKey(this)
       case JsEmpty             => this
