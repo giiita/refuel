@@ -15,7 +15,9 @@ private[json] abstract class CBuildComp[A: Codec] {
 
   private[json] def _c: Codec[A] = implicitly[Codec[A]]
 
-  def apply[Z](apl: A => Z)(upl: Z => Option[A]): Codec[Z] = ConstCodec.from(k)(apl)(upl)
+  def apply[Z](apl: A => Z)(upl: Z => Option[A]): Codec[Z] = {
+     ConstCodec.from(k)(apl)(upl)
+  }
 
   def ++[Z](that: CBuildComp[Z]): CBuildComp2[A, Z] = {
     implicit val newc: Codec[Z] = that._c

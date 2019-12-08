@@ -2,8 +2,10 @@ package refuel.json.codecs.definition
 
 import java.time.ZonedDateTime
 
-import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
+import refuel.internal.json.codec.builder.JsKeyLitOps
+import refuel.json.codecs.builder.context.keylit.EndPointKeyLit
 import refuel.json.entry.{JsAnyVal, JsNull, JsString}
+import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
 import refuel.json.{Codec, Json}
 
 import scala.util.{Failure, Success, Try}
@@ -11,10 +13,10 @@ import scala.util.{Failure, Success, Try}
 private[codecs] trait AnyValCodecs {
 
   /**
-    * The base of scala base api codec.
-    *
-    * @tparam T Target type param.
-    */
+   * The base of scala base api codec.
+   *
+   * @tparam T Target type param.
+   */
   private[this] trait AnyValCodec[T] extends Codec[T] {
     def fail(bf: Json, e: Throwable): DeserializeFailed
 
@@ -33,6 +35,8 @@ private[codecs] trait AnyValCodecs {
         case Failure(x) => Left(fail(bf, x))
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = EndPointKeyLit
   }
 
   implicit final val IntCdc: Codec[Int] = new AnyValCodec[Int] {
@@ -41,7 +45,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Int -> $bf", e)
     }
 
-    def parse(bf: Json): Int = Integer.parseInt(bf.toString)
+    def parse(bf: Json): Int = Integer.parseInt(bf.unquote)
   }
 
   implicit final val FloatCdc: Codec[Float] = new AnyValCodec[Float] {
@@ -50,7 +54,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Float -> $bf", e)
     }
 
-    def parse(bf: Json): Float = java.lang.Float.parseFloat(bf.toString)
+    def parse(bf: Json): Float = java.lang.Float.parseFloat(bf.unquote)
   }
 
   implicit final val DoubleCdc: Codec[Double] = new AnyValCodec[Double] {
@@ -59,7 +63,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Double -> $bf", e)
     }
 
-    def parse(bf: Json): Double = java.lang.Double.parseDouble(bf.toString)
+    def parse(bf: Json): Double = java.lang.Double.parseDouble(bf.unquote)
   }
 
   implicit final val LongCdc: Codec[Long] = new AnyValCodec[Long] {
@@ -68,7 +72,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Long -> $bf", e)
     }
 
-    def parse(bf: Json): Long = java.lang.Long.parseLong(bf.toString)
+    def parse(bf: Json): Long = java.lang.Long.parseLong(bf.unquote)
   }
 
   implicit final val BooleanCdc: Codec[Boolean] = new AnyValCodec[Boolean] {
@@ -77,10 +81,10 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Boolean -> $bf", e)
     }
 
-    def parse(bf: Json): Boolean = bf.toString.toLowerCase match {
+    def parse(bf: Json): Boolean = bf.unquote.toLowerCase match {
       case "1" | "true" => true
       case "0" | "false" => false
-      case _             => throw fail(bf, UnsupportedOperation("Only 1/0 or true/false can be boolean decoded"))
+      case _ => throw fail(bf, UnsupportedOperation("Only 1/0 or true/false can be boolean decoded"))
     }
   }
 
@@ -129,5 +133,7 @@ private[codecs] trait AnyValCodecs {
         )
       }
     }
+
+    override val keyLiteralRef: JsKeyLitOps = EndPointKeyLit
   }
 }

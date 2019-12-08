@@ -22,8 +22,8 @@ private[json] object ConstCodec {
                 (upl: Z => Option[A]): Codec[Z] = macro ConstructCodecFactory.fromConst1[A, Z]
 
   def from[A, B, Z](n1: JsKeyLitOps, n2: JsKeyLitOps)
-                    (apl: (A, B) => Z)
-                    (upl: Z => Option[(A, B)]): Codec[Z] = macro ConstructCodecFactory.fromConst2[A, B, Z]
+                   (apl: (A, B) => Z)
+                   (upl: Z => Option[(A, B)]): Codec[Z] = macro ConstructCodecFactory.fromConst2[A, B, Z]
 
   def from[A, B, C, Z](n1: JsKeyLitOps, n2: JsKeyLitOps, n3: JsKeyLitOps)
                       (apl: (A, B, C) => Z)
