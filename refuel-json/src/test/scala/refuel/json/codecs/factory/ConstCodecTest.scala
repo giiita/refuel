@@ -3,7 +3,7 @@ package refuel.json.codecs.factory
 import refuel.json.{Codec, JsContext}
 import refuel.json.codecs.factory.ConstCodecTest._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.json.model.TestJson.JLong
+import refuel.json.model.TestJson.{JLong, JString}
 
 class ConstCodecTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
   "Construct based codec inspection" should {

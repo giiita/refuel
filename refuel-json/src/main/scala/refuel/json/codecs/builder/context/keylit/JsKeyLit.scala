@@ -2,6 +2,7 @@ package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.Json
+import refuel.json.entry.{JsObject, JsString}
 
 /**
  * Json key literal builder.
@@ -38,10 +39,7 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser {
     v.foldLeft(x)(_ named _)
   }
 
-  /**
-   * TODO: Temporary implementation
-   *
-   * @return
-   */
-  override def toString: String = v.mkString
+  def additionalKeyRef(sers: Seq[Json]): Json = {
+    v.foldRight(sers.head)((a, b) => JsObject(a -> b))
+  }
 }
