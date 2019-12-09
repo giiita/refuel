@@ -229,4 +229,49 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
           .replaceAll("\\s", "")
     }
   }
+
+  "Multi-level Parse for each bounded block" should {
+
+    val strCodec = implicitly[Codec[String]]
+    val unpartitioningJson =
+      s"""
+         |{
+         |  "root": {
+         |    "test1": "test1#",
+         |    "test2": "test2#",
+         |    "test3": "test3#",
+         |    "test4": "test4#",
+         |    "test5": "test5#",
+         |    "test6": "test6#"
+         |  }
+         |}
+         |""".stripMargin
+
+    val codec: Codec[(String, String, String, Option[String])] = {
+      ("root" / "test1").parsed(strCodec)(x => x)(x => Some(x)) ++
+        ("root" / "test2").parsed(strCodec)(x => x)(x => Some(x)) ++
+        ("root" / "test3").parsed(strCodec)(x => x)(x => Some(x)) ++
+        option(("root" / "test8").parsed(strCodec)(x => x)(x => Some(x)))
+    }.apply((a,b,c,d) => (a,b,c,d))(x => Some(x))
+
+    "deserialize verification of complex codec build" in {
+      unpartitioningJson.as(codec) shouldBe Right(
+        ("test1#","test2#","test3#",None)
+      )
+    }
+
+    "serialize verification of complex codec build" in {
+      (("test1#","test2#","test3#",None): (String, String, String, Option[String])).toJson(codec).toString shouldBe
+        s"""
+           |{
+           |  "root": {
+           |    "test1": "test1#",
+           |    "test2": "test2#",
+           |    "test3": "test3#"
+           |  }
+           |}
+           |""".stripMargin.replaceAll("\n", "")
+          .replaceAll("\\s", "")
+    }
+  }
 }

@@ -59,8 +59,7 @@ private[json] object ObjectTokenizer
           true
         }
     case OBJECT_END =>
-      (_, _) =>
-        Supply.BREAK
+      (_, _) => Supply.BREAK
     case OBJECT_START =>
       (v, r) =>
         apply(v).right.map { x =>

@@ -14,7 +14,6 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
   def ++(js: Json): Json = {
     js match {
       case x: JsObject         =>
-        println(s"$this +++++ $js")
         x.bf.foldLeft[Json](this) {
           case (a, b) => a ++ JsEntry(b._1, b._2)
         }
