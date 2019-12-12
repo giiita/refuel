@@ -77,16 +77,20 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     def buildLiteralCodecDep2A(pattern: Int): Codec[Depth2LineA] = pattern match {
-      case 1 => "1/4".parsed(
-        buildLiteralCodecDep3A(1),
-        buildLiteralCodecDep3A(2),
-        option(buildLiteralCodecDep3A(3))
-      )(Depth2LineA.apply)(Depth2LineA.unapply)
-      case 2 => "2/4".parsed(
-        buildLiteralCodecDep3A(1),
-        buildLiteralCodecDep3A(2),
-        option(buildLiteralCodecDep3A(3))
-      )(Depth2LineA.apply)(Depth2LineA.unapply)
+      case 1 => "1/4".extend(
+        {
+          buildLiteralCodecDep3A(1) ++
+            buildLiteralCodecDep3A(2) ++
+            option(buildLiteralCodecDep3A(3))
+        }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
+      )
+      case 2 => "2/4".extend(
+        {
+          buildLiteralCodecDep3A(1) ++
+            buildLiteralCodecDep3A(2) ++
+            option(buildLiteralCodecDep3A(3))
+        }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
+      )
     }
 
     def buildLiteralCodecDep2B(pattern: Int): Codec[Depth2LineB] = pattern match {
@@ -98,12 +102,12 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
       )(Depth2LineB.apply)(Depth2LineB.unapply)
     }
 
-    implicit val rootCodec: Codec[Depth1] = "root".parsed(
-      buildLiteralCodecDep2A(1),
-      buildLiteralCodecDep2A(2),
-      option(buildLiteralCodecDep2B(1)),
-      option(buildLiteralCodecDep2B(2))
-    )(Depth1.apply)(Depth1.unapply)
+    implicit val rootCodec: Codec[Depth1] = "root".extend(
+      (buildLiteralCodecDep2A(1) ++
+      buildLiteralCodecDep2A(2) ++
+      option(buildLiteralCodecDep2B(1)) ++
+      option(buildLiteralCodecDep2B(2))).apply(Depth1.apply)(Depth1.unapply)
+    )
 
     "deserialize verification of complex codec build" in {
       rawJson.as(rootCodec) shouldBe Right(
@@ -197,10 +201,12 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
          |}
          |""".stripMargin
 
-    val codec = "root".parsed(
-      ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply),
-      option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
-    )(String4_2.apply)(String4_2.unapply)
+    val codec = "root".extend(
+      {
+        ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply) ++
+          option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
+      }.apply(String4_2.apply)(String4_2.unapply)
+    )
 
     "deserialize verification of complex codec build" in {
       unpartitioningJson.as(codec) shouldBe Right(

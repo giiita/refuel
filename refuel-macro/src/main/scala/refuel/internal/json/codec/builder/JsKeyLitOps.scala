@@ -8,4 +8,6 @@ trait JsKeyLitOps {
   def additionalKeyRef(sers: Seq[Json]): Json
 
   def ++(that: JsKeyLitOps): JsKeyLitOps
+
+  def prefix(that: Seq[String]): JsKeyLitOps
 }
