@@ -2,28 +2,25 @@ package refuel.json.tokenize
 
 import java.io.StringReader
 
-import refuel.injector.RecoveredInject
 import refuel.json.Json
 import refuel.json.entry.JsObject
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.internal.JsonCodeMap._
-import refuel.json.internal.JsonTokenizer
 import refuel.json.tokenize.combinator.CombinationResult.TokenizeTemp
 import refuel.json.tokenize.combinator.{CombinationResult, MapCombinator}
 
 import scala.annotation.tailrec
 
 private[json] object ObjectTokenizer
-    extends MapCombinator[Json]
-    with JsonStreamingTokenizer[Json, Char]
-    with RecoveredInject[JsonTokenizer] {
+  extends MapCombinator[Json]
+    with JsonStreamingTokenizer[Json, Char] {
 
   @tailrec
   private[this] final def shiftValidStart(v: StringReader): Unit = {
     read(v) match {
-      case OBJECT_START              =>
+      case OBJECT_START =>
       case x if SKIP_OBJ.contains(x) => shiftValidStart(v)
-      case x                         => throw IllegalJsonFormat(s"Json stream must be started '{' but was '$x'")
+      case x => throw IllegalJsonFormat(s"Json stream must be started '{' but was '$x'")
     }
   }
 
@@ -59,8 +56,7 @@ private[json] object ObjectTokenizer
           true
         }
     case OBJECT_END =>
-      (_, _) =>
-        Supply.BREAK
+      (_, _) => Supply.BREAK
     case OBJECT_START =>
       (v, r) =>
         apply(v).right.map { x =>
@@ -83,6 +79,6 @@ private[json] object ObjectTokenizer
   }
 
   override def describe(
-    ignorelized: CombinationResult[Json]
-  ): TokenizeTemp[Json] = ignorelized.made.right.map(JsObject.apply)
+                         ignorelized: CombinationResult[Json]
+                       ): TokenizeTemp[Json] = ignorelized.made.right.map(JsObject.apply)
 }

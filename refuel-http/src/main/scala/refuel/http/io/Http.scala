@@ -139,8 +139,6 @@ object Http extends Injector {
    * @return
    */
   def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpRunner[HttpResponse] = {
-    println(s"Setup http request [ $urlString ]")
-
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(Uri(urlString))

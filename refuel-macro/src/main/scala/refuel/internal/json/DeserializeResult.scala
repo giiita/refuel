@@ -72,7 +72,6 @@ object DeserializeResult {
     override def and[NEW](that: RT[NEW]): DeserializeResult = that match {
       case Right(z) => DeserializeResult2(a, z)
       case Left(e) =>
-        println(s"fail $e")
         FailureConfirmation(e)
     }
   }
