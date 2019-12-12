@@ -11,4 +11,6 @@ object EndPointKeyLit extends JsKeyLitOps {
   def additionalKeyRef(sers: Seq[Json]): Json = sers.head
 
   def ++(that: JsKeyLitOps): JsKeyLitOps = this
+
+  def prefix(that: Seq[String]): JsKeyLitOps = JsKeyLit(that)
 }

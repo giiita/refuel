@@ -18,4 +18,6 @@ case class MultipleKeyLit(v: Seq[JsKeyLitOps]) extends JsKeyLitOps {
       case (lit, ser) => lit.additionalKeyRef(Seq(ser))
     }.reduce(_ ++ _)
   }
+
+  override def prefix(that: Seq[String]): JsKeyLitOps = copy(v.map(_.prefix(that)))
 }

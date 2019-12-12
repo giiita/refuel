@@ -1,95 +1,94 @@
 package refuel.json.codecs.definition
 
-import refuel.json.JsContext
-import refuel.json.codecs.factory.CaseClassCodec
-import refuel.json.model.TestJson._
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import refuel.json.JsContext
+import refuel.json.model.TestJson._
 
 class AnyRefCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
 
   "json deserialize" should {
     "Option Int deserialize ^ Some" in {
-      s"""{"value":3}""".as[JOptInt](CaseClassCodec.from[JOptInt]) shouldBe Right{
+      s"""{"value":3}""".as[JOptInt](CaseClassCodec.from[JOptInt]) shouldBe Right {
         JOptInt(Some(3))
       }
     }
     "Option Int deserialize ^ None" in {
-      s"""{}""".as[JOptInt](CaseClassCodec.from[JOptInt]) shouldBe Right{
+      s"""{}""".as[JOptInt](CaseClassCodec.from[JOptInt]) shouldBe Right {
         JOptInt(None)
       }
     }
 
 
     "Option Long deserialize ^ Some" in {
-      s"""{"value":3}""".as[JOptLong](CaseClassCodec.from[JOptLong]) shouldBe Right{
+      s"""{"value":3}""".as[JOptLong](CaseClassCodec.from[JOptLong]) shouldBe Right {
         JOptLong(Some(3L))
       }
     }
     "Option Long deserialize ^ None" in {
-      s"""{}""".as[JOptLong](CaseClassCodec.from[JOptLong]) shouldBe Right{
+      s"""{}""".as[JOptLong](CaseClassCodec.from[JOptLong]) shouldBe Right {
         JOptLong(None)
       }
     }
 
 
     "Option float deserialize ^ Some" in {
-      s"""{"value":0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right{
+      s"""{"value":0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right {
         JOptFloat(Some(0.123F))
       }
     }
     "Option float deserialize ^ Some minus" in {
-      s"""{"value":-0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right{
+      s"""{"value":-0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right {
         JOptFloat(Some(-0.123F))
       }
     }
     "Option float deserialize ^ None" in {
-      s"""{}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right{
+      s"""{}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right {
         JOptFloat(None)
       }
     }
 
 
     "Option double deserialize ^ Some" in {
-      s"""{"value":0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right{
+      s"""{"value":0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right {
         JOptDouble(Some(0.123D))
       }
     }
     "Option double deserialize ^ Some minus" in {
-      s"""{"value":-0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right{
+      s"""{"value":-0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right {
         JOptDouble(Some(-0.123D))
       }
     }
     "Option double deserialize ^ None" in {
-      s"""{}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right{
+      s"""{}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right {
         JOptDouble(None)
       }
     }
 
 
     "Option String deserialize" in {
-      s"""{"value":"body"}""".as[JOptString](CaseClassCodec.from[JOptString]) shouldBe Right{
+      s"""{"value":"body"}""".as[JOptString](CaseClassCodec.from[JOptString]) shouldBe Right {
         JOptString(Some("body"))
       }
     }
     "Option String deserialize None" in {
-      s"""{}""".as(CaseClassCodec.from[JOptString]) shouldBe Right{
+      s"""{}""".as(CaseClassCodec.from[JOptString]) shouldBe Right {
         JOptString(None)
       }
     }
     "Option String deserialize ^ escaped 1" in {
-      s"""{"value":"bo\\\\\\"d'y"}""".as(CaseClassCodec.from[JOptString]) shouldBe Right{
+      s"""{"value":"bo\\\\\\"d'y"}""".as(CaseClassCodec.from[JOptString]) shouldBe Right {
         JOptString(Some("bo\\\\\\\"d'y"))
       }
     }
 
 
     "Option Boolean deserialize true" in {
-      s"""{"value":true}""".as(CaseClassCodec.from[JOptBoolean]) shouldBe Right{
+      s"""{"value":true}""".as(CaseClassCodec.from[JOptBoolean]) shouldBe Right {
         JOptBoolean(Some(true))
       }
     }
     "Option Boolean deserialize None" in {
-      s"""{}""".as(CaseClassCodec.from[JOptBoolean]) shouldBe Right{
+      s"""{}""".as(CaseClassCodec.from[JOptBoolean]) shouldBe Right {
         JOptBoolean(None)
       }
     }
