@@ -2,6 +2,8 @@ package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.Json
+import refuel.json.codecs.builder.context.keylit.parser.{KeyLitParser, KeyLitPrefixer}
+import refuel.json.entry.JsObject
 
 /**
  * Json key literal builder.
@@ -14,7 +16,7 @@ import refuel.json.Json
  *
  * @param v json key literal set
  */
-case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser {
+case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser with KeyLitPrefixer {
   self =>
   /**
    * Set the key literal to add and rebuild.
@@ -27,7 +29,6 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser {
   def ++(that: JsKeyLitOps): JsKeyLitOps = MultipleKeyLit(Seq(this, that))
 
 
-
   /**
    * Follow the target JsonObject recursively from the constructed key literal.
    *
@@ -38,10 +39,9 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser {
     v.foldLeft(x)(_ named _)
   }
 
-  /**
-   * TODO: Temporary implementation
-   *
-   * @return
-   */
-  override def toString: String = v.mkString
+  def additionalKeyRef(sers: Seq[Json]): Json = {
+    v.foldRight(sers.head)((a, b) => JsObject(a -> b))
+  }
+
+  override def prefix(that: Seq[String]): JsKeyLitOps = copy(that ++ v)
 }

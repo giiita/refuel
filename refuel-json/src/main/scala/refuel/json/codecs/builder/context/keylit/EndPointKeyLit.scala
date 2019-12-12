@@ -8,5 +8,9 @@ object EndPointKeyLit extends JsKeyLitOps {
 
   override def rec(x: Json): Seq[Json] = Seq(x)
 
+  def additionalKeyRef(sers: Seq[Json]): Json = sers.head
+
   def ++(that: JsKeyLitOps): JsKeyLitOps = this
+
+  def prefix(that: Seq[String]): JsKeyLitOps = JsKeyLit(that)
 }

@@ -1,7 +1,6 @@
 package refuel.json
 
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.json.codecs.factory.ConstCodec
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.model.TestJson.JString
 
@@ -17,15 +16,15 @@ class JsContextTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         s"""{"value": }""".jsonTree
       }.getMessage shouldBe "The conversion was successful, but the generated JsonTree is invalid.\n{\"value\": }"
     }
-//    "fail case - Syntax error" in {
-//      val a = s"""{"value: "aaa"}""".jsonTree
-//
-//      val r = intercept[IllegalJsonFormat] {
-//        s"""{"value: "aaa"}""".jsonTree
-//      }.getMessage
-//      println(r)
-//      r shouldBe "The conversion was successful, but the generated JsonTree is invalid.\n{\"value\": }"
-//    }
+    //    "fail case - Syntax error" in {
+    //      val a = s"""{"value: "aaa"}""".jsonTree
+    //
+    //      val r = intercept[IllegalJsonFormat] {
+    //        s"""{"value: "aaa"}""".jsonTree
+    //      }.getMessage
+    //      println(r)
+    //      r shouldBe "The conversion was successful, but the generated JsonTree is invalid.\n{\"value\": }"
+    //    }
     "fail case - EOF position 2" in {
       intercept[IllegalJsonFormat] {
         s"""{"value":"3}""".jsonTree
@@ -36,7 +35,7 @@ class JsContextTest extends AsyncWordSpec with Matchers with DiagrammedAssertion
         case Left(e) =>
           e.getMessage shouldBe s"""Internal structure analysis raised an exception at {"value":"3"}"""
           e.getCause.getMessage shouldBe s"""Cannot deserialize to String -> null"""
-        case Right(r)       => fail(r.toString)
+        case Right(r) => fail(r.toString)
       }
     }
   }
