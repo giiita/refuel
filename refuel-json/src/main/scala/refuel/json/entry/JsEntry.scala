@@ -7,8 +7,10 @@ case class JsEntry private[entry] (key: JsLiteral, value: Json)
     extends JsVariable {
   override def toString: String = s"""${key.toString}:${value.toString}"""
 
+  override def prettyprint: String = s"""${key.toString}: ${value.toString}"""
+
   override def ++(js: Json): Json =
-    throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsEntry.")
+    throw IllegalJsonSyntaxTreeBuilding(s"Cannot add element $js to JsEntry")
 
   override def isIndependent: Boolean = true
 

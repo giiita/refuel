@@ -11,7 +11,7 @@ import refuel.internal.AtomicUpdater
 import refuel.provider.Tag
 
 import scala.collection.concurrent.TrieMap
-import scala.collection.mutable
+import scala.reflect.internal.util.WeakHashSet
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
@@ -48,13 +48,9 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    */
   private[refuel] final def cache[T](value: IndexedSymbol[T]): IndexedSymbol[T] = {
     val key = ContainerIndexedKey(value.tag)
-    atomicUpdate { nbf =>
-      nbf.get(key) match {
-        case None    => nbf.+=(key -> mutable.LinkedHashSet.apply(value))
-        case Some(x) =>
-          nbf.update(key, x + value)
-          nbf
-      }
+    _buffer.readOnlySnapshot().get(key) match {
+      case None => _buffer.+=(key -> new WeakHashSet().+=(value))
+      case Some(x) => _buffer.update(key, x.+=(value))
     }
     value
   }
@@ -67,8 +63,8 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    * @return
    */
   def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
-    get.get(ContainerIndexedKey(tpe)) match {
-      case None    => None
+    _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
+      case None => None
       case Some(r) =>
         r.filter(x => x.c == this && x.accepted(requestFrom))
           .toSeq
@@ -95,8 +91,8 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    * @return
    */
   private[refuel] def findEffect: Set[EffectLike] = {
-    get.get(ContainerIndexedKey(implicitly[WeakTypeTag[Effect]].tpe)) match {
-      case None    => Set.empty
+    _buffer.readOnlySnapshot().get(ContainerIndexedKey(implicitly[WeakTypeTag[Effect]].tpe)) match {
+      case None => Set.empty
       case Some(x) =>
         x.map(_.asInstanceOf[IndexedSymbol[Effect]])
           .filter(_.value.activate)
@@ -131,7 +127,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
 
   private[refuel] override def shading: @@[Container, Types.Localized] = {
     DefaultContainer(
-      buffer = get,
+      buffer = _buffer.snapshot(),
       lights = this.lights.:+(this)
     )
   }

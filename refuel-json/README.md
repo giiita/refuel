@@ -12,7 +12,7 @@ Generate any codec with CaseClassCodec or ConstCodec.<br/>
 Both CaseClassCodec and ConstCodec are automatically generated up to the member's internal Codec.
 
 ```scala
-class Test extends JsParser {
+class Test extends JsContext {
   // A and B codecs do not need to be declared
   jsonString.as(CaseClassCodec.from[C])
 }
@@ -102,6 +102,8 @@ It is possible to build arbitrary Codec by combining specific Codec.
     "area2".parsed(option(parentsCodec)) ++
     "area3".parsed(option(parentsCodec))
   )(Root.apply)(Root.unapply)
+
+  val wrapExample = "root".extend(rootCodec)
 ```
 
 In this way, codecs can be generated according to JsonFormat, domain model, etc.

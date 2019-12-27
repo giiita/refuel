@@ -11,6 +11,11 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
     case (x, y)       => s"${x.toString()}:${y.toString}"
   }.mkString(",")}}"""
 
+  override def prettyprint: String = s"{\n${bf.map {
+    case (_, JsEmpty) => ""
+    case (x, y)       => s"  ${x.toString()}: ${y.toString}"
+  }.mkString(",\n")}}"
+
   def ++(js: Json): Json = {
     js match {
       case x: JsObject         =>
@@ -20,6 +25,7 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
       case JsEntry(_, JsEmpty) => this
       case JsEntry(key, value) =>
         JsObject {
+          bf.find(_._1 == key)
           bf.partition(_._1 == key) match {
             case (found, _) if found.isEmpty => bf.:+(key -> value)
             case (found +: x, others) => others :+ {
