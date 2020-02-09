@@ -11,4 +11,4 @@ final case class StreamIndeterminate(msg: String) extends Exception(msg)
 final case class NotStartExpectedSyntax(msg: String) extends Exception(msg)
 final case class UnexpectedDeserializeOperation(msg: String) extends Exception(msg)
 
-final case class TokenizeFailed(msg: String, rest: String)
+final case class TokenizeFailed(msg: String, rest: String) extends RuntimeException(s"$msg $rest")

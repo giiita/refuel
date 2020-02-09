@@ -1,21 +1,16 @@
 package refuel.json.tokenize
 
-import refuel.json.tokenize.combinator.CombinationResult.TokenizeTemp
-import refuel.json.tokenize.combinator.{CombinationResult, SyntaxTreeCombinator}
+import refuel.json.tokenize.combinator.ExtensibleIndexWhere
 
 /**
+ * Base type of processor for building.
+ * It's nothing that same as before and after reading buffer for process.
+ * Therefore, always returns next reader with result value when apply this.
  *
- * @tparam C Combination processing result type.
  * @tparam R Tokenizer response type.
- * @tparam W Stream take pattern type.
  */
-trait Tokenizer[C, R, W] extends (ReadStream => TokenizeTemp[R]) with SyntaxTreeCombinator[C, W] {
+trait Tokenizer[R, @specialized(Int, Long, Double, Char, Boolean) S] extends ExtensibleIndexWhere {
+  def run(v: ReadStream): R
 
-  def run(v: String): R
-
-  override def apply(v: ReadStream): TokenizeTemp[R]
-
-  protected def describe(combinated: CombinationResult[C]): TokenizeTemp[R]
-
-  protected def combineTokenizerMap: W => Supply
+  def takeMap(i: S, rs: ReadStream, rb: ResultBuff[R]): S
 }

@@ -1,13 +1,9 @@
 package refuel.json
 
-import java.io.StringReader
-
-import scala.collection.mutable.ArrayBuffer
-
 package object tokenize {
 
-  type ResultBuff[T] = ArrayBuffer[T]
-  type ReadStream = StringReader
+  type ResultBuff[T] = T
+  type ReadStream = Array[Char]
 
-  implicit final val RootTokenizer: Tokenizer[Json, Json, Char] = ObjectTokenizer
+  implicit final val RootTokenizer: Tokenizer[Json, Int] = ObjectTokenizer
 }

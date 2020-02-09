@@ -10,5 +10,8 @@ case class JsAnyVal private[entry](literal: String) extends JsVariable {
 }
 
 object JsAnyVal {
-  def apply(value: Any): JsAnyVal = new JsAnyVal(value.toString)
+  def apply(value: Any): Json = value match {
+    case null | "null" => JsNull
+    case x => JsAnyVal(value.toString)
+  }
 }

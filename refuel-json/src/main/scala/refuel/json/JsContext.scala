@@ -71,7 +71,7 @@ trait JsContext extends All
   protected implicit class JDescribe(t: String) {
     def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = jsonTree.to[E]
 
-    def jsonTree: Json = _jer.run(t)
+    def jsonTree: Json = _jer.run(t.toCharArray)
   }
 
   protected final val CaseClassCodec = refuel.json.codecs.factory.CaseClassCodec

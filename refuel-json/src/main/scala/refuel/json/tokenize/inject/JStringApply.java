@@ -1,9 +1,11 @@
 package refuel.json.tokenize.inject;
 
-import refuel.json.tokenize.combinator.JStreamReader;
+public class JStringApply {
 
-public class JStringApply extends JStreamReader {
-  protected String apply(char[] v) {
-    return new String(v);
-  }
+    protected char[] from(char[] v, int from) {
+        int ln = v.length - from;
+        char[] nr = new char[ln];
+        System.arraycopy(v, from, nr, 0, ln);
+        return nr;
+    }
 }

@@ -47,4 +47,7 @@ trait Json extends Serializable {
    * @return
    */
   def named(key: String): Json
+
+
+  def squash: Json = this
 }

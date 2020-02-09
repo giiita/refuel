@@ -1,7 +1,7 @@
 package refuel.json
 
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.json.error.IllegalJsonFormat
+import refuel.json.error.{IllegalJsonFormat, TokenizeFailed}
 import refuel.json.model.TestJson.JString
 
 class JsContextTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
