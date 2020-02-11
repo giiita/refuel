@@ -4,10 +4,12 @@ import refuel.json.Json
 import refuel.json.entry._
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.tokenize.combinator.ExtensibleIndexWhere
+import refuel.json.tokenize.inject.JStringApply
 
 import scala.annotation.{switch, tailrec}
+import scala.collection.mutable.ArrayBuffer
 
-class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere {
+class JTokenizer(rs: Array[Char]) extends JStringApply with ExtensibleIndexWhere {
 
   private[this] final val length = rs.length
 
@@ -15,18 +17,21 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere {
     indexWhere(rs, _ > 32, from)
   }
 
+  private[this] def SB = new StringBuilder(512)
+
   @tailrec
   private[this] final def foldTokenize(from: Int): Int = {
     if (from >= length) {
       throw IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
     } else {
-      val s = rs(from)
-      if (s == '\\') {
-        foldTokenize(from + 2)
-      } else if (s == '"') {
-        from - 1
-      } else {
-        foldTokenize(from + 1)
+      (rs(from): @switch) match {
+        case '\\' =>
+          foldTokenize(from + 2)
+        case '"' =>
+          from - 1
+        case s =>
+          SB.append(s)
+          foldTokenize(from + 1)
       }
     }
   }
@@ -38,7 +43,8 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere {
       (rs(ti): @switch) match {
         case '"' =>
           val strEnd = foldTokenize(ti + 1)
-          // new String(rs, ti + 1, strEnd - ti)
+          SB.setLength(0)
+           SB.appendAll(rs.take(strEnd - ti))
           loop(strEnd + 2, rb) // rs.substring(ti + 1, strEnd)
         case ':' | ',' =>
           loop(ti + 1, rb)

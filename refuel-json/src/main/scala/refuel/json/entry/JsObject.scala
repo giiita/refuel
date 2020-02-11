@@ -64,7 +64,7 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
 
 object JsObject {
 
-  def dummy = new JsObject(Nil)
+  lazy val dummy = new JsObject(Nil)
 
   def apply(unbuiltJsons: Iterable[Json]): Json = {
     unbuiltJsons.foldLeft[Json](dummy)(_ ++ _)
