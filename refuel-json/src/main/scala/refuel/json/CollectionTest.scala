@@ -1,54 +1,60 @@
 package refuel.json
 
-import org.openjdk.jmh.annotations.State
-import refuel.json.entry.JsObject
-import refuel.json.internal.JsonCodeMap.{COLON, COMMA}
-import refuel.json.tokenize.{JsonStreamingTokenizer, ReadStream, ResultBuff}
+import org.openjdk.jmh.annotations.{Benchmark, State}
 
-import scala.annotation.tailrec
-import scala.collection.BitSet
-import scala.collection.mutable.ArrayBuffer
+import scala.annotation.{switch, tailrec}
 
 @State(org.openjdk.jmh.annotations.Scope.Benchmark)
-class CollectionTest extends JsonStreamingTokenizer {
+class CollectionTest {
 
-  val x = (1 to 30000).map(_ => 'a').toArray
-  val xLength = x.length
-  val sb = new Array[Char](xLength)
-
-  val r = new ArrayBuffer[Int]()
+  private[this] final val source = (1 to 31310).map(_ => 'a').mkString
 
   // @Benchmark
-  def dec = {
-    //    new String(x)
-    tailing(0)
-    new String(sb, 5000, 20000)
-    //    sb.mkString
+  def dec: Int = {
+    specializing(0)
   }
 
-  var xxx: Json = JsObject.dummy
-
-  val SKIP = BitSet(((1 to 32) ++ Seq(COMMA.toInt, COLON.toInt)): _*)
-  val where = xx => SKIP.contains(xx)
+  private[this] final def xxx(i: Int): Int = specializing(i)
 
   @tailrec
-  final def tailing(i: Int): Unit = {
-
-    //    @tailrec
-    //    def inner(n: Int): Int = {
-    //      if (n == 100) i + n else inner(n + 1)
-    //    }
-    //
-    //    xxx.++(JsNull)
-    //    indexWhere(x, where, i
-    //    )
-    if (i < xLength) {
-      sb(i) = x(i)
-      tailing(i + 1)
+  private[this] final def specializing(i: Int): Int = {
+    if (i == 31310) {
+      0
+//    } else if (i % 10000 == 0) {
+//      xxx(i + 1)
+    } else (source(i): @switch) match {
+      case 'b' => specializing(i + 1)
+      case 'c' => specializing(i + 1)
+      case 'd' => specializing(i + 1)
+      case 'e' => specializing(i + 1)
+      case 'f' => specializing(i + 1)
+      case 'g' => specializing(i + 1)
+      case 'h' => specializing(i + 1)
+      case 'i' => specializing(i + 1)
+      case 'j' => specializing(i + 1)
+      case 'k' => specializing(i + 1)
+      case 'l' => specializing(i + 1)
+      case 'm' => specializing(i + 1)
+      case 'n' => specializing(i + 1)
+      case 'o' => specializing(i + 1)
+      case 'p' => specializing(i + 1)
+      case 'q' => specializing(i + 1)
+      case 'r' => specializing(i + 1)
+      case 's' => specializing(i + 1)
+      case 't' => specializing(i + 1)
+      case 'u' => specializing(i + 1)
+      case 'a' => specializing(i + 1)
     }
+    //    @tailrec
+    //    def tailing(i: Int): Int = {
+    //      if (i < 64) {
+    //        sb(i) = 'a'
+    //        tailing(i + 1)
+    //      } else 64
+    //    }
+    //    tailing(1)
   }
 
-  override def takeMap(i: Int, rs: ReadStream, rb: ResultBuff[Json]): Int = ???
+  dec
 
-  override def run(v: ReadStream): Json = ???
 }

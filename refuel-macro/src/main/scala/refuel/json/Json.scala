@@ -50,4 +50,5 @@ trait Json extends Serializable {
 
 
   def squash: Json = this
+  def isSquashable: Boolean = false
 }

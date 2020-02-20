@@ -11,14 +11,14 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
     s"""{${
       bf.map {
         case (_, JsEmpty) => s""
-        case (x, y) => s"${x.toString()}:${y.toString}"
+        case (x, y) => s"${x.toString}:${y.toString}"
       }.mkString(",")
     }}"""
 
   override def prettyprint: String = s"{\n${
     bf.map {
       case (_, JsEmpty) => ""
-      case (x, y) => s"  ${x.toString()}: ${y.toString}"
+      case (x, y) => s"  ${x.toString}: ${y.toString}"
     }.mkString(",\n")
   }}"
 
@@ -26,7 +26,7 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
     (js: @switch) match {
       case x: JsString => x.toKey(this)
       case x: JsKeyBuffer => JsKeyBuffer(x.bf, ++(x.jso))
-      case JsNull => this
+      case JsNull | null => this
       case x: JsObject =>
         x.bf.foldLeft[Json](this) {
           case (a, b) => a ++ JsEntry(b._1, b._2)
@@ -47,7 +47,7 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
             }
           }
         }
-      case x => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString +>> ${x.getClass}")
+      case x => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString + $x")
     }
   }
 
@@ -72,6 +72,14 @@ object JsObject {
 
   def apply(unbuiltJsons: (String, Json)*): Json = {
     unbuiltJsons.foldLeft[Json](dummy)((a, b) => a ++ JsEntry(JsString(b._1), b._2))
+  }
+
+  def unmergedApply(unbuiltJsons: Iterable[Json]): Json = {
+    new JsObject(
+      unbuiltJsons.toSeq.collect {
+        case JsEntry(x: JsString, y) => x -> y
+      }
+    )
   }
 }
 

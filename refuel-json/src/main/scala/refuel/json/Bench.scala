@@ -5,19 +5,18 @@ import java.io.File
 import org.openjdk.jmh.annotations.{Benchmark, State}
 import play.api.libs.json.Json
 import refuel.json.Hoge._
-import refuel.json.tokenize.{AnyValTokenizer, ArrayTokenizer, JTokenizer, LiteralTokenizer, ObjectTokenizer}
+import refuel.json.tokenize.JTransformRouter
 
 import scala.io.Source
 
 @State(org.openjdk.jmh.annotations.Scope.Benchmark)
 class Bench extends JsContext {
-//class Bench extends JsContext {
   implicit val _codec: Codec[Root] = "root".parsed(seq(CaseClassCodec.from[Hoge])).apply(Root)(Root.unapply)
 
   val source = Source.fromFile(
     new File("/Users/takagi/src/refuel/refuel-json/src/test/resources/test.json"),
     "UTF-8"
-  ).getLines().mkString.toCharArray
+  ).getLines().mkString
 
   val length = source.length()
 
@@ -32,19 +31,14 @@ class Bench extends JsContext {
   implicit val codec3 = Json.reads[Hoge]
   implicit val codec4 = Json.reads[Root]
 
-  ObjectTokenizer
-  ArrayTokenizer
-  LiteralTokenizer
-  AnyValTokenizer
-
-  val jt = new JTokenizer(source)
+  val jt = new JTransformRouter(source)
 
   @Benchmark
   def dec = {
     // val from = System.currentTimeMillis()
 
     //    (1 to 10000).foreach(_ => Json.parse(source))
-    // Json.parse(source)// .validate[Root]
+    // Json.parse(source).validate[Root]
 
     // hoo(source.toCharArray)
     //    val x = new StringReader(source)
@@ -60,8 +54,8 @@ class Bench extends JsContext {
     // println(s"""${System.currentTimeMillis() - from}""")
 
     // source.jsonTree
-    jt.jsonTree()
-//    ObjectTokenizer.run(source)
+    jt.jsonTree // .to[Root]// .to[Root]
+    //    ObjectTokenizer.run(source)
   }
 
   val from = System.currentTimeMillis()

@@ -1,7 +1,5 @@
 package refuel.json.tokenize
 
-import refuel.json.tokenize.combinator.ExtensibleIndexWhere
-
 /**
  * Base type of processor for building.
  * It's nothing that same as before and after reading buffer for process.
@@ -9,7 +7,7 @@ import refuel.json.tokenize.combinator.ExtensibleIndexWhere
  *
  * @tparam R Tokenizer response type.
  */
-trait Tokenizer[R, @specialized(Int, Long, Double, Char, Boolean) S] extends ExtensibleIndexWhere {
+trait Tokenizer[R, @specialized(Int, Long, Double, Char, Boolean) S] {
   def run(v: ReadStream): R
 
   def takeMap(i: S, rs: ReadStream, rb: ResultBuff[R]): S

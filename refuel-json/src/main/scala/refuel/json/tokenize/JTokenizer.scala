@@ -1,81 +1,83 @@
 package refuel.json.tokenize
 
+import java.util
+
 import refuel.json.Json
 import refuel.json.entry._
-import refuel.json.error.IllegalJsonFormat
 import refuel.json.tokenize.combinator.ExtensibleIndexWhere
-import refuel.json.tokenize.inject.JStringApply
 
 import scala.annotation.{switch, tailrec}
-import scala.collection.mutable.ArrayBuffer
 
-class JTokenizer(rs: Array[Char]) extends JStringApply with ExtensibleIndexWhere {
+class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
-  private[this] final val length = rs.length
+  override protected var pos: Int = 0
 
-  private[this] def trimmedIndex(from: Int): Int = {
-    indexWhere(rs, _ > 32, from)
+  private[this] final def glowArray(addStrLen: Int): Unit = {
+    chbuff = util.Arrays.copyOf(chbuff, Integer.highestOneBit(addStrLen) << 1)
   }
 
-  private[this] def SB = new StringBuilder(512)
+  private[this] var chbuff = new Array[Char](1 << 7)
+
+  private def incl: Unit = {
+    pos += 1
+  }
 
   @tailrec
-  private[this] final def foldTokenize(from: Int): Int = {
-    if (from >= length) {
-      throw IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
-    } else {
-      (rs(from): @switch) match {
-        case '\\' =>
-          foldTokenize(from + 2)
-        case '"' =>
-          from - 1
-        case s =>
-          SB.append(s)
-          foldTokenize(from + 1)
-      }
+  private[this] final def detectLiteral(len: Int): Int = {
+    if (pos >= length) throwUnexpectedEOF
+    (rs(pos): @switch) match {
+      case '"' =>
+        incl
+        len
+      case s =>
+        incl
+        val lastLen = len + 1
+        if (chbuff.length < lastLen) glowArray(len)
+        chbuff(len) = s
+        detectLiteral(lastLen)
     }
   }
 
   @tailrec
-  private[this] final def loop(i: Int, rb: ResultBuff[Json]): Json = {
-    if (i >= 31309) rb else {
-      val ti = trimmedIndex(i)
-      (rs(ti): @switch) match {
-        case '"' =>
-          val strEnd = foldTokenize(ti + 1)
-          SB.setLength(0)
-           SB.appendAll(rs.take(strEnd - ti))
-          loop(strEnd + 2, rb) // rs.substring(ti + 1, strEnd)
-        case ':' | ',' =>
-          loop(ti + 1, rb)
-        case '{' =>
-          loop(ti + 1, rb) // JsStack(rb, JsObject.dummy))
-        case '[' =>
-          loop(ti + 1, rb) //JsStack(rb, JsArray.apply(Nil)))
-        case '}' | ']' =>
-          //        rb.squash match {
-          //          case x: JsStack =>
-          //            loop(i + 1, x)
-          //          case _ => rb
-          //        }
-          loop(i + 1, rb.squash)
-        case _ =>
-          val ni = indexWhere(rs, x => {
-            (x: @switch) match {
-              case ',' => true
-              case ':' => true
-              case ' ' => true
-              case '}' => true
-              case ']' => true
-              case _ => false
-            }
-          }, ti) - 1
-          if (ni > 0) {
-            loop(ni + 1, rb) // JsAnyVal(rs.substring(ti, ni).mkString)
-          } else throw IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
-      }
+  private[this] final def detectAnyVal(len: Int): Int = {
+    if (pos >= length) throwUnexpectedEOF
+    (rs(pos): @switch) match {
+      case ',' | ':' | ' ' | '}' | ']' =>
+        len
+      case s =>
+        incl
+        val lastLen = len + 1
+        if (chbuff.length < lastLen) glowArray(len)
+        chbuff(len) = s
+        detectAnyVal(lastLen)
     }
   }
 
-  def jsonTree(): Json = loop(0, JsObject.dummy)
+  @tailrec
+  protected final def loop(rb: ResultBuff[Json]): Json = {
+    indexWhere(_ > 32)
+    val x = rs(pos)
+    (x: @switch) match {
+      case '"' =>
+        incl
+        val len = detectLiteral(0)
+        loop(rb ++ JsString(new String(chbuff, 0, len)))
+      case ':' | ',' =>
+        incl
+        loop(rb)
+      case '{' =>
+        incl
+        loop(JsStackObjects(rb))
+      case '[' =>
+        incl
+        loop(JsStackArray(rb))
+      case '}' | ']' =>
+        incl
+        val skashed = rb.squash
+        if (skashed.isSquashable) loop(skashed) else skashed
+      case _ =>
+        val len = detectAnyVal(0)
+        loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))
+    }
+  }
 }

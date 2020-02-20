@@ -1,14 +1,14 @@
 package refuel.json
 
 import refuel.json.codecs.All
-import refuel.json.codecs.builder.context.{CodecBuildOps, JsTokenizeOps}
+import refuel.json.codecs.builder.context.CodecBuildOps
 import refuel.json.error.DeserializeFailed
+import refuel.json.tokenize.JTransformRouter
 
 /**
  * Context that performs Json serialize / deserialize by refuel json.
  */
 trait JsContext extends All
-  with JsTokenizeOps
   with CodecBuildOps {
 
   /**
@@ -71,7 +71,7 @@ trait JsContext extends All
   protected implicit class JDescribe(t: String) {
     def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = jsonTree.to[E]
 
-    def jsonTree: Json = _jer.run(t.toCharArray)
+    def jsonTree: Json = new JTransformRouter(t).jsonTree
   }
 
   protected final val CaseClassCodec = refuel.json.codecs.factory.CaseClassCodec
