@@ -1,11 +1,12 @@
 package refuel.json.codecs.definition
 
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.JsContext
-import refuel.json.codecs.factory.CaseClassCodec
 import refuel.json.model.TestJson._
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
 
-class AnyValCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
+class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
   "json deserialize" should {
 
     "Int deserialize" in {
@@ -83,61 +84,61 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssert
   "json serialize" should {
     "Int serialize" in {
       val str: JInt = JInt(3)
-      str.toJson(CaseClassCodec.from[JInt]).toString shouldBe s"""{"value":3}"""
+      str.toJString(CaseClassCodec.from[JInt]) shouldBe s"""{"value":3}"""
     }
     "Int serialize minus" in {
       val str: JInt = JInt(-3)
-      str.toJson(CaseClassCodec.from[JInt]).toString shouldBe s"""{"value":-3}"""
+      str.toJString(CaseClassCodec.from[JInt]) shouldBe s"""{"value":-3}"""
     }
 
 
     "Long serialize" in {
       val str: JLong = JLong(Long.MaxValue)
-      str.toJson(CaseClassCodec.from[JLong]).toString shouldBe s"""{"value":9223372036854775807}"""
+      str.toJString(CaseClassCodec.from[JLong]).toString shouldBe s"""{"value":9223372036854775807}"""
     }
 
 
     "String serialize" in {
       val str: JString = JString("body")
-      str.toJson(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"body"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"body"}"""
     }
     "String serialize ^ escaped 1" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJson(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
     }
     "String serialize ^ escaped 2" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJson(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
     }
 
 
     "Float serialize" in {
       val str: JFloat = JFloat(0.123F)
-      str.toJson(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":0.123}"""
+      str.toJString(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":0.123}"""
     }
     "Float serialize ^ minus" in {
       val str: JFloat = JFloat(-0.123F)
-      str.toJson(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":-0.123}"""
+      str.toJString(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":-0.123}"""
     }
 
 
     "Double serialize" in {
       val str: JDouble = JDouble(0.123D)
-      str.toJson(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":0.123}"""
+      str.toJString(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":0.123}"""
     }
     "Double serialize ^ minus" in {
       val str: JDouble = JDouble(-0.123D)
-      str.toJson(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":-0.123}"""
+      str.toJString(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":-0.123}"""
     }
 
 
     "Boolean serialize true" in {
       val str: JBoolean = JBoolean(true)
-      str.toJson(CaseClassCodec.from[JBoolean]).toString shouldBe s"""{"value":true}"""
+      str.toJString(CaseClassCodec.from[JBoolean]).toString shouldBe s"""{"value":true}"""
     }
     "Boolean serialize false" in {
       val str: JBoolean = JBoolean(false)
-      str.toJson(CaseClassCodec.from[JBoolean]).toString shouldBe s"""{"value":false}"""
+      str.toJString(CaseClassCodec.from[JBoolean]).toString shouldBe s"""{"value":false}"""
     }
   }
 }

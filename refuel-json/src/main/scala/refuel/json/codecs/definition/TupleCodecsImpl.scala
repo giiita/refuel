@@ -32,9 +32,10 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple2CodecConst[A, B](a: Codec[A], b: Codec[B]) extends TupleCodec[(A, B)] {
-    override def serialize(t: (A, B)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2)
+    override def serialize(t: (A, B)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2)
+    )
 
     protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B)] = that match {
       case ae :: be :: _ =>
@@ -43,10 +44,11 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple3CodecConst[A, B, C](a: Codec[A], b: Codec[B], c: Codec[C]) extends TupleCodec[(A, B, C)] {
-    override def serialize(t: (A, B, C)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3)
+    override def serialize(t: (A, B, C)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3)
+    )
 
     protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C)] = that match {
       case ae :: be :: ce :: _ => {
@@ -58,11 +60,12 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple4CodecConst[A, B, C, D](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D]) extends TupleCodec[(A, B, C, D)] {
-    override def serialize(t: (A, B, C, D)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4)
+    override def serialize(t: (A, B, C, D)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4)
+    )
 
     protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D)] = that match {
       case ae :: be :: ce :: de :: _ => {
@@ -75,12 +78,13 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple5CodecConst[A, B, C, D, E](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E]) extends TupleCodec[(A, B, C, D, E)] {
-    override def serialize(t: (A, B, C, D, E)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5)
+    override def serialize(t: (A, B, C, D, E)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E)] = that match {
       case ae :: be :: ce :: de :: ee :: _ => {
@@ -94,13 +98,14 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple6CodecConst[A, B, C, D, E, F](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F]) extends TupleCodec[(A, B, C, D, E, F)] {
-    override def serialize(t: (A, B, C, D, E, F)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6)
+    override def serialize(t: (A, B, C, D, E, F)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: _ => {
@@ -115,14 +120,15 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple7CodecConst[A, B, C, D, E, F, G](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G]) extends TupleCodec[(A, B, C, D, E, F, G)] {
-    override def serialize(t: (A, B, C, D, E, F, G)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7)
+    override def serialize(t: (A, B, C, D, E, F, G)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: _ => {
@@ -138,15 +144,16 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple8CodecConst[A, B, C, D, E, F, G, H](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H]) extends TupleCodec[(A, B, C, D, E, F, G, H)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8)
+    override def serialize(t: (A, B, C, D, E, F, G, H)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: _ => {
@@ -163,16 +170,17 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple9CodecConst[A, B, C, D, E, F, G, H, I](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I]) extends TupleCodec[(A, B, C, D, E, F, G, H, I)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: _ => {
@@ -190,17 +198,18 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple10CodecConst[A, B, C, D, E, F, G, H, I, J](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: _ => {
@@ -219,18 +228,19 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple11CodecConst[A, B, C, D, E, F, G, H, I, J, K](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: _ => {
@@ -250,19 +260,20 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple12CodecConst[A, B, C, D, E, F, G, H, I, J, K, L](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: _ => {
@@ -284,20 +295,21 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
 
 
   private[this] class Tuple13CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: _ => {
@@ -319,21 +331,22 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple14CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: _ => {
@@ -356,22 +369,23 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple15CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: _ => {
@@ -395,23 +409,24 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple16CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: _ => {
@@ -436,24 +451,25 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple17CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: _ => {
@@ -479,25 +495,26 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple18CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17) ++
-      JsString("_18") ++ r.serialize(t._18)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17),
+      "_18" -> r.serialize(t._18)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: _ => {
@@ -524,26 +541,27 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple19CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17) ++
-      JsString("_18") ++ r.serialize(t._18) ++
-      JsString("_19") ++ s.serialize(t._19)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17),
+      "_18" -> r.serialize(t._18),
+      "_19" -> s.serialize(t._19)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: _ => {
@@ -571,27 +589,28 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple20CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17) ++
-      JsString("_18") ++ r.serialize(t._18) ++
-      JsString("_19") ++ s.serialize(t._19) ++
-      JsString("_20") ++ tc.serialize(t._20)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17),
+      "_18" -> r.serialize(t._18),
+      "_19" -> s.serialize(t._19),
+      "_20" -> tc.serialize(t._20)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: _ => {
@@ -620,28 +639,29 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple21CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T], u: Codec[U]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17) ++
-      JsString("_18") ++ r.serialize(t._18) ++
-      JsString("_19") ++ s.serialize(t._19) ++
-      JsString("_20") ++ tc.serialize(t._20) ++
-      JsString("_21") ++ u.serialize(t._21)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17),
+      "_18" -> r.serialize(t._18),
+      "_19" -> s.serialize(t._19),
+      "_20" -> tc.serialize(t._20),
+      "_21" -> u.serialize(t._21)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: ue :: _ => {
@@ -671,29 +691,30 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
   }
 
   private[this] class Tuple22CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T], u: Codec[U], v: Codec[V]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)): Json = JsObject() ++
-      JsString("_1") ++ a.serialize(t._1) ++
-      JsString("_2") ++ b.serialize(t._2) ++
-      JsString("_3") ++ c.serialize(t._3) ++
-      JsString("_4") ++ d.serialize(t._4) ++
-      JsString("_5") ++ e.serialize(t._5) ++
-      JsString("_6") ++ f.serialize(t._6) ++
-      JsString("_7") ++ g.serialize(t._7) ++
-      JsString("_8") ++ h.serialize(t._8) ++
-      JsString("_9") ++ i.serialize(t._9) ++
-      JsString("_10") ++ j.serialize(t._10) ++
-      JsString("_11") ++ k.serialize(t._11) ++
-      JsString("_12") ++ l.serialize(t._12) ++
-      JsString("_13") ++ m.serialize(t._13) ++
-      JsString("_14") ++ n.serialize(t._14) ++
-      JsString("_15") ++ o.serialize(t._15) ++
-      JsString("_16") ++ p.serialize(t._16) ++
-      JsString("_17") ++ q.serialize(t._17) ++
-      JsString("_18") ++ r.serialize(t._18) ++
-      JsString("_19") ++ s.serialize(t._19) ++
-      JsString("_20") ++ tc.serialize(t._20) ++
-      JsString("_21") ++ u.serialize(t._21) ++
-      JsString("_22") ++ v.serialize(t._22)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)): Json = JsObject(
+      "_1" -> a.serialize(t._1),
+      "_2" -> b.serialize(t._2),
+      "_3" -> c.serialize(t._3),
+      "_4" -> d.serialize(t._4),
+      "_5" -> e.serialize(t._5),
+      "_6" -> f.serialize(t._6),
+      "_7" -> g.serialize(t._7),
+      "_8" -> h.serialize(t._8),
+      "_9" -> i.serialize(t._9),
+      "_10" -> j.serialize(t._10),
+      "_11" -> k.serialize(t._11),
+      "_12" -> l.serialize(t._12),
+      "_13" -> m.serialize(t._13),
+      "_14" -> n.serialize(t._14),
+      "_15" -> o.serialize(t._15),
+      "_16" -> p.serialize(t._16),
+      "_17" -> q.serialize(t._17),
+      "_18" -> r.serialize(t._18),
+      "_19" -> s.serialize(t._19),
+      "_20" -> tc.serialize(t._20),
+      "_21" -> u.serialize(t._21),
+      "_22" -> v.serialize(t._22)
+    )
 
     override protected def tb(that: List[Json]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: ue :: ve :: _ => {

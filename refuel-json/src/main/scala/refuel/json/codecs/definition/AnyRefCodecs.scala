@@ -40,10 +40,6 @@ private[codecs] trait AnyRefCodecs {
           x.foldLeft(Right(c): Either[DeserializeFailed, C[T]]) { (a, b) =>
             a.right.flatMap(list => b.to[T](this.tct).right.map(j(list, _)))
           }
-        case JsObject(x) =>
-          x.foldLeft(Right(c): Either[DeserializeFailed, C[T]]) { (a, b) =>
-            a.right.flatMap(list => JsEntry(b._1, b._2).to[T](this.tct).right.map(j(list, _)))
-          }
         case JsNull => Right(c)
         case _ => Left(
           fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
@@ -117,10 +113,6 @@ private[codecs] trait AnyRefCodecs {
           x.foldLeft(Right(Array.empty): Either[DeserializeFailed, Array[T]]) { (a, b) =>
             a.right.flatMap(list => b.to[T](_x).right.map(list.:+))
           }
-        case JsObject(x) =>
-          x.foldLeft(Right(Array.empty): Either[DeserializeFailed, Array[T]]) { (a, b) =>
-            a.right.flatMap(list => JsEntry(b._1, b._2).to[T](_x).right.map(list.:+))
-          }
         case JsNull => Right(Array.empty)
         case _ => Left(
           fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
@@ -167,11 +159,6 @@ private[codecs] trait AnyRefCodecs {
 
     override def deserialize(bf: Json): Either[DeserializeFailed, Map[K, V]] = {
       bf match {
-        case JsEntry(k, v) =>
-          for {
-            kr <- _x._1.deserialize(k).right
-            vr <- _x._2.deserialize(v).right
-          } yield Map(kr -> vr)
         case JsObject(x) =>
           x.foldRight(Right(Map()): Either[DeserializeFailed, Map[K, V]]) { (a, b) =>
             b.right.flatMap { x =>
@@ -190,9 +177,9 @@ private[codecs] trait AnyRefCodecs {
 
     override def serialize(t: Map[K, V]): Json = {
       JsObject(
-        t.toIndexedSeq.map {
+        t.map {
           case (k, v) => _x._1.serialize(k).asInstanceOf[JsString] -> _x._2.serialize(v)
-        }
+        }.toSeq
       )
     }
 

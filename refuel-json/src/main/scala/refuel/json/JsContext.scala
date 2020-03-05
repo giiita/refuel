@@ -13,7 +13,7 @@ trait JsContext extends All
 
   /**
    * Serialize any object to Json syntax tree.
-   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[Json.toString]].
+   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[Json.pour]].
    * A function that takes an implicit codec, but in many cases it will require explicit assignment.
    * {{{
    *   ???.toJson(CaseClassCodec.from[XXX])
@@ -24,7 +24,11 @@ trait JsContext extends All
    */
   protected implicit class JScribe[T](t: T) {
     def toJson(implicit ct: Codec[T]): Json = ct.serialize(t)
-    def toJString(implicit ct: Codec[T]): String = toJson.toString
+    def toJString(implicit ct: Codec[T]): String = {
+      val buf = new StringBuffer()
+      toJson.pour(buf)
+      buf.toString
+    }
   }
 
   /**

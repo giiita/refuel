@@ -41,19 +41,19 @@ lazy val assemblySettings = Seq(
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => f
-    case _        => Nil
+    case _ => Nil
   }
 }
 
 def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => Nil
-    case _        => f
+    case _ => f
   }
 }
 
 lazy val commonDependencySettings = Seq(
-  
+
   libraryDependencies ++= {
     Seq(
       "org.scalatest" %% "scalatest" % "3.1.0" % Test
@@ -130,11 +130,9 @@ lazy val json = (project in file("refuel-json"))
     description := "Various classes serializer / deserializer",
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
     javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8"),
-      libraryDependencies ++= Seq(
+    libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.7.4"
-      ),
-//     fork := true,
-//     javaOptions ++= Seq("-XX:+PreserveFramePointer", "-agentlib:hprof=heap=sites,depth=30")// , "-Xrunhprof:heap=all,cpu=times,file=log.txt")//"-agentlib:hprof=cpu=times")
+    )
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
 
 lazy val cipher = (project in file("refuel-cipher"))

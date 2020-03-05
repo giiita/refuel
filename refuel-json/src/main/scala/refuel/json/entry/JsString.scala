@@ -1,18 +1,36 @@
 package refuel.json.entry
+
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.Json
 import refuel.json.error.{CannotAccessJsonKey, IllegalJsonSyntaxTreeBuilding}
 
+import scala.annotation.tailrec
+
 case class JsString(literal: String) extends JsVariable {
-  override def toString: String = s""""${literal.map {
-    case '\\' => "\\\\"
-    case '"' => "\\\""
-    case x => x
-  }.mkString}""""
 
-  override def unquote: String = literal
+  override def toString: String = literal
 
-  def toKey(jso: JsObject): JsKeyBuffer = JsKeyBuffer(this, jso)
+  def pour(b: StringBuffer): Unit = {
+    b.append('"')
+    var processIndex = 0
+    val maxIndex = literal.length - 1
+
+    @tailrec
+    def detect(i: Int): Unit = {
+      if (i <= maxIndex) {
+        val x = literal(processIndex)
+        if (x == '"' || x == '\\') {
+          b.append('\\')
+        }
+        b.append(x)
+        processIndex += 1
+        detect(i + 1)
+      }
+    }
+
+    detect(0)
+    b.append('"')
+  }
 
   override def ++(js: Json): Json = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsLiteral.")
 

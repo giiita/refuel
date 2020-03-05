@@ -1,15 +1,13 @@
 package refuel.json.entry
 
-import java.util
-
 import refuel.json.Json
 import refuel.json.error.StreamIndeterminate
 
 import scala.reflect.ClassTag
 
-abstract class JsStack[T: ClassTag] private[entry](bf: Json) extends Json {
+private[refuel] abstract class JsStack[T: ClassTag] private[entry](bf: Json) extends Json {
 
-  override def toString: String = throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
+  def pour(b: StringBuffer): Unit = throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
 
   override def prettyprint: String = throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
 

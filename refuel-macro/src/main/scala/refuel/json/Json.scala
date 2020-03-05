@@ -3,20 +3,15 @@ package refuel.json
 import refuel.json.error.DeserializeFailed
 
 trait Json extends Serializable {
+
+  def approvalSyntax(c: Char): Unit
+
   /**
    * Convert to json literal.
    *
    * @return
    */
-  def toString: String
-
-  /**
-   * Unlike toString, it doesn't wrap in quotations according to json rules.
-   * Returns only pure json value.
-   *
-   * @return
-   */
-  def unquote: String = toString
+  def pour(b: StringBuffer): Unit
 
   /**
    * Outputs a highly visible string including blanks and newlines.
@@ -50,5 +45,6 @@ trait Json extends Serializable {
 
 
   def squash: Json = this
+
   def isSquashable: Boolean = false
 }

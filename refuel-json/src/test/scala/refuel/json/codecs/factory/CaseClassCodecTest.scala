@@ -1,6 +1,8 @@
 package refuel.json.codecs.factory
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.All
 import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
@@ -38,9 +40,7 @@ object CaseClassCodecTest {
 }
 
 class CaseClassCodecTest
-    extends AsyncWordSpec
-    with Matchers
-    with DiagrammedAssertions
+    extends AsyncWordSpec with Matchers with Diagrams
     with JsContext {
 
   implicit val aLocalCodec: Codec[A] = CaseClassCodec.from[A]

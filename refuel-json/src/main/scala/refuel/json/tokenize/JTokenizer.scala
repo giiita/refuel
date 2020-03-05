@@ -4,6 +4,7 @@ import java.util
 
 import refuel.json.Json
 import refuel.json.entry._
+import refuel.json.error.IllegalJsonFormat
 import refuel.json.tokenize.combinator.ExtensibleIndexWhere
 
 import scala.annotation.{switch, tailrec}
@@ -22,11 +23,15 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
     pos += 1
   }
 
+  override def beEOF: Unit = {
+    throw new IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
+  }
+
   @tailrec
   private[this] final def detectLiteral(len: Int): Int = {
-    if (pos >= length) throwUnexpectedEOF
+    if (pos >= length) beEOF
     (rs(pos): @switch) match {
-      case '"' =>
+      case '"' if rs(pos - 1) != '\\' =>
         incl
         len
       case s =>
@@ -40,7 +45,7 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
   @tailrec
   private[this] final def detectAnyVal(len: Int): Int = {
-    if (pos >= length) throwUnexpectedEOF
+    if (pos >= length) beEOF
     (rs(pos): @switch) match {
       case ',' | ':' | ' ' | '}' | ']' =>
         len
@@ -64,6 +69,7 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         loop(rb ++ JsString(new String(chbuff, 0, len)))
       case ':' | ',' =>
         incl
+        rb.approvalSyntax(x)
         loop(rb)
       case '{' =>
         incl

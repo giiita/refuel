@@ -7,7 +7,7 @@ class JTransformRouter(rss: String) extends JTokenizer(rss.trim().toCharArray) {
 
   def jsonTree: Json = {
     pos = 0
-    if (pos >= length) throwUnexpectedEOF
+    if (pos >= length) beEOF
     loop(JsEmpty)
   }
 }

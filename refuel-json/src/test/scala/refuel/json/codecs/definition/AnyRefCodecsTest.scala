@@ -1,13 +1,16 @@
 package refuel.json.codecs.definition
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.JsContext
 import refuel.json.model.TestJson._
 
-class AnyRefCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
+class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
 
   "json deserialize" should {
     "Option Int deserialize ^ Some" in {
+      val x = s"""{"value":3}""".jsonTree
       s"""{"value":3}""".as[JOptInt](CaseClassCodec.from[JOptInt]) shouldBe Right {
         JOptInt(Some(3))
       }
@@ -97,73 +100,73 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with DiagrammedAssert
   "json serialize" should {
     "Option Int serialize ^ Some" in {
       val str: JOptInt = JOptInt(Some(3))
-      str.toJson(CaseClassCodec.from[JOptInt]).toString shouldBe s"""{"value":3}"""
+      str.toJString(CaseClassCodec.from[JOptInt]).toString shouldBe s"""{"value":3}"""
     }
     "Option Int serialize ^ None" in {
       val str: JOptInt = JOptInt(None)
-      str.toJson(CaseClassCodec.from[JOptInt]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptInt]).toString shouldBe s"""{}"""
     }
 
 
     "Option Long serialize ^ Some" in {
       val str: JOptLong = JOptLong(Some(3L))
-      str.toJson(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{"value":3}"""
+      str.toJString(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{"value":3}"""
     }
     "Option Long serialize ^ None" in {
       val str: JOptLong = JOptLong(None)
-      str.toJson(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{}"""
     }
 
 
     "Option float serialize ^ Some" in {
       val str: JOptFloat = JOptFloat(Some(0.123F))
-      str.toJson(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":0.123}"""
+      str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":0.123}"""
     }
     "Option float serialize ^ Some minus" in {
       val str: JOptFloat = JOptFloat(Some(-0.123F))
-      str.toJson(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":-0.123}"""
+      str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":-0.123}"""
     }
     "Option float serialize ^ None" in {
       val str: JOptFloat = JOptFloat(None)
-      str.toJson(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{}"""
     }
 
 
     "Option double serialize ^ Some" in {
       val str: JOptDouble = JOptDouble(Some(0.123D))
-      str.toJson(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":0.123}"""
+      str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":0.123}"""
     }
     "Option double serialize ^ Some minus" in {
       val str: JOptDouble = JOptDouble(Some(-0.123D))
-      str.toJson(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":-0.123}"""
+      str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":-0.123}"""
     }
     "Option double serialize ^ None" in {
       val str: JOptDouble = JOptDouble(None)
-      str.toJson(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{}"""
     }
 
 
     "Option String serialize" in {
       val str: JOptString = JOptString(Some("body"))
-      str.toJson(CaseClassCodec.from[JOptString]).toString shouldBe s"""{"value":"body"}"""
+      str.toJString(CaseClassCodec.from[JOptString]).toString shouldBe s"""{"value":"body"}"""
     }
     "Option String serialize None" in {
       val str: JOptString = JOptString(None)
-      str.toJson(CaseClassCodec.from[JOptString]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptString]).toString shouldBe s"""{}"""
     }
     "Option String serialize ^ escaped 1" in {
       val str: JOptString = JOptString(Some("bo\\\"d'y"))
-      str.toJson(CaseClassCodec.from[JOptString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JOptString]) shouldBe "{\"value\":\"bo\\\\\\\"d'y\"}"
     }
 
 
     "Option Boolean serialize true" in {
       val str: JOptBoolean = JOptBoolean(Some(true))
-      str.toJson(CaseClassCodec.from[JOptBoolean]).toString shouldBe s"""{"value":true}"""
+      str.toJString(CaseClassCodec.from[JOptBoolean]).toString shouldBe s"""{"value":true}"""
     }
     "Option Boolean serialize None" in {
       val str: JOptBoolean = JOptBoolean(None)
-      str.toJson(CaseClassCodec.from[JOptBoolean]).toString shouldBe s"""{}"""
+      str.toJString(CaseClassCodec.from[JOptBoolean]).toString shouldBe s"""{}"""
     }
   }
 }

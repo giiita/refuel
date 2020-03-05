@@ -31,34 +31,43 @@ class Bench extends JsContext {
   implicit val codec3 = Json.reads[Hoge]
   implicit val codec4 = Json.reads[Root]
 
+  implicit val codec5 = Json.writes[Name]
+  implicit val codec6 = Json.writes[Friend]
+  implicit val codec7 = Json.writes[Hoge]
+  implicit val codec8 = Json.writes[Root]
+
   val jt = new JTransformRouter(source)
 
+
+  val p = Json.parse(source).validate[Root]
+
   @Benchmark
-  def dec = {
-    // val from = System.currentTimeMillis()
+  def runPlayJson = {
 
-    //    (1 to 10000).foreach(_ => Json.parse(source))
-    // Json.parse(source).validate[Root]
-
-    // hoo(source.toCharArray)
-    //    val x = new StringReader(source)
-    //    loop(x)
-    //
-    //    @tailrec
-    //    def loop(v: StringReader): Unit = {
-    //      if (v.read() != -1) {
-    //        loop(v)
-    //      }
-    //    }
-    // Serial.run(source)
-    // println(s"""${System.currentTimeMillis() - from}""")
-
-    // source.jsonTree
-    jt.jsonTree // .to[Root]// .to[Root]
-    //    ObjectTokenizer.run(source)
+    Json.stringify(Json.toJson(p.get))
   }
 
-  val from = System.currentTimeMillis()
-  dec
-  println(s"""${System.currentTimeMillis() - from}""")
+  val r = jt.jsonTree.to[Root] match {
+    case Left(e) =>
+      e.printStackTrace()
+      throw e
+    case Right(e) => e
+  }
+
+  @Benchmark
+  def runRefuelJson = {
+    r.toJString
+  }
+
+//    @Benchmark
+//    def runPlayJson = {
+//      Json.parse(source).validate[Root].get
+//    }
+//
+//    @Benchmark
+//    def runRefuelJson = {
+//      jt.jsonTree.to[Root].right.get
+//    }
+
+  runRefuelJson
 }

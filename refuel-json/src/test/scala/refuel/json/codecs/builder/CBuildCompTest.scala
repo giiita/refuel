@@ -1,9 +1,11 @@
 package refuel.json.codecs.builder
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.{Codec, JsContext}
 
-class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
+class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
 
   import refuel.json.model.CBuildCompTypeDef._
 
@@ -61,7 +63,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      casedValue.toJson.toString shouldBe {
+      casedValue.toJString shouldBe {
         rawJson.replaceAll("\n", "")
           .replaceAll("\\s", "")
       }
@@ -146,7 +148,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
         Some(
           Depth2LineB(Depth3LineA("test6"))
         )
-      ).toJson
+      ).toJString
       x.toString shouldBe rawJson.replaceAll("\\s", "").replaceAll("\\n", "")
     }
   }
@@ -179,7 +181,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
         A("test3", "test4", Some("test5")),
         None,
         Some(AA("test6"))
-      ).toJson(CodecB).toString shouldBe innerJson.replaceAll("\n", "")
+      ).toJString(CodecB).toString shouldBe innerJson.replaceAll("\n", "")
         .replaceAll("\\s", "")
     }
   }
@@ -221,7 +223,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
       String4_2(
         String4("test1#", "test2#", "test5#", "test6#"),
         None
-      ).toJson(codec).toString shouldBe
+      ).toJString(codec).toString shouldBe
         s"""
            |{
            |  "root": {
@@ -267,7 +269,8 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      (("test1#","test2#","test3#",None): (String, String, String, Option[String])).toJson(codec).toString shouldBe
+      val x = (("test1#","test2#","test3#",None): (String, String, String, Option[String])).toJString(codec)
+      (("test1#","test2#","test3#",None): (String, String, String, Option[String])).toJString(codec).toString shouldBe
         s"""
            |{
            |  "root": {
