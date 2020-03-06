@@ -2,8 +2,7 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
-
-
+scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
   publishTo := Some(

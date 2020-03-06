@@ -1,6 +1,6 @@
-package refuel.json
+package refuel.json.bench
 
-object Hoge {
+object Foo {
 
 
   case class Name(first: String, last: String)

@@ -3,10 +3,10 @@ package refuel.json.codecs.definition
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.JsContext
+import refuel.json.{CodecDef, JsonTransform}
 import refuel.json.model.TestJson._
 
-class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
+class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
   "json deserialize" should {
     "Option Int deserialize ^ Some" in {

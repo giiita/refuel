@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.model.TestJson.JString
 
-class JsContextTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
+class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Json tree build" should {
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {

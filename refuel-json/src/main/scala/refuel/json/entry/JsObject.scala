@@ -38,14 +38,9 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
     (js: @switch) match {
       case JsNull | null => this
       case x: JsObject =>
-        //        x.bf.foreach {
-        //          case (k, v) =>
-        //            bf.get(k).fold(
-        //              bf.update(k, v)
-        //            )(ex => bf.update(k, v ++ ex))
-        //        }
-        //        mutable.Map().update()
-        copy(bf ++ x.bf)
+        new JsObject(
+          (bf ++ x.bf).groupBy(_._1).mapValues(x => x.map(_._2).reduce(_ ++ _)).toSeq
+        )
       case JsEmpty => this
       case x => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString + $x")
     }

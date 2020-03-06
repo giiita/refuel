@@ -3,11 +3,11 @@ package refuel.json.codecs.definition
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.{Codec, JsContext}
+import refuel.json.{Codec, CodecDef, JsonTransform}
 import refuel.json.model.TestJson
 import refuel.json.model.TestJson._
 
-class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
+class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
   import scala.language.implicitConversions
   implicit val JTuple2Codec: Codec[JTuple2] = CaseClassCodec.from[JTuple2]

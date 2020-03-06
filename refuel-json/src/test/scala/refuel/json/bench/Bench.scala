@@ -1,16 +1,17 @@
-package refuel.json
+package refuel.json.bench
 
 import java.io.File
 
 import org.openjdk.jmh.annotations.{Benchmark, State}
 import play.api.libs.json.Json
-import refuel.json.Hoge._
+import refuel.json.bench.Foo._
 import refuel.json.tokenize.JTransformRouter
+import refuel.json.{Codec, CodecDef, JsonTransform}
 
 import scala.io.Source
 
 @State(org.openjdk.jmh.annotations.Scope.Benchmark)
-class Bench extends JsContext {
+class Bench extends JsonTransform with CodecDef {
   implicit val _codec: Codec[Root] = "root".parsed(seq(CaseClassCodec.from[Hoge])).apply(Root)(Root.unapply)
 
   val source = Source.fromFile(
@@ -42,7 +43,7 @@ class Bench extends JsContext {
   val p = Json.parse(source).validate[Root]
 
   @Benchmark
-  def runPlayJson = {
+  def playSerialize = {
 
     Json.stringify(Json.toJson(p.get))
   }
@@ -55,19 +56,17 @@ class Bench extends JsContext {
   }
 
   @Benchmark
-  def runRefuelJson = {
+  def refuelSerialize = {
     r.toJString
   }
 
-//    @Benchmark
-//    def runPlayJson = {
-//      Json.parse(source).validate[Root].get
-//    }
-//
-//    @Benchmark
-//    def runRefuelJson = {
-//      jt.jsonTree.to[Root].right.get
-//    }
+  @Benchmark
+  def playDeserialize = {
+    Json.parse(source).validate[Root].get
+  }
 
-  runRefuelJson
+  @Benchmark
+  def refuelDeserialize = {
+    jt.jsonTree.to[Root].right.get
+  }
 }

@@ -1,15 +1,12 @@
 package refuel.json
 
-import refuel.json.codecs.All
-import refuel.json.codecs.builder.context.CodecBuildOps
 import refuel.json.error.DeserializeFailed
 import refuel.json.tokenize.JTransformRouter
 
 /**
  * Context that performs Json serialize / deserialize by refuel json.
  */
-trait JsContext extends All
-  with CodecBuildOps {
+trait JsonTransform {
 
   /**
    * Serialize any object to Json syntax tree.
@@ -24,6 +21,7 @@ trait JsContext extends All
    */
   protected implicit class JScribe[T](t: T) {
     def toJson(implicit ct: Codec[T]): Json = ct.serialize(t)
+
     def toJString(implicit ct: Codec[T]): String = {
       val buf = new StringBuffer()
       toJson.pour(buf)
@@ -70,14 +68,11 @@ trait JsContext extends All
    * }}}
    * You can use DSL to combine Codec and generate new Codecs.
    *
-   * @param t
+   * @param t Json literal
    */
   protected implicit class JDescribe(t: String) {
     def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = jsonTree.to[E]
 
     def jsonTree: Json = new JTransformRouter(t).jsonTree
   }
-
-  protected final val CaseClassCodec = refuel.json.codecs.factory.CaseClassCodec
-  protected final val ConstCodec = refuel.json.codecs.factory.ConstCodec
 }

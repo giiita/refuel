@@ -5,7 +5,7 @@ import refuel.json.codecs.builder.context.translation.{IterableCodecTranslator, 
 
 import scala.language.implicitConversions
 
-trait CodecBuildOps extends IterableCodecTranslator with TupleCodecTranslator with RootCodecTranslator {
+trait CodecBuildFeature extends IterableCodecTranslator with TupleCodecTranslator with RootCodecTranslator {
 
   /**
    * Set the key literal to add.

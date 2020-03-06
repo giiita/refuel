@@ -5,9 +5,9 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.codecs.factory.ConstCodecTest._
 import refuel.json.model.TestJson.JLong
-import refuel.json.{Codec, JsContext}
+import refuel.json.{Codec, CodecDef, JsonTransform}
 
-class ConstCodecTest extends AsyncWordSpec with Matchers with Diagrams with JsContext {
+class ConstCodecTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Construct based codec inspection" should {
     "construnct codec with AnyVal" in {
       s"""{"value":100}""".as(
@@ -79,7 +79,7 @@ object ConstCodecTest {
 
   case class To[T](value: T)
 
-  object CodecBuildTest extends JsContext {
+  object CodecBuildTest extends JsonTransform with CodecDef {
 
     def apply(): Codec[To[Int]] =
       ConstCodec.from[From, To[Int]]("test") { x =>
