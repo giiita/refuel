@@ -38,7 +38,7 @@ class InjectionCompound[C <: blackbox.Context](val c: C) {
     val constructInjection = s.asClass.primaryConstructor.asMethod.paramLists.map { curry =>
       s"""(${
         curry.map { param =>
-          s"inject[${param.typeSignature.toString}]"
+          s"bind[${param.typeSignature.toString}]"
         }.mkString(",")
       })""".stripMargin
 

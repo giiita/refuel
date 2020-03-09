@@ -35,7 +35,7 @@ case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable
   }
 
   def ++(js: Json): Json = {
-    (js: @switch) match {
+    js match {
       case JsNull | null => this
       case x: JsObject =>
         new JsObject(

@@ -17,7 +17,6 @@ abstract class ExtensibleIndexWhere(rs: Array[Char]) {
     if (pos == length) {
       beEOF
     } else if (fn(rs(pos))) {
-      pos
     } else {
       pos += 1
       indexWhere(fn)
