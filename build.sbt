@@ -7,6 +7,7 @@ scalaVersion in ThisBuild := "2.13.1"
 publishTo in ThisBuild := sonatypePublishToBundle.value
 
 lazy val assemblySettings = Seq(
+  sonatypeBundleDirectory := (ThisBuild / baseDirectory).value / name.value / target.value.getName / "sonatype-staging" / s"${version.value}",
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
     "-deprecation",
