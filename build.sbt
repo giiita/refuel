@@ -4,13 +4,14 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 scalaVersion in ThisBuild := "2.13.1"
 
+publishTo in ThisBuild := Some(
+  if (isSnapshot.value)
+    Opts.resolver.sonatypeSnapshots
+  else
+    Opts.resolver.sonatypeStaging
+)
+
 lazy val assemblySettings = Seq(
-  publishTo := Some(
-    if (isSnapshot.value)
-      Opts.resolver.sonatypeSnapshots
-    else
-      Opts.resolver.sonatypeStaging
-  ),
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
     "-deprecation",
@@ -183,31 +184,31 @@ lazy val root_interfaces = (project in file("test-across-module/root_interfaces"
   .dependsOn(http)
   .settings(commonDependencySettings, assemblySettings)
   .settings(
-    publishArtifact := false,
-    releaseProcess := Nil,
-    publish := {},
-    publishLocal := {},
-    publishTo := Some(Opts.resolver.mavenLocalFile)
+    publishArtifact in ThisProject := false,
+    releaseProcess in ThisProject := Nil,
+    publish in ThisProject := {},
+    publishLocal in ThisProject := {},
+    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
   ).enablePlugins(JmhPlugin)
 
 lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
   .dependsOn(root_interfaces)
   .settings(commonDependencySettings, assemblySettings)
   .settings(
-    publishArtifact := false,
-    releaseProcess := Nil,
-    publish := {},
-    publishLocal := {},
-    publishTo := Some(Opts.resolver.mavenLocalFile)
+    publishArtifact in ThisProject := false,
+    releaseProcess in ThisProject := Nil,
+    publish in ThisProject := {},
+    publishLocal in ThisProject := {},
+    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
   )
 
 lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
   .dependsOn(interfaces_impl)
   .settings(commonDependencySettings, assemblySettings)
   .settings(
-    publishArtifact := false,
-    releaseProcess := Nil,
-    publish := {},
-    publishLocal := {},
-    publishTo := Some(Opts.resolver.mavenLocalFile)
+    publishArtifact in ThisProject := false,
+    releaseProcess in ThisProject := Nil,
+    publish in ThisProject := {},
+    publishLocal in ThisProject := {},
+    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
   )
