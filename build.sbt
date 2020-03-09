@@ -34,7 +34,7 @@ lazy val assemblySettings = Seq(
     runTest,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
-    ReleaseStep(action = Command.process("sonatypeRelease", _), enableCrossBuild = true)
+    ReleaseStep(action = Command.process("sonatypeBundleRelease", _), enableCrossBuild = true)
   )
 )
 
