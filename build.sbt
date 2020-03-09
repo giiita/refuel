@@ -1,15 +1,12 @@
-import sbt.Keys.{crossScalaVersions}
+import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
-  sonatypeBundleDirectory := {
-    println(s"星星星星星星星星星星星星星星星星星星星星星星星 ${((ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}").getPath}星星星星星星星星星星星星星星星星星星星星星星星星星星星")
-    (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}"
-  },
-  publishTo in ThisBuild := sonatypePublishToBundle.value,
+  sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  publishTo in ThisProject := sonatypePublishToBundle.value,
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
     "-deprecation",
@@ -135,7 +132,7 @@ lazy val json = (project in file("refuel-json"))
 
 lazy val cipher = (project in file("refuel-cipher"))
   .dependsOn(json)
-  .settings(assemblySettings, commonDependencySettings)
+  .settings(commonDependencySettings)
   .settings(
     name := "refuel-cipher",
     description := "Cipher module for Scala.",
@@ -172,7 +169,7 @@ lazy val http = (project in file("refuel-http"))
 
 lazy val `test` = (project in file("refuel-test"))
   .dependsOn(json)
-  .settings(assemblySettings, commonDependencySettings)
+  .settings(commonDependencySettings)
   .settings(
     name := "refuel-test",
     description := "DI testing framework."
@@ -180,7 +177,7 @@ lazy val `test` = (project in file("refuel-test"))
 
 lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
   .dependsOn(http)
-  .settings(commonDependencySettings, assemblySettings)
+  .settings(commonDependencySettings)
   .settings(
     publishArtifact in ThisProject := false,
     releaseProcess in ThisProject := Nil,
@@ -191,7 +188,7 @@ lazy val root_interfaces = (project in file("test-across-module/root_interfaces"
 
 lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
   .dependsOn(root_interfaces)
-  .settings(commonDependencySettings, assemblySettings)
+  .settings(commonDependencySettings)
   .settings(
     publishArtifact in ThisProject := false,
     releaseProcess in ThisProject := Nil,
@@ -202,7 +199,7 @@ lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"
 
 lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
   .dependsOn(interfaces_impl)
-  .settings(commonDependencySettings, assemblySettings)
+  .settings(commonDependencySettings)
   .settings(
     publishArtifact in ThisProject := false,
     releaseProcess in ThisProject := Nil,
