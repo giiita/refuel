@@ -1,11 +1,11 @@
-import sbt.Keys.{crossScalaVersions, publishTo}
+import sbt.Keys.{crossScalaVersions}
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
-  sonatypeBundleDirectory := (ThisBuild / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  sonatypeBundleDirectory := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
   publishTo in ThisBuild := sonatypePublishToBundle.value,
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
