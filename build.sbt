@@ -187,7 +187,7 @@ lazy val root_interfaces = (project in file("test-across-module/root_interfaces"
     releaseProcess := Nil,
     publish := {},
     publishLocal := {},
-    publishTo := None
+    publishTo := Some(Opts.resolver.mavenLocalFile)
   ).enablePlugins(JmhPlugin)
 
 lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
@@ -198,7 +198,7 @@ lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"
     releaseProcess := Nil,
     publish := {},
     publishLocal := {},
-    publishTo := None
+    publishTo := Some(Opts.resolver.mavenLocalFile)
   )
 
 lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
@@ -209,5 +209,5 @@ lazy val call_interfaces = (project in file("test-across-module/call_interfaces"
     releaseProcess := Nil,
     publish := {},
     publishLocal := {},
-    publishTo := None
+    publishTo := Some(Opts.resolver.mavenLocalFile)
   )
