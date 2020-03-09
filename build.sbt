@@ -107,7 +107,7 @@ lazy val container = (project in file("refuel-container"))
       "-language:experimental.macros"
     ),
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
-  ).enablePlugins(JavaAppPackaging)
+  )
 
 lazy val util = (project in file("refuel-util"))
   .settings(assemblySettings, commonDependencySettings)
