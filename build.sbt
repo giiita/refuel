@@ -5,7 +5,10 @@ lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
 scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
-  sonatypeBundleDirectory := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  sonatypeBundleDirectory := {
+    println(s"星星星星星星星星星星星星星星星星星星星星星星星 ${((ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}").getPath}星星星星星星星星星星星星星星星星星星星星星星星星星星星")
+    (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}"
+  },
   publishTo in ThisBuild := sonatypePublishToBundle.value,
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
