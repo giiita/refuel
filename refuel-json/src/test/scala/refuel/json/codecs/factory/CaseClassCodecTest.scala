@@ -1,22 +1,30 @@
 package refuel.json.codecs.factory
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.All
 import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.error.DeserializeFailed
-import refuel.json.{Codec, JsContext, Json}
+import refuel.json.{Codec, CodecDef, Json, JsonTransform}
 
 object CaseClassCodecTest {
+
   case class BBBB(id: Long, value: String)
+
   case class CCCC(value: Map[String, BBBB])
+
   case class DDDD(id: Long, value: CCCC)
 
   case class A(value: String)
+
   case class B(a: A)
+
   case class C(b: B)
+
   case class D(c: C)
 
   case class AAA(aaaId: Long, int: Int)
@@ -26,7 +34,7 @@ object CaseClassCodecTest {
 
     override def equals(obj: Any): Boolean = obj match {
       case x: BBB => bbbId == x.bbbId && aaa == x.aaa
-      case _      => false
+      case _ => false
     }
   }
 
@@ -35,13 +43,12 @@ object CaseClassCodecTest {
   case class DDD(dddId: Long, ccc: CCC)
 
   case class EEE(eeeId: Long, ddd: DDD)
+
 }
 
 class CaseClassCodecTest
-    extends AsyncWordSpec
-    with Matchers
-    with DiagrammedAssertions
-    with JsContext {
+  extends AsyncWordSpec with Matchers with Diagrams
+    with JsonTransform with CodecDef {
 
   implicit val aLocalCodec: Codec[A] = CaseClassCodec.from[A]
   implicit val bLocalCodec: Codec[B] = CaseClassCodec.from[B]

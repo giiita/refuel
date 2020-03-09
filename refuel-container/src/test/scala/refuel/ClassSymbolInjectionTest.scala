@@ -1,7 +1,6 @@
 package refuel
 
 import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.ClassSymbolInjectionTest.TEST_K.K
 import refuel.Types.@@
 import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
@@ -192,6 +191,7 @@ object ClassSymbolInjectionTest {
     trait L {
       val value: LInner
     }
+
     trait LInner
 
     case class LImpl(value: LInner) extends L with AutoInject[L]

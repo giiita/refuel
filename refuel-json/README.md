@@ -6,13 +6,45 @@ libraryDependencies += "com.phylage" %% "refuel-json" % "1.0.0-RC5"
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.
 
+```
+[info] Benchmark                      Mode  Cnt   Score    Error  Units
+
+
+[info] Deserialize.runJson4sNative    avgt   10   1.339 ±  0.049  ms/op
+[info] Deserialize.runJson4sJackson   avgt   10   1.147 ±  0.013  ms/op
+[info] Deserialize.runArgonautJson    avgt   10   0.806 ±  0.015  ms/op
+[info] Deserialize.runPlayJson        avgt   10   0.676 ±  0.016  ms/op
+[info] Deserialize.runUJson           avgt   10   0.577 ±  0.956  ms/op
+[info] Deserialize.runRefuelParsing   avgt   10   0.504 ±  0.011  ms/op <= It.
+[info] Deserialize.runCirce           avgt   10   0.320 ±  0.020  ms/op
+[info] Deserialize.runSphereJson      avgt   10   0.317 ±  0.003  ms/op
+[info] Deserialize.runSprayJson       avgt   10   0.264 ±  0.001  ms/op
+[info] Deserialize.runJacksonParsing  avgt   10   0.168 ±  0.002  ms/op
+[info] Deserialize.runJsoniter        avgt   10   0.092 ±  0.001  ms/op
+
+
+[info] Serialize.runJson4sJackson     avgt   10   0.891 ±  0.022  ms/op
+[info] Serialize.runArgonautJson      avgt   10   0.832 ±  0.100  ms/op
+[info] Serialize.runJson4sNative      avgt   10   0.819 ±  0.011  ms/op
+[info] Serialize.runPlayJson          avgt   10   0.804 ±  0.034  ms/op
+[info] Serialize.runCirce             avgt   10   0.478 ±  0.056  ms/op
+[info] Serialize.runSprayJson         avgt   10   0.354 ±  0.006  ms/op
+[info] Serialize.runSphereJson        avgt   10   0.279 ±  0.052  ms/op
+[info] Serialize.runUJson             avgt   10   0.226 ±  0.002  ms/op
+[info] Serialize.runRefuelParsing     avgt   10   0.168 ±  0.007  ms/op <= It.
+[info] Serialize.runJacksonParsing    avgt   10   0.079 ±  0.001  ms/op
+[info] Serialize.runJsoniter          avgt   10   0.059 ±  0.001  ms/op
+```
+
 ## Usage
 
 Generate any codec with CaseClassCodec or ConstCodec.<br/>
 Both CaseClassCodec and ConstCodec are automatically generated up to the member's internal Codec.
 
+To use them, inherit from `refuel.json.CodecDef`. `refuel.json.JsonTransform` is required to perform the transformation.
+
 ```scala
-class Test extends JsParser {
+class Test extends JsonTransform with CodecDef {
   // A and B codecs do not need to be declared
   jsonString.as(CaseClassCodec.from[C])
 }
@@ -102,6 +134,8 @@ It is possible to build arbitrary Codec by combining specific Codec.
     "area2".parsed(option(parentsCodec)) ++
     "area3".parsed(option(parentsCodec))
   )(Root.apply)(Root.unapply)
+
+  val wrapExample = "root".extend(rootCodec)
 ```
 
 In this way, codecs can be generated according to JsonFormat, domain model, etc.

@@ -2,39 +2,47 @@ package refuel.json.entry
 
 import refuel.json.Json
 import refuel.json.error.UnsupportedOperation
-import refuel.json.tokenize.ResultBuff
 
-case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends JsVariable {
+import scala.annotation.switch
 
-  override def toString: String = s"""{${bf.map {
-    case (_, JsEmpty) => s""
-    case (x, y)       => s"${x.toString()}:${y.toString}"
-  }.mkString(",")}}"""
+case class JsObject private[entry](bf: Seq[(JsString, Json)]) extends JsVariable {
+  override def toString: String = {
+    var unempty = false
+    val b = new StringBuffer()
+    b.append('{')
+    bf.foreach { x =>
+      if (unempty) b.append(", ")
+      b.append(x._1)
+      b.append(" -> ")
+      b.append(x._2)
+      if (!unempty) unempty = true
+    }
+    b.append('}')
+    b.toString
+  }
+
+  def pour(b: StringBuffer): Unit = {
+    var unempty = false
+    b.append('{')
+    bf.foreach { x =>
+      if (unempty) b.append(",")
+      x._1.pour(b)
+      b.append(':')
+      x._2.pour(b)
+      if (!unempty) unempty = true
+    }
+    b.append('}')
+  }
 
   def ++(js: Json): Json = {
     js match {
-      case x: JsObject         =>
-        x.bf.foldLeft[Json](this) {
-          case (a, b) => a ++ JsEntry(b._1, b._2)
-        }
-      case JsEntry(_, JsEmpty) => this
-      case JsEntry(key, value) =>
-        JsObject {
-          bf.partition(_._1 == key) match {
-            case (found, _) if found.isEmpty => bf.:+(key -> value)
-            case (found +: x, others) => others :+ {
-              key -> {
-                x.foldLeft(found._2) {
-                  case (a, b) => a ++ b._2
-                } ++ value
-              }
-            }
-          }
-        }
-      case x: JsKeyBuffer      => JsKeyBuffer(x.bf, ++(x.jso))
-      case x: JsLiteral        => x.toKey(this)
-      case JsEmpty             => this
-      case x                   => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString +>> ${x.getClass}")
+      case JsNull | null => this
+      case x: JsObject =>
+        new JsObject(
+          (bf ++ x.bf).groupBy(_._1).mapValues(x => x.map(_._2).reduce(_ ++ _)).toSeq
+        )
+      case JsEmpty => this
+      case x => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString + $x")
     }
   }
 
@@ -42,7 +50,7 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
 
   override def named(key: String): Json = {
     bf.collectFirst {
-      case (k, v) if k.unquote == key => v
+      case (k, v) if k.toString == key => v
     } getOrElse JsNull
   }
 
@@ -51,18 +59,21 @@ case class JsObject private[entry](bf: IndexedSeq[(JsLiteral, Json)]) extends Js
 
 object JsObject {
 
-  def dummy = new JsObject(IndexedSeq.empty)
-
-  def apply(unbuiltJsons: Iterable[Json]): Json = {
-    unbuiltJsons.foldLeft[Json](dummy)(_ ++ _)
+  def fromNullableArray(nullableEntries: Seq[(JsString, Json)]): Json = {
+    new JsObject(
+      nullableEntries.filter {
+        case null | (_, JsEmpty) => false
+        case _ => true
+      }
+    )
   }
 
-  def apply(unbuiltJsons: ResultBuff[Json]): Json = {
-    this.apply(unbuiltJsons.toList)
-  }
-
-  def apply(unbuiltJsons: (String, Json)*): Json = {
-    unbuiltJsons.foldLeft[Json](dummy)((a, b) => a ++ JsEntry(JsString(b._1), b._2))
+  def apply(req: (String, Json)*): Json = {
+    new JsObject(
+      req.withFilter(_._2 != JsEmpty).map {
+        case (x, y) => JsString(x) -> y
+      }
+    )
   }
 }
 

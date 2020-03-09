@@ -1,8 +1,8 @@
 package refuel.json.internal
 
-private[json] object JsonCodeMap {
+import scala.collection.BitSet
 
-  sealed abstract class JsonCode(transformed: String, raws: String*)
+private[json] object JsonCodeMap {
 
   // RFC8259 https://www.rfc-editor.org/info/rfc8259
   private[json] final val U0009 = 0x09.toChar // \t
@@ -26,8 +26,8 @@ private[json] object JsonCodeMap {
   private[json] final val COMMA = 0x2c.toChar
   private[json] final val COLON = 0x3a.toChar
 
-  private[json] final val WHITESPACES = Array(U0009, U0020, U000A, U000D)
-  private[json] final val DELIMITATION = Array(COMMA, COLON, OBJECT_END, ARRAY_END)
+  private[json] final val WHITESPACES = BitSet(U0009, U0020, U000A, U000D)
+  private[json] final val DELIMITATION = BitSet(COMMA, COLON, OBJECT_END, ARRAY_END)
 
   def toDescapeChar(c: Char): Char = {
     c match {

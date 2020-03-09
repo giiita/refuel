@@ -1,9 +1,11 @@
 package refuel.json.codecs.builder
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.json.{Codec, JsContext}
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
+import refuel.json.{Codec, CodecDef, JsonTransform}
 
-class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with JsContext {
+class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
   import refuel.json.model.CBuildCompTypeDef._
 
@@ -61,10 +63,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      casedValue.toJson.toString shouldBe {
-        rawJson.replaceAll("\n", "")
-          .replaceAll("\\s", "")
-      }
+      casedValue.toJString.as[C] shouldBe Right(casedValue)
     }
   }
 
@@ -146,8 +145,8 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
         Some(
           Depth2LineB(Depth3LineA("test6"))
         )
-      ).toJson
-      x.toString shouldBe rawJson.replaceAll("\\s", "").replaceAll("\\n", "")
+      )
+      x.toJString.as[Depth1] shouldBe Right(x)
     }
   }
 
@@ -174,19 +173,17 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      B(
+      val x = B(
         A("test1", "test2", None),
         A("test3", "test4", Some("test5")),
         None,
         Some(AA("test6"))
-      ).toJson(CodecB).toString shouldBe innerJson.replaceAll("\n", "")
-        .replaceAll("\\s", "")
+      )
+      x.toJString(CodecB).as(CodecB) shouldBe Right(x)
     }
   }
 
   "Parse for each bounded block" should {
-
-    val strCodec = implicitly[Codec[String]]
     val unpartitioningJson =
       s"""
          |{
@@ -218,27 +215,16 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      String4_2(
+      val x = String4_2(
         String4("test1#", "test2#", "test5#", "test6#"),
         None
-      ).toJson(codec).toString shouldBe
-        s"""
-           |{
-           |  "root": {
-           |    "test1": "test1#",
-           |    "test2": "test2#",
-           |    "test5": "test5#",
-           |    "test6": "test6#"
-           |  }
-           |}
-           |""".stripMargin.replaceAll("\n", "")
-          .replaceAll("\\s", "")
+      )
+      x.toJString(codec).as(codec) shouldBe Right(x)
     }
   }
 
   "Multi-level Parse for each bounded block" should {
 
-    val strCodec = implicitly[Codec[String]]
     val unpartitioningJson =
       s"""
          |{
@@ -254,10 +240,10 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
          |""".stripMargin
 
     val codec: Codec[(String, String, String, Option[String])] = {
-      ("root" / "test1").parsed(strCodec)(x => x)(x => Some(x)) ++
-        ("root" / "test2").parsed(strCodec)(x => x)(x => Some(x)) ++
-        ("root" / "test3").parsed(strCodec)(x => x)(x => Some(x)) ++
-        option(("root" / "test8").parsed(strCodec)(x => x)(x => Some(x)))
+      ("root" / "test1").extend[String] ++
+        ("root" / "test2").extend[String] ++
+        ("root" / "test3").extend[String] ++
+        option(("root" / "test8").extend[String])
     }.apply((a,b,c,d) => (a,b,c,d))(x => Some(x))
 
     "deserialize verification of complex codec build" in {
@@ -267,17 +253,8 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with DiagrammedAssertio
     }
 
     "serialize verification of complex codec build" in {
-      (("test1#","test2#","test3#",None): (String, String, String, Option[String])).toJson(codec).toString shouldBe
-        s"""
-           |{
-           |  "root": {
-           |    "test1": "test1#",
-           |    "test2": "test2#",
-           |    "test3": "test3#"
-           |  }
-           |}
-           |""".stripMargin.replaceAll("\n", "")
-          .replaceAll("\\s", "")
+      val x = ("test1#","test2#","test3#",None): (String, String, String, Option[String])
+      x.toJString(codec).as(codec) shouldBe Right(x)
     }
   }
 }

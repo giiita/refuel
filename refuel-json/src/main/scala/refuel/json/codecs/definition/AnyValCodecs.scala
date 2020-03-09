@@ -45,7 +45,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Int -> $bf", e)
     }
 
-    def parse(bf: Json): Int = Integer.parseInt(bf.unquote)
+    def parse(bf: Json): Int = Integer.parseInt(bf.toString)
   }
 
   implicit final val FloatCdc: Codec[Float] = new AnyValCodec[Float] {
@@ -54,7 +54,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Float -> $bf", e)
     }
 
-    def parse(bf: Json): Float = java.lang.Float.parseFloat(bf.unquote)
+    def parse(bf: Json): Float = java.lang.Float.parseFloat(bf.toString)
   }
 
   implicit final val DoubleCdc: Codec[Double] = new AnyValCodec[Double] {
@@ -63,7 +63,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Double -> $bf", e)
     }
 
-    def parse(bf: Json): Double = java.lang.Double.parseDouble(bf.unquote)
+    def parse(bf: Json): Double = java.lang.Double.parseDouble(bf.toString)
   }
 
   implicit final val LongCdc: Codec[Long] = new AnyValCodec[Long] {
@@ -72,7 +72,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Long -> $bf", e)
     }
 
-    def parse(bf: Json): Long = java.lang.Long.parseLong(bf.unquote)
+    def parse(bf: Json): Long = java.lang.Long.parseLong(bf.toString)
   }
 
   implicit final val BooleanCdc: Codec[Boolean] = new AnyValCodec[Boolean] {
@@ -81,7 +81,7 @@ private[codecs] trait AnyValCodecs {
       UnexpectedDeserializeType(s"Cannot deserialize to Boolean -> $bf", e)
     }
 
-    def parse(bf: Json): Boolean = bf.unquote.toLowerCase match {
+    def parse(bf: Json): Boolean = bf.toString.toLowerCase match {
       case "1" | "true" => true
       case "0" | "false" => false
       case _ => throw fail(bf, UnsupportedOperation("Only 1/0 or true/false can be boolean decoded"))
@@ -111,7 +111,7 @@ private[codecs] trait AnyValCodecs {
 
     override def serialize(t: String): Json = JsString(t)
 
-    def parse(bf: Json): String = bf.unquote
+    def parse(bf: Json): String = bf.toString
   }
 
   implicit final val ZonedDateTimeCdc: Codec[ZonedDateTime] = new Codec[ZonedDateTime] {

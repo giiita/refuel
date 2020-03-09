@@ -2,8 +2,7 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
-
-
+scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
   publishTo := Some(
@@ -41,19 +40,19 @@ lazy val assemblySettings = Seq(
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => f
-    case _        => Nil
+    case _ => Nil
   }
 }
 
 def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
     case "2.13.1" => Nil
-    case _        => f
+    case _ => f
   }
 }
 
 lazy val commonDependencySettings = Seq(
-  
+
   libraryDependencies ++= {
     Seq(
       "org.scalatest" %% "scalatest" % "3.1.0" % Test
@@ -129,7 +128,10 @@ lazy val json = (project in file("refuel-json"))
     name := "refuel-json",
     description := "Various classes serializer / deserializer",
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
-    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
+    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8"),
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % "2.7.4"
+    )
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
 
 lazy val cipher = (project in file("refuel-cipher"))
