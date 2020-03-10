@@ -124,10 +124,7 @@ lazy val json = (project in file("refuel-json"))
     name := "refuel-json",
     description := "Various classes serializer / deserializer",
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
-    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8"),
-    libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % "2.7.4"
-    )
+    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
   ).enablePlugins(JavaAppPackaging, JmhPlugin)
 
 lazy val cipher = (project in file("refuel-cipher"))
