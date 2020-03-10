@@ -3,7 +3,6 @@ package refuel.json.bench
 import java.io.File
 
 import org.openjdk.jmh.annotations.{Benchmark, State}
-import play.api.libs.json.Json
 import refuel.json.bench.Foo._
 import refuel.json.tokenize.JTransformRouter
 import refuel.json.{Codec, CodecDef, JsonTransform}
@@ -27,26 +26,26 @@ class Bench extends JsonTransform with CodecDef {
   //    s"""{"index": $index}"""
   //  }
 
-  implicit val codec1 = Json.reads[Name]
-  implicit val codec2 = Json.reads[Friend]
-  implicit val codec3 = Json.reads[Hoge]
-  implicit val codec4 = Json.reads[Root]
-
-  implicit val codec5 = Json.writes[Name]
-  implicit val codec6 = Json.writes[Friend]
-  implicit val codec7 = Json.writes[Hoge]
-  implicit val codec8 = Json.writes[Root]
+//  implicit val codec1 = Json.reads[Name]
+//  implicit val codec2 = Json.reads[Friend]
+//  implicit val codec3 = Json.reads[Hoge]
+//  implicit val codec4 = Json.reads[Root]
+//
+//  implicit val codec5 = Json.writes[Name]
+//  implicit val codec6 = Json.writes[Friend]
+//  implicit val codec7 = Json.writes[Hoge]
+//  implicit val codec8 = Json.writes[Root]
 
   val jt = new JTransformRouter(source)
 
 
-  val p = Json.parse(source).validate[Root]
-
-  @Benchmark
-  def playSerialize = {
-
-    Json.stringify(Json.toJson(p.get))
-  }
+//  val p = Json.parse(source).validate[Root]
+//
+//  @Benchmark
+//  def playSerialize = {
+//
+//    Json.stringify(Json.toJson(p.get))
+//  }
 
   val r = jt.jsonTree.to[Root] match {
     case Left(e) =>
@@ -60,10 +59,10 @@ class Bench extends JsonTransform with CodecDef {
     r.toJString
   }
 
-  @Benchmark
-  def playDeserialize = {
-    Json.parse(source).validate[Root].get
-  }
+//  @Benchmark
+//  def playDeserialize = {
+//    Json.parse(source).validate[Root].get
+//  }
 
   @Benchmark
   def refuelDeserialize = {
