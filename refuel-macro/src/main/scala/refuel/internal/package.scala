@@ -7,6 +7,7 @@ import refuel.provider.Accessor
 import scala.collection.concurrent.TrieMap
 
 package object internal {
+
   object CntMediateOnce {
     def empty[T]: CntMediateOnce[T] = TrieMap.empty
   }

@@ -3,8 +3,13 @@
 script=$(cd $(dirname $0); pwd)
 
 install_nvm() {
+  if ! test -e $HOME/.nvm; then
+    mkdir -p $HOME/.nvm
+  fi
+
   if ! test -s $HOME/.nvm; then
     echo "NVM installing..."
+    cd $HOME/.nvm
     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
   fi
 

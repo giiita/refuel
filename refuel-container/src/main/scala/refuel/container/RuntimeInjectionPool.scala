@@ -1,7 +1,6 @@
 package refuel.container
 
 import refuel.effect.{Effect, EffectLike, Effective}
-import refuel.injector.AutoInject
 import refuel.injector.InjectionPool.InjectionApplyment
 import refuel.injector.scope.IndexedSymbol
 import refuel.runtime.{InjectionReflector, RuntimeAutoDIExtractor, RuntimeAutoInjectableSymbols}
@@ -9,8 +8,6 @@ import refuel.runtime.{InjectionReflector, RuntimeAutoDIExtractor, RuntimeAutoIn
 import scala.reflect.runtime.{universe => u}
 
 object RuntimeInjectionPool extends refuel.injector.InjectionPool {
-
-  private[this] trait Dummy
 
   /* Effective type symbol */
   private[this] lazy val EFFECTIVE_ANNO_TYPE = u.weakTypeOf[Effective]
@@ -45,9 +42,11 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
     * @return
     */
   def collect[T](clazz: Class[_])(implicit wtt: u.WeakTypeTag[T]): InjectionApplyment[T] = { c =>
+    val injectionTypeSym = wtt.tpe
+
     mayBeEffectiveApply[T, u.ModuleSymbol](
       buffer.modules.collect {
-        case x if x.typeSignature.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
+        case x if x.typeSignature.<:<(injectionTypeSym) =>
           x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
       }
     )(reflector.reflectModule[T])(c) match {
@@ -55,7 +54,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
       case _ =>
         mayBeEffectiveApply[T, u.ClassSymbol](
           buffer.classes.collect {
-            case x if x.toType.<:<(u.weakTypeTag[AutoInject[T]].tpe) =>
+            case x if x.toType.<:<(injectionTypeSym) =>
               x.annotations.find(_.tree.tpe.=:=(EFFECTIVE_ANNO_TYPE)).flatMap(_.tree.children.lastOption) -> x
           }
         )(reflector.reflectClass[T](clazz, this))(c)
