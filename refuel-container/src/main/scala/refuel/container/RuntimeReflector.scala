@@ -2,9 +2,10 @@ package refuel.container
 
 import java.net.{URI, URL}
 
-import refuel.exception.DIAutoInitializationException
+import refuel.domination.InjectionPriority
+import refuel.exception.InjectDefinitionException
 import refuel.injector.scope.IndexedSymbol
-import refuel.injector.{AutoInject, InjectionPool, Injector}
+import refuel.injector.{InjectionPool, Injector}
 import refuel.internal.ClassTypeAcceptContext
 import refuel.runtime.InjectionReflector
 
@@ -16,65 +17,68 @@ object RuntimeReflector extends InjectionReflector with Injector {
 
   def mirror: universe.Mirror = universe.runtimeMirror(getClass.getClassLoader)
 
+
+  def embody[T](ms: universe.ModuleSymbol): T = mirror.reflectModule(ms).instance.asInstanceOf[T]
+
   /**
-    * Create injection applyment.
-    *
-    * @param symbols module symbols
-    * @tparam T injection type
-    * @return
-    */
-  override def reflectClass[T](clazz: Class[_], ip: InjectionPool)(c: Container)(symbols: Set[universe.ClassSymbol])(implicit wtt: universe.WeakTypeTag[T]): Set[IndexedSymbol[T]] = {
-    symbols.map { x =>
-      val pcInject = x.primaryConstructor.asMethod.paramLists.flatten.map { prm =>
-        val tpe: universe.WeakTypeTag[_] = universe.WeakTypeTag(wtt.mirror, new reflect.api.TypeCreator {
-          def apply[U <: reflect.api.Universe with Singleton](m: reflect.api.Mirror[U]) = {
-            assert(m eq mirror, s"TypeTag[$prm] defined in $mirror cannot be migrated to $m.")
-            prm.typeSignature.asInstanceOf[U#Type]
-          }
-        })
-        c.find(clazz)(tpe, ClassTypeAcceptContext).orElse {
-          ip.collect(clazz)(tpe).apply(c).toVector
-            .sortBy(_.priority)(Ordering.Int.reverse)
-            .headOption
-            .map(_.value)
-        } match {
-          case Some(r) => r
-          case None => throw new DIAutoInitializationException(s"Injectable parameter ${tpe.tpe} of ${implicitly[universe.WeakTypeTag[T]].tpe} constructor not found", null)
+   * Create injection applyment.
+   *
+   * @tparam T injection type
+   * @return
+   */
+  override def reflectClass[T](clazz: Class[_], ip: InjectionPool)(c: Container)(x: universe.ClassSymbol)(implicit wtt: universe.WeakTypeTag[T]): InjectionPriority => IndexedSymbol[T] = { p =>
+    val pcInject = x.primaryConstructor.asMethod.paramLists.flatten.map { prm =>
+      val tpe: universe.WeakTypeTag[_] = universe.WeakTypeTag(wtt.mirror, new reflect.api.TypeCreator {
+        def apply[U <: reflect.api.Universe with Singleton](m: reflect.api.Mirror[U]) = {
+          assert(m eq mirror, s"TypeTag[$prm] defined in $mirror cannot be migrated to $m.")
+          prm.typeSignature.asInstanceOf[U#Type]
+        }
+      })
+
+      c.find(clazz)(tpe, ClassTypeAcceptContext) getOrElse {
+        ip.collect(clazz)(tpe)(c).fold(
+          throw new InjectDefinitionException(s"Cannot found $tpe implementations.")
+        ) {
+          case (p, fs) if fs.size == 1 => fs.head(p).value
+          case (p, fs) =>
+            val x = fs.map(_.apply(p).tag)
+            throw new InjectDefinitionException(
+              s"""Invalid dependency definition of $tpe. There must be one automatic injection of inject[T] per priority. But found [${x.mkString(", ")}]"""
+            )
         }
       }
+    }
 
-      mirror.reflectClass(x)
-        .reflectConstructor(x.primaryConstructor.asMethod)
-        .apply(pcInject: _*)
-        .asInstanceOf[AutoInject[T]] match {
-        case ai => ai.flush(c)
-      }
+    mirror.reflectClass(x)
+      .reflectConstructor(x.primaryConstructor.asMethod)
+      .apply(pcInject: _*)
+      .asInstanceOf[T] match {
+      case x => c.createIndexer(x, p).indexing()
     }
   }
 
   /**
-    * Create injection applyment.
-    *
-    * @param symbols module symbols
-    * @tparam T injection type
-    * @return
-    */
-  override def reflectModule[T: universe.WeakTypeTag](c: Container)(symbols: Set[universe.ModuleSymbol]): Set[IndexedSymbol[T]] = {
-    symbols.map { x =>
-      mirror.reflectModule(x)
-        .instance
-        .asInstanceOf[AutoInject[T]] match {
-        case ai => ai.flush(c)
-      }
+   * Create injection applyment.
+   *
+   * @tparam T injection type
+   * @return
+   */
+  override def reflectModule[T](c: Container)(x: universe.ModuleSymbol)(implicit wtt: universe.WeakTypeTag[T]): InjectionPriority => IndexedSymbol[T] = { p =>
+    mirror.reflectModule(x)
+      .instance
+      .asInstanceOf[T] match {
+      case x => c.createIndexer(x, p)(wtt).indexing()
     }
   }
 
+
+
   /**
-    * Reflect to a runtime class.
-    *
-    * @param t Type symbol.
-    * @return
-    */
+   * Reflect to a runtime class.
+   *
+   * @param t Type symbol.
+   * @return
+   */
   override def reflectClass(t: universe.Type): universe.RuntimeClass = {
     mirror.runtimeClass(t)
   }

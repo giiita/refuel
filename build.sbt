@@ -102,8 +102,8 @@ lazy val container = (project in file("refuel-container"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global ++= Seq(
-      //      "-Ydebug",
-      //       "-Ymacro-debug-verbose",
+//            "-Ydebug",
+//             "-Ymacro-debug-verbose",
       "-language:experimental.macros"
     ),
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value

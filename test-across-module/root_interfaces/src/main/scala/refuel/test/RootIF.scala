@@ -8,7 +8,7 @@ object RootIF extends Injector {
     def run: String = inject[Conf].value
   }
 
-  object Runner extends Runner with AutoInject[Runner]
+  object Runner extends Runner with AutoInject
 
 }
 

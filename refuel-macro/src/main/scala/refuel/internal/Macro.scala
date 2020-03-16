@@ -7,16 +7,6 @@ import scala.reflect.macros.blackbox
 
 class Macro(val c: blackbox.Context) {
 
-  // def reinjectPrimaryConstruction[T: c.WeakTypeTag](apl: c.Expr[T]):
-
-  def lazyInjectDyn[T: c.WeakTypeTag](t: c.Tree)(ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
-    new LazyInitializer[c.type](c).lazyInit[T](
-      ctn,
-      ip,
-      access
-    )
-  }
-
   def lazyInject[T: c.WeakTypeTag](ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {
     new LazyInitializer[c.type](c).lazyInit[T](
       ctn,

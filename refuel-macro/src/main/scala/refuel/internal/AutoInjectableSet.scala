@@ -1,27 +1,23 @@
 package refuel.internal
 
-import refuel.exception.InjectDefinitionException
-import refuel.injector.AutoInjectable
+import refuel.injector.AutoInject
 
 import scala.reflect.macros.blackbox
 
 class AutoInjectableSet[C <: blackbox.Context](val c: C) {
 
-  def filterModuleSymbols[T: c.WeakTypeTag](symbols: AutoInjectableSymbols[c.type]): Vector[c.Symbol] = {
+  private[this] final val InjectableTag = c.weakTypeOf[AutoInject]
+
+  def filterModuleSymbols[T](symbols: AutoInjectableSymbols[c.type])(implicit wtt: c.WeakTypeTag[T]): Vector[c.Symbol] = {
     symbols.modules.filter { x =>
-      x.typeSignature.<:<(c.weakTypeOf[AutoInjectable[T]])
+      x.typeSignature <:< InjectableTag && x.typeSignature <:< wtt.tpe
     }.asInstanceOf[Set[c.Symbol]].toVector.sortBy[String](_.fullName)
   }
 
-  def findClassSymbol[T: c.WeakTypeTag](symbols: AutoInjectableSymbols[c.type]): Option[c.Symbol] = {
+  def filterClassSymbol[T](symbols: AutoInjectableSymbols[c.type])(implicit wtt: c.WeakTypeTag[T]): Vector[c.Symbol] = {
     symbols.classes.filter { x =>
-      x.asClass.toType.<:<(c.weakTypeOf[AutoInjectable[T]])
-    } match {
-      case x if x.size > 1 =>
-        c.error(c.enclosingPosition, s"You cannot define multiple classes that can be InjectOnce[T]. It can be avoided by attaching a tag. [${x.map(_.name).mkString(", ")}].")
-        throw new InjectDefinitionException(s"Automatic injection target can not be found.")
-      case x               => x.headOption.asInstanceOf[Option[c.Symbol]]
-    }
+      x.asClass.toType <:< wtt.tpe
+    }.asInstanceOf[Set[c.Symbol]].toVector.sortBy[String](_.fullName)
   }
 
 }

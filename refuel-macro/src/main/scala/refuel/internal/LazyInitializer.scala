@@ -3,12 +3,14 @@ package refuel.internal
 import refuel.container.Container
 import refuel.exception.{DIAutoInitializationException, InjectDefinitionException}
 import refuel.injector.InjectionPool
-import refuel.injector.scope.IndexedSymbol
+import refuel.injector.InjectionPool.LazyConstruction
 import refuel.provider.{Accessor, Lazy}
 
 import scala.reflect.macros.blackbox
 
 class LazyInitializer[C <: blackbox.Context](val c: C) {
+
+  private[this] type NonEmptySeq[A] = Seq[A]
 
   import c.universe._
 
@@ -61,24 +63,32 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
 
     reify {
-      mayBeInjection.splice orElse {
-        applymentFunction[T](ctn, ip).splice
-          .toVector
-          .sortBy(_.priority)(Ordering.Int.reverse)
-          .headOption
-          .map(_.value)
-      } getOrElse {
-        throw new InjectDefinitionException(s"Cannot found ${ttagExpr.splice} implementations.")
+      mayBeInjection.splice getOrElse {
+        applymentFunction[T](ctn, ip).splice match {
+          case (p, f) if f.size == 1 =>
+            c.Expr[Container](ctn).splice.cache(f.head(p)).value
+          case (p, f) =>
+            val x = f.map(_.apply(p).tag)
+            throw new InjectDefinitionException(
+              s"Invalid dependency definition of ${ttagExpr.splice}. There must be one automatic injection of inject[T] per priority. But found [${x.mkString(", ")}]"
+            )
+        }
       }
     }
   }
 
-  private def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[Set[IndexedSymbol[T]]] = {
+  private[this] def applymentFunction[T: WeakTypeTag](cnt: Tree, ip: Tree): c.Expr[LazyConstruction[T]] = {
     reify {
       c.Expr[InjectionPool](ip)
         .splice
         .collect[T](c.Expr[Class[T]](c.reifyRuntimeClass(weakTypeOf[T])).splice)
-        .apply(c.Expr[Container](cnt).splice)
+        .apply(c.Expr[Container](cnt).splice) getOrElse {
+        throw new InjectDefinitionException(s"Cannot found ${
+          c.Expr {
+            c.reifyRuntimeClass(weakTypeOf[T])
+          }.splice
+        } implementations.")
+      }
     }
   }
 

@@ -4,12 +4,15 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId, ZoneOffset}
 import java.util.TimeZone
 
-import refuel.injector.RecoveredInject
+import refuel.domination.Inject
+import refuel.domination.InjectionPriority.Finally
+import refuel.injector.AutoInject
 
 /**
   * TimeZone used by default.
   */
-object RuntimeTZ extends RuntimeTZ with RecoveredInject[RuntimeTZ] {
+@Inject(Finally)
+object RuntimeTZ extends RuntimeTZ with AutoInject {
   override val TIME_ZONE: TimeZone = TimeZone.getDefault
   override val ZONE_ID: ZoneId = java.time.ZoneId.systemDefault()
   override val ZONE_OFFSET: ZoneOffset = ZONE_ID.getRules.getOffset(Instant.now())

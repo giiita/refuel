@@ -1,11 +1,13 @@
 package refuel
 
+import org.scalatest.{Assertion, AsyncWordSpec, DiagrammedAssertions, Matchers}
 import refuel.Types.@@
+import refuel.domination.{Inject, InjectionPriority}
+import refuel.domination.InjectionPriority.{Default, Finally, Overwrite}
 import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
-import refuel.injector.{AutoInject, AutoInjectCustomPriority, Injector, RecoveredInject}
+import refuel.injector.{AutoInject, Injector}
 import refuel.provider.{Lazy, Tag}
-import org.scalatest.{Assertion, AsyncWordSpec, DiagrammedAssertions, Matchers}
 
 import scala.util.Try
 
@@ -18,7 +20,7 @@ object ModuleSymbolInjectionTest {
       val value = "value"
     }
 
-    object TestIFImpl_1 extends TestIF_1 with AutoInject[TestIF_1]
+    object TestIFImpl_1 extends TestIF_1 with AutoInject
 
   }
 
@@ -26,7 +28,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_2
 
-    object TestIFImpl_2 extends TestIF_2 with RecoveredInject[TestIF_2]
+    object TestIFImpl_2 extends TestIF_2 with AutoInject
 
   }
 
@@ -34,9 +36,10 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_3
 
-    object TestIFImpl_3_RECOVER extends TestIF_3 with RecoveredInject[TestIF_3]
+    @Inject(Finally)
+    object TestIFImpl_3_RECOVER extends TestIF_3 with AutoInject
 
-    object TestIFImpl_3_AUTO extends TestIF_3 with AutoInject[TestIF_3]
+    object TestIFImpl_3_AUTO extends TestIF_3 with AutoInject
 
   }
 
@@ -44,9 +47,11 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_4
 
-    object TestIFImpl_4_RECOVER extends TestIF_4 with RecoveredInject[TestIF_4]
+    @Inject(Finally)
+    object TestIFImpl_4_RECOVER extends TestIF_4 with AutoInject
 
-    object TestIFImpl_4_CUSTOM extends AutoInjectCustomPriority[TestIF_4](1) with TestIF_4
+    @Inject(Overwrite)
+    object TestIFImpl_4_CUSTOM extends AutoInject with TestIF_4
 
   }
 
@@ -54,9 +59,11 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_5
 
-    object TestIFImpl_5_RECOVER extends TestIF_5 with RecoveredInject[TestIF_5]
+    @Inject(Finally)
+    object TestIFImpl_5_RECOVER extends TestIF_5 with AutoInject
 
-    object TestIFImpl_5_CUSTOM extends AutoInjectCustomPriority[TestIF_5](0) with TestIF_5
+    @Inject(Default)
+    object TestIFImpl_5_CUSTOM extends AutoInject with TestIF_5
 
   }
 
@@ -64,9 +71,12 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_6
 
-    object TestIFImpl_6_AUTO extends TestIF_6 with AutoInject[TestIF_6]
+    object TestIFImpl_6_AUTO extends TestIF_6 with AutoInject
 
-    object TestIFImpl_6_CUSTOM extends AutoInjectCustomPriority[TestIF_6](999) with TestIF_6
+    case object Defaul1 extends InjectionPriority(1)
+
+    @Inject(Defaul1)
+    object TestIFImpl_6_CUSTOM extends AutoInject with TestIF_6
 
   }
 
@@ -74,9 +84,10 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_7
 
-    object TestIFImpl_7_AUTO extends TestIF_7 with AutoInject[TestIF_7]
+    object TestIFImpl_7_AUTO extends TestIF_7 with AutoInject
 
-    object TestIFImpl_7_CUSTOM extends AutoInjectCustomPriority[TestIF_7](1000) with TestIF_7
+    @Inject(Default)
+    object TestIFImpl_7_CUSTOM extends AutoInject with TestIF_7
 
   }
 
@@ -84,9 +95,10 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_8
 
-    object TestIFImpl_8_AUTO extends TestIF_8 with AutoInject[TestIF_8]
+    object TestIFImpl_8_AUTO extends TestIF_8 with AutoInject
 
-    object TestIFImpl_8_CUSTOM extends AutoInjectCustomPriority[TestIF_8](1001) with TestIF_8
+    @Inject(Overwrite)
+    object TestIFImpl_8_CUSTOM extends AutoInject with TestIF_8
 
   }
 
@@ -94,7 +106,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_101
 
-    object TestIFImpl_101_AUTO extends TestIF_101 with AutoInject[TestIF_101]
+    object TestIFImpl_101_AUTO extends TestIF_101 with AutoInject
 
   }
 
@@ -102,7 +114,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_102
 
-    object TestIFImpl_102_AUTO extends TestIF_102 with AutoInject[TestIF_102]
+    object TestIFImpl_102_AUTO extends TestIF_102 with AutoInject
 
   }
 
@@ -110,7 +122,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_103
 
-    object TestIFImpl_103_AUTO extends TestIF_103 with AutoInject[TestIF_103]
+    object TestIFImpl_103_AUTO extends TestIF_103 with AutoInject
 
   }
 
@@ -118,7 +130,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_104
 
-    object TestIFImpl_104_AUTO extends TestIF_104 with AutoInject[TestIF_104]
+    object TestIFImpl_104_AUTO extends TestIF_104 with AutoInject
 
   }
 
@@ -130,7 +142,7 @@ object ModuleSymbolInjectionTest {
       def get: Lazy[TestIF_105] = inject[TestIF_105]
     }
 
-    object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject[TestIF_105]
+    object TestIFImpl_105_AUTO extends TestIF_105 with AutoInject
 
     object AccessorA extends AccessorTest
 
@@ -156,7 +168,7 @@ object ModuleSymbolInjectionTest {
       def get: Lazy[TestIF_106] = inject[TestIF_106]
     }
 
-    object TestIFImpl_106_AUTO extends TestIF_106 with AutoInject[TestIF_106]
+    object TestIFImpl_106_AUTO extends TestIF_106 with AutoInject
 
     object AccessorA extends AccessorTestA
 
@@ -170,7 +182,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_107
 
-    object TestIFImpl_107_AUTO extends TestIF_107 with AutoInject[TestIF_107]
+    object TestIFImpl_107_AUTO extends TestIF_107 with AutoInject
 
   }
 
@@ -188,15 +200,15 @@ object ModuleSymbolInjectionTest {
       val b: Lazy[B108] = inject[B108]
     }
 
-    class A180_CLASS extends A108_TRAIT with AutoInject[A108_TRAIT]
+    class A180_CLASS extends A108_TRAIT with AutoInject
 
     object A108_REPLACE extends A108
 
-    object A108 extends A108 with AutoInject[A108]
+    object A108 extends A108 with AutoInject
 
-    object B108 extends B108 with AutoInject[B108]
+    object B108 extends B108 with AutoInject
 
-    object C108 extends C108 with AutoInject[C108]
+    object C108 extends C108 with AutoInject
 
   }
 
@@ -219,17 +231,17 @@ object ModuleSymbolInjectionTest {
     }
 
     @Effective(EffectA)
-    object A109_1 extends A109 with AutoInject[A109] {
+    object A109_1 extends A109 with AutoInject {
       val value: String = "A"
     }
 
     @Effective(EffectB)
-    object A109_2 extends A109 with AutoInject[A109] {
+    object A109_2 extends A109 with AutoInject {
       val value: String = "B"
     }
 
     @Effective(EffectC)
-    object A109_3 extends A109 with AutoInject[A109] {
+    object A109_3 extends A109 with AutoInject {
       val value: String = "C"
     }
 
@@ -255,17 +267,17 @@ object ModuleSymbolInjectionTest {
     }
 
     @Effective(EffectA)
-    object A110_1 extends A110 with AutoInject[A110] {
+    object A110_1 extends A110 with AutoInject {
       val value: String = "A"
     }
 
     @Effective(EffectB)
-    object A110_2 extends A110 with AutoInject[A110] {
+    object A110_2 extends A110 with AutoInject {
       val value: String = "B"
     }
 
     @Effective(EffectC)
-    object A110_3 extends A110 with AutoInject[A110] {
+    object A110_3 extends A110 with AutoInject {
       val value: String = "C"
     }
 
@@ -281,11 +293,11 @@ object ModuleSymbolInjectionTest {
 
     trait TestTagC
 
-    object TestIFImpl_201_TAGNONE extends TestIF_201 with AutoInject[TestIF_201]
+    object TestIFImpl_201_TAGNONE extends TestIF_201 with AutoInject
 
-    object TestIFImpl_201_TAGA extends TestIF_201 with Tag[TestTagA] with AutoInject[TestIF_201 @@ TestTagA]
+    object TestIFImpl_201_TAGA extends TestIF_201 with Tag[TestTagA] with AutoInject
 
-    object TestIFImpl_201_TAGB extends TestIF_201 with Tag[TestTagB] with AutoInject[TestIF_201 @@ TestTagB]
+    object TestIFImpl_201_TAGB extends TestIF_201 with Tag[TestTagB] with AutoInject
 
   }
 
@@ -295,7 +307,7 @@ object ModuleSymbolInjectionTest {
 
     trait EX_TestIF_301 extends TestIF_301
 
-    object TestIFImpl_301_AUTO extends TestIF_301 with AutoInject[TestIF_301]
+    object TestIFImpl_301_AUTO extends TestIF_301 with AutoInject
 
   }
 
@@ -305,7 +317,7 @@ object ModuleSymbolInjectionTest {
 
     trait EX_TestIF_302 extends TestIF_302
 
-    object TestIFImpl_302_AUTO extends EX_TestIF_302 with AutoInject[TestIF_302]
+    object TestIFImpl_302_AUTO extends EX_TestIF_302 with AutoInject
 
   }
 
@@ -339,8 +351,6 @@ object ModuleSymbolInjectionTest {
 
   object TEST305 {
 
-    import scala.reflect.runtime.universe.WeakTypeTag
-
     trait TestIF
 
     trait TestIF_305_A extends TestIF
@@ -351,11 +361,11 @@ object ModuleSymbolInjectionTest {
       val inst: T
     }
 
-    object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject[Wrap_305[TestIF_305_A]] {
+    object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject {
       val inst: TestIF_305_A = new TestIF_305_A {}
     }
 
-    object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject[Wrap_305[TestIF_305_B]] {
+    object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject {
       val inst: TestIF_305_B = new TestIF_305_B {}
     }
 
@@ -402,7 +412,12 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
 
     "auto vs custom(1000) inject priority == name after win" in {
       import TEST7._
-      inject[TestIF_7]._provide != null shouldBe true
+
+      val err = intercept[refuel.exception.DIAutoInitializationException] {
+        inject[TestIF_7]._provide
+      }
+      err.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7."
+      err.getCause.getMessage shouldBe "Invalid dependency definition of interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7. There must be one automatic injection of inject[T] per priority. But found [refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7, refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7]"
     }
 
     "auto vs custom(1001) inject priority == custom" in {
@@ -531,21 +546,16 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
   "Tagging" should {
     "tag inspect" in {
       import TEST201._
-      inject[TestIF_201]._provide shouldBe TestIFImpl_201_TAGNONE
+      intercept[refuel.exception.DIAutoInitializationException] {
+        inject[TestIF_201]._provide
+      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
       inject[TestIF_201 @@ TestTagA]._provide shouldBe TestIFImpl_201_TAGA
       inject[TestIF_201 @@ TestTagB]._provide shouldBe TestIFImpl_201_TAGB
 
-      Try {
+      intercept[DIAutoInitializationException] {
         inject[TestIF_201 @@ TestTagC]._provide
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
-      }
+      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
     }
-  }
-
-  "Type erase" should {
-
   }
 
   "Inheritance relationship" should {
@@ -562,13 +572,6 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
     "pattern 2" in {
       import TEST302._
       inject[TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
-      Try {
-        inject[EX_TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
-      }
-
     }
 
     "type erase" in {
