@@ -1,9 +1,12 @@
 package refuel
 
-import org.scalatest.{Assertion, AsyncWordSpec, DiagrammedAssertions, Matchers}
+import org.scalatest.Assertion
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.Types.@@
-import refuel.domination.{Inject, InjectionPriority}
 import refuel.domination.InjectionPriority.{Default, Finally, Overwrite}
+import refuel.domination.{Inject, InjectionPriority}
 import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, Injector}
@@ -373,7 +376,7 @@ object ModuleSymbolInjectionTest {
 
 }
 
-class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
+class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
 
   trait Context
 

@@ -25,11 +25,12 @@ object AutoDIExtractor {
 
   private[this] def getList[C <: blackbox.Context, T: c.WeakTypeTag](c: C): AutoInjectableSymbols[c.type] = {
     buffer match {
-      case None => new AutoDIExtractor[c.type](c).run() match {
-        case x =>
-          buffer = Some(x)
-          x
-      }
+      case None =>
+        new AutoDIExtractor[c.type](c).run() match {
+          case x =>
+            buffer = Some(x)
+            x
+        }
       case Some(x) => x.asInstanceOf[AutoInjectableSymbols[c.type]]
     }
   }
@@ -71,6 +72,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   @tailrec
   private final def recursivePackageExplore(selfPackages: Vector[Symbol],
                                             injectableSymbols: AutoInjectableSymbols[c.type] = AutoInjectableSymbols.empty[c.type](c)): AutoInjectableSymbols[c.type] = {
+
     selfPackages match {
       case x if x.isEmpty => injectableSymbols
       case _ =>
@@ -79,7 +81,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
             None -> None
           case x if x.isPackage =>
             Some(x) -> None
-          case x if (x.isModule && !x.isAbstract) || x.isInjectableOnce =>
+          case x if (x.isModule && !x.isAbstract) || x.isModuleClass || x.isInjectableOnce =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -132,6 +134,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   implicit class RichVectorSymbol(value: Vector[c.Symbol]) {
     def accessible: Vector[c.Symbol] = {
       value.flatMap {
+        case x if x.fullName == "org.scalatest.tools.Framework" => None
         case x if x.toString.endsWith("package$") => None
         case x => try {
           c.typecheck(

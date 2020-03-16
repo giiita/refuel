@@ -1,9 +1,9 @@
 package refuel
 
-import org.scalatest.{AsyncWordSpec, DiagrammedAssertions, Matchers}
-import refuel.ClassSymbolInjectionTest.TEST_K.K
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.Types.@@
-import refuel.domination.InjectionPriority
 import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, Injector}
@@ -21,6 +21,7 @@ object ClassSymbolInjectionTest {
     class AImpl extends A with AutoInject {
       val v: String = "AImpl"
     }
+
   }
 
   object TEST_B {
@@ -189,7 +190,7 @@ object ClassSymbolInjectionTest {
 
 }
 
-class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
+class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   "confirm" should {
     "TEST" in {
       class A
@@ -203,7 +204,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagramm
     "No module, one class" in {
       import refuel.ClassSymbolInjectionTest.TEST_A._
 
-      bind[A]// shouldBe "AImpl"
+      bind[A] // shouldBe "AImpl"
       succeed
     }
 
