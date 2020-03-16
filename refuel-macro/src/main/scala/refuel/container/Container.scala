@@ -53,7 +53,7 @@ private[refuel] trait Container {
     * @tparam T injection type
     * @return
     */
-  private[refuel] def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container] = this.lights): Indexer[T]
+  def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container] = this.lights): Indexer[T]
 
   /**
     * Generate open scope.

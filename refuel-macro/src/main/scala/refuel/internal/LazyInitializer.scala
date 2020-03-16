@@ -66,7 +66,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
       mayBeInjection.splice getOrElse {
         applymentFunction[T](ctn, ip).splice match {
           case (p, f) if f.size == 1 =>
-            c.Expr[Container](ctn).splice.cache(f.head(p)).value
+            c.Expr[Container](ctn).splice.createIndexer(f.head(p).value, p).indexing().value
           case (p, f) =>
             val x = f.map(_.apply(p).tag)
             throw new InjectDefinitionException(

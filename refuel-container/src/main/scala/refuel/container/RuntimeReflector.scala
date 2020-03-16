@@ -15,7 +15,7 @@ import scala.reflect.runtime.universe
 
 object RuntimeReflector extends InjectionReflector with Injector {
 
-  def mirror: universe.Mirror = universe.runtimeMirror(getClass.getClassLoader)
+  def mirror: universe.Mirror = universe.runtimeMirror(Thread.currentThread().getContextClassLoader)
 
 
   def embody[T](ms: universe.ModuleSymbol): T = mirror.reflectModule(ms).instance.asInstanceOf[T]

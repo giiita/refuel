@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.0-RC6"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.0"
 ````
 
 # Usage
@@ -12,7 +12,7 @@ There is no restriction on calling `inject[T]`.
 
 
 ```scala
-object A extends A with AutoInject[A]
+object A extends A with AutoInject
 
 trait A {
   def toString: String = "TEST"
@@ -60,9 +60,11 @@ Dependencies defined as inner objects of trait or class can not be registered au
 In AutoInjector, if multiple dependencies of the same type are registered, refuel will automatically insert the highest priority first deployed module.
 
 ```scala
-object A extends X with RecoveredInject[X]
-object B extends X with AutoInject[X]
+@Inject(Finally)
+object A extends X with AutoInject
+object B extends X with AutoInject
 // This is the highest priority
+@Inject(Primary)
 object C extends AutoInjectCustomPriority[X](9999) with X
 
 trait X
@@ -86,8 +88,10 @@ You can also create an `AutoInject[_]` interface with any priority by mixing in 
  * RecoveredInject priority = 0
  * narrow[X](X).indexing() priority = Int.MAX
  */
-object A extends AutoInject[A] with A
-object B extends AutoInjectCustomPriority[A](1001) with A {
+case object MyPriority extends InjectionPriority(-1)
+object A extends AutoInject with A
+@Inject(MyPriority)
+object B extends AutoInject with A {
   override def toString: String = "I am B."
 }
 
@@ -114,11 +118,11 @@ trait AliasA
 trait AliasB
 trait AliasC
 
-object A extends A with Tag[AliasA] with AutoInject[A @@ AliasA]
-object B extends A with Tag[AliasB] with AutoInject[A @@ AliasB] {
+object A extends A with Tag[AliasA] with AutoInject
+object B extends A with Tag[AliasB] with AutoInject {
   override def toString: String = "I am B."
 }
-object C extends A with Tag[AliasC] with AutoInject[A] { // I have not AutoInject tag
+object C extends A with Tag[AliasC] with AutoInject { // I have not AutoInject tag
   override def toString: String = "I am C."
 }
 
@@ -166,13 +170,13 @@ Then, declare the object that gave the effect to `@Effective`
 
 ```scala
 @Effective(DEV)
-object DevConf extends Conf with AutoInject[Conf]
+object DevConf extends Conf with AutoInject
 
 @Effective(STG)
-object StgConf extends Conf with AutoInject[Conf]
+object StgConf extends Conf with AutoInject
 
 @Effective(PRD)
-object PrdConf extends Conf with AutoInject[Conf]
+object PrdConf extends Conf with AutoInject
 ```
 
 This will assign an appropriate Conf for each environment to `inject[Conf]`.
@@ -209,13 +213,13 @@ trait N {
 trait UseN extends Injector {
   def exec: String = inject[N].value
 }
-object UseN extends UseN with AutoInject[UseN] 
+object UseN extends UseN with AutoInject 
 ```
 
 【 PROJECT C 】
 
 ```scala
-object NImpl extends N with AutoInject[N] {
+object NImpl extends N with AutoInject {
   val value = "I am NImpl in project C."
 }
 
@@ -263,19 +267,19 @@ This eliminates the need to propagate overriding dependency overrides.<br/>
 trait A {
   val value
 }
-object AImpl extends A with AutoInject[A] {
+object AImpl extends A with AutoInject {
   val value = "I am AImpl"
 }
 
 trait B extends Injector {
   val a = inject[A]
 }
-object B extends B with AutoInject[B]
+object B extends B with AutoInject
 
 trait C extends Injector {
   val b = inject[B]
 }
-object C extends C with AutoInject[C]
+object C extends C with AutoInject
 
 
 object Test extends App with Injector {
@@ -307,7 +311,7 @@ object Test extends App with Injector {
 ### Override dependency
 
 ```scala
-object A extends AutoInject[A]
+object A extends AutoInject
 
 trait A {
   def toString: String = "TEST"
@@ -414,8 +418,8 @@ Overwriting with `depends` and running tests in parallel may unexpectedly overwr
 
 ```scala
   trait A[T]
-  object B extends A[List[String]] with AutoInject[A[List[String]]]
-  object C extends A[List[BigDecimal]] with AutoInject[A[List[BigDecimal]]]
+  object B extends A[List[String]] with AutoInject
+  object C extends A[List[BigDecimal]] with AutoInject
 
   object TestA extends Injector {
     def test = {
@@ -429,8 +433,8 @@ However, caution is required as types inheriting AnyVal are handled internally a
 
 ```scala
   trait A[T]
-  object B extends A[List[Int]] with AutoInject[A[List[Int]]]
-  object C extends A[List[Double]] with AutoInject[A[List[Double]]]
+  object B extends A[List[Int]] with AutoInject
+  object C extends A[List[Double]] with AutoInject
 
   object TestA extends Injector {
     def test = {

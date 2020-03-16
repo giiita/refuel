@@ -110,7 +110,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    * @tparam T injection type
    * @return
    */
-  private[refuel] def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container]): Indexer[T] = {
+  def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container]): Indexer[T] = {
     new CanBeClosedIndexer(createScope[T](x, priority), lights :+ this)
   }
 
