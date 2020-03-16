@@ -7,11 +7,9 @@ install_nvm() {
     mkdir -p $HOME/.nvm
   fi
 
-  if ! test -s $HOME/.nvm; then
-    echo "NVM installing..."
-    cd $HOME/.nvm
-    curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-  fi
+  echo "NVM installing..."
+  cd $HOME/.nvm
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
 
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
