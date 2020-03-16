@@ -1,10 +1,11 @@
 package refuel.injector.scope
 
 import refuel.container.Container
+import refuel.domination.InjectionPriority
 
 import scala.reflect.runtime.universe._
 
-private[refuel] case class CanBeRestrictedSymbol[T](value: T, priority: Int, x: Type, c: Container) extends IndexedTagSymbol[T](x) {
+private[refuel] case class CanBeRestrictedSymbol[T](value: T, priority: InjectionPriority, x: Type, c: Container) extends IndexedTagSymbol[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *

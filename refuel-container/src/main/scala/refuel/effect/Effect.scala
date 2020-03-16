@@ -26,18 +26,18 @@ import refuel.injector.AutoInject
   *   }
   *
   *   @Effective(LOCAL)
-  *   object LocalRuntimeSetting extends Setting with AutoInject[Setting]
+  *   object LocalRuntimeSetting extends Setting with AutoInject
   *
   *   @Effective(DEV)
-  *   object DevRuntimeSetting extends Setting with AutoInject[Setting]
+  *   object DevRuntimeSetting extends Setting with AutoInject
   *
   *   @Effective(STG)
-  *   object StgRuntimeSetting extends Setting with AutoInject[Setting]
+  *   object StgRuntimeSetting extends Setting with AutoInject
   *
   *   @Effective(PRD)
-  *   object PrdRuntimeSetting extends Setting with AutoInject[Setting]
+  *   object PrdRuntimeSetting extends Setting with AutoInject
   * }}}
   */
-trait Effect extends AutoInject[Effect] with EffectLike { me =>
+trait Effect extends AutoInject with EffectLike { me =>
   def tag: scala.reflect.runtime.universe.Type = scala.reflect.runtime.universe.typeOf[me.type]
 }

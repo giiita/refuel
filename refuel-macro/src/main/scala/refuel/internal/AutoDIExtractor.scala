@@ -3,7 +3,7 @@ package refuel.internal
 import refuel.Config
 import refuel.Config.AdditionalPackage
 import refuel.container.Container
-import refuel.injector.AutoInjectable
+import refuel.injector.AutoInject
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
@@ -18,18 +18,19 @@ object AutoDIExtractor {
     getList[C, T](c) match {
       case x => new InjectionCompound[c.type](c).buildOne(ctn)(
         richSets.filterModuleSymbols[T](x),
-        richSets.findClassSymbol[T](x)
+        richSets.filterClassSymbol[T](x)
       )
     }
   }
 
   private[this] def getList[C <: blackbox.Context, T: c.WeakTypeTag](c: C): AutoInjectableSymbols[c.type] = {
     buffer match {
-      case None    => new AutoDIExtractor[c.type](c).run() match {
-        case x =>
-          buffer = Some(x)
-          x
-      }
+      case None =>
+        new AutoDIExtractor[c.type](c).run() match {
+          case x =>
+            buffer = Some(x)
+            x
+        }
       case Some(x) => x.asInstanceOf[AutoInjectableSymbols[c.type]]
     }
   }
@@ -39,6 +40,8 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
+  private[this] final val AutoInjectionTag = c.weakTypeOf[AutoInject]
+
   lazy val unloadPackages: Seq[String] = {
     val config = Config.blackList
     config.collect {
@@ -46,12 +49,10 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     } match {
       case x if x.nonEmpty =>
         c.echo(EmptyTree.pos, s"\nUnscanning injection packages:\n    ${x.mkString("\n    ")}\n\n")
-      case _               =>
+      case _ =>
     }
     config.map(_.value)
   }
-
-  private[this] val autoInjectableTag = weakTypeOf[AutoInjectable[_]]
 
 
   def run(): AutoInjectableSymbols[c.type] = {
@@ -64,22 +65,23 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   private final def nealyPackage(current: Symbol, prevs: Symbol*): Symbol = {
     current.owner match {
       case x if x.isPackage && x.fullName == "<root>" => x
-      case x                                          => nealyPackage(x, prevs.+:(x): _*)
+      case x => nealyPackage(x, prevs.+:(x): _*)
     }
   }
 
   @tailrec
   private final def recursivePackageExplore(selfPackages: Vector[Symbol],
                                             injectableSymbols: AutoInjectableSymbols[c.type] = AutoInjectableSymbols.empty[c.type](c)): AutoInjectableSymbols[c.type] = {
+
     selfPackages match {
       case x if x.isEmpty => injectableSymbols
-      case _              =>
+      case _ =>
         val (packages, modules) = selfPackages.flatMap(_.typeSignature.decls).distinct.collect {
           case x if selfPackages.contains(x) || unloadPackages.contains(x.fullName) =>
             None -> None
-          case x if x.isPackage                                                     =>
+          case x if x.isPackage =>
             Some(x) -> None
-          case x if (x.isModule && !x.isAbstract) || x.isInjectableOnce             =>
+          case x if (x.isModule && !x.isAbstract) || x.isModuleClass || x.isInjectableOnce =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -99,11 +101,11 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   : AutoInjectableSymbols[c.type] = {
     n.accessible match {
       case accessibleSymbol if accessibleSymbol.isEmpty => injectableSymbols
-      case accessibleSymbol                             =>
+      case accessibleSymbol =>
         accessibleSymbol.collect {
-          case x if x.isModule && x.typeSignature.<:<(autoInjectableTag) => Some(x) -> None
-          case x if x.isInjectableOnce                                   => None -> Some(x)
-          case _                                                         => None -> None
+          case x if x.isModule && x.typeSignature.<:<(AutoInjectionTag) => Some(x) -> None
+          case x if x.isInjectableOnce => None -> Some(x)
+          case _ => None -> None
         } match {
           case x =>
             recursiveModuleExplore(
@@ -124,7 +126,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
         x.isClass &&
           !x.isAbstract &&
           x.asClass.primaryConstructor.isMethod &&
-          x.typeSignature.baseClasses.contains(autoInjectableTag.typeSymbol)
+          x.typeSignature.baseClasses.contains(AutoInjectionTag.typeSymbol)
       }.getOrElse(false)
     }
   }
@@ -132,8 +134,9 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   implicit class RichVectorSymbol(value: Vector[c.Symbol]) {
     def accessible: Vector[c.Symbol] = {
       value.flatMap {
+        case x if x.fullName == "org.scalatest.tools.Framework" => None
         case x if x.toString.endsWith("package$") => None
-        case x                                    => try {
+        case x => try {
           c.typecheck(
             c.parse(
               x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")

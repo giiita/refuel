@@ -3,7 +3,9 @@ package refuel.http.io.setting
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpEntity, HttpProtocols, HttpRequest}
 import akka.stream.ActorMaterializer
-import refuel.injector.RecoveredInject
+import refuel.domination.Inject
+import refuel.domination.InjectionPriority.Finally
+import refuel.injector.AutoInject
 
 /**
  * Settings that are always reflected when making a request.
@@ -41,6 +43,7 @@ object HttpSetting {
     def setProtocol: HttpRequest = request.withProtocol(HttpProtocols.`HTTP/1.1`)
   }
 
-  object RecoveredHttpSetting extends HttpSetting with RecoveredInject[HttpSetting]
+  @Inject(Finally)
+  object RecoveredHttpSetting extends HttpSetting with AutoInject
 
 }

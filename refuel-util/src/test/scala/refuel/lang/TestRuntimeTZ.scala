@@ -5,7 +5,7 @@ import java.util.TimeZone
 
 import refuel.injector.AutoInject
 
-object TestRuntimeTZ extends RuntimeTZ with AutoInject[RuntimeTZ] {
+object TestRuntimeTZ extends RuntimeTZ with AutoInject {
   override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
   override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
   override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)

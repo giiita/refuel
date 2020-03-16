@@ -2,6 +2,7 @@ package refuel.container
 
 import refuel.Types.{@@, Localized}
 import refuel.container.indexer.Indexer
+import refuel.domination.InjectionPriority
 import refuel.effect.EffectLike
 import refuel.injector.scope.{IndexedSymbol, TypedAcceptContext}
 
@@ -52,7 +53,7 @@ private[refuel] trait Container {
     * @tparam T injection type
     * @return
     */
-  private[refuel] def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container] = this.lights): Indexer[T]
+  def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container] = this.lights): Indexer[T]
 
   /**
     * Generate open scope.
@@ -62,7 +63,7 @@ private[refuel] trait Container {
     * @tparam T injection type
     * @return
     */
-  private[refuel] def createScope[T: WeakTypeTag](x: T, priority: Int): IndexedSymbol[T]
+  private[refuel] def createScope[T: WeakTypeTag](x: T, priority: InjectionPriority): IndexedSymbol[T]
 
   private[refuel] def shading: Container @@ Localized
 }

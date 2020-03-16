@@ -1,6 +1,7 @@
 package refuel.injector.scope
 
 import refuel.container.Container
+import refuel.domination.InjectionPriority
 
 import scala.reflect.runtime.universe._
 
@@ -12,7 +13,7 @@ import scala.reflect.runtime.universe._
   */
 trait IndexedSymbol[T] {
   val value: T
-  val priority: Int
+  val priority: InjectionPriority
   val tag: Type
   val c: Container
 

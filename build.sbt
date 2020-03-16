@@ -1,7 +1,7 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.11.12", "2.12.10", "2.13.1")
+lazy val buildTargetVersion = Seq("2.12.10", "2.13.1")
 scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
@@ -102,8 +102,8 @@ lazy val container = (project in file("refuel-container"))
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
     ),
     scalacOptions in Global ++= Seq(
-      //      "-Ydebug",
-      //       "-Ymacro-debug-verbose",
+//            "-Ydebug",
+//             "-Ymacro-debug-verbose",
       "-language:experimental.macros"
     ),
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value

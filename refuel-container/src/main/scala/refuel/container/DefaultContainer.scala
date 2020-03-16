@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 import refuel.Types
 import refuel.Types.@@
 import refuel.container.indexer.{CanBeClosedIndexer, Indexer}
+import refuel.domination.InjectionPriority
 import refuel.effect.{Effect, EffectLike}
 import refuel.injector.scope.{CanBeRestrictedSymbol, IndexedSymbol, TypedAcceptContext}
 import refuel.internal.AtomicUpdater
@@ -68,7 +69,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
       case Some(r) =>
         r.filter(x => x.c == this && x.accepted(requestFrom))
           .toSeq
-          .sortBy(_.priority)(Ordering.Int.reverse)
+          .sortBy(_.priority)(InjectionPriority.Order)
           .headOption
           .map(_.value.asInstanceOf[T])
     }
@@ -109,7 +110,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    * @tparam T injection type
    * @return
    */
-  private[refuel] def createIndexer[T: WeakTypeTag](x: T, priority: Int, lights: Vector[Container]): Indexer[T] = {
+  def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container]): Indexer[T] = {
     new CanBeClosedIndexer(createScope[T](x, priority), lights :+ this)
   }
 
@@ -121,7 +122,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
    * @tparam T injection type
    * @return
    */
-  private[refuel] override def createScope[T: universe.WeakTypeTag](x: T, priority: Int): IndexedSymbol[T] = {
+  private[refuel] override def createScope[T: universe.WeakTypeTag](x: T, priority: InjectionPriority): IndexedSymbol[T] = {
     CanBeRestrictedSymbol[T](x, priority, weakTypeTag[T].tpe, this)
   }
 

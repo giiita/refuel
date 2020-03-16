@@ -1,6 +1,7 @@
 package refuel.injector.scope
 
 import refuel.container.Container
+import refuel.domination.InjectionPriority
 
 import scala.reflect.runtime.universe._
 
@@ -13,7 +14,7 @@ import scala.reflect.runtime.universe._
   * @param acceptedFrom accepted instance list
   * @tparam T Injection object type
   */
-private[refuel] case class AcceptedFromInstanceSymbol[T](value: T, priority: Int = Int.MaxValue, x: Type, acceptedFrom: Vector[Any], c: Container) extends IndexedTagSymbol[T](x) {
+private[refuel] case class AcceptedFromInstanceSymbol[T](value: T, priority: InjectionPriority, x: Type, acceptedFrom: Vector[Any], c: Container) extends IndexedTagSymbol[T](x) {
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *

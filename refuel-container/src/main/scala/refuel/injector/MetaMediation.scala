@@ -3,6 +3,8 @@ package refuel.injector
 import refuel.Types.LocalizedContainer
 import refuel.container._
 import refuel.container.indexer.Indexer
+import refuel.domination.InjectionPriority
+import refuel.domination.InjectionPriority.{Default, Overwrite, Primary}
 import refuel.internal.Macro
 import refuel.provider.{Accessor, Lazy}
 
@@ -29,7 +31,7 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] { 
     * @param priority Injection priority.
     * @tparam T new dependency type
     */
-  def overwrite[T: WeakTypeTag](x: T, priority: Int = AutoInject.DEFAULT_INJECTION_PRIORITY + 100)(implicit ctn: C): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
+  def overwrite[T: WeakTypeTag](x: T, priority: InjectionPriority = Overwrite)(implicit ctn: C): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
 
   /**
     * Create a container shade.
@@ -49,7 +51,8 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] { 
     * @tparam T new dependency type
     * @return
     */
-  protected def narrow[T: WeakTypeTag](x: T, priority: Int = Int.MaxValue)(implicit ctn: C): Indexer[T] = ctn.createIndexer(x, priority)
+
+  protected def narrow[T: WeakTypeTag](x: T, priority: InjectionPriority = Primary)(implicit ctn: C): Indexer[T] = ctn.createIndexer(x, priority)
 
   /**
     * Get accessible dependencies.
@@ -66,19 +69,6 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] { 
 
   /**
     * Get accessible dependencies.
-    *
-    * The type information is resolved at compile time, but the injection object is finalized at runtime.
-    * This function is slower than [[refuel.injector.MetaMediation.bind]], but can be overwritten by flush or narrow.
-    *
-    * @param ctn    Container
-    * @param access Accessor (This refers to itself)
-    * @tparam T Injection type
-    * @return
-    */
-  protected def inject[T](t: TypeTag[T])(implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] = macro Macro.lazyInjectDyn[T]
-
-  /**
-    * Get accessible dependencies.
     * You can detect errors that can not be assigned at compile time.
     *
     * It is faster than [[refuel.injector.MetaMediation.inject]] because of immediate assignment,
@@ -86,7 +76,7 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] { 
     * and this assignment can not be overwritten with "flush" or "narrow".
     *
     * The scope to which this immediate assignment applies is
-    * all the same instances that inherit [[refuel.injector.AutoInjectable]].
+    * all the same instances that inherit [[refuel.injector.AutoInject]].
     *
     * @param ctn    Container
     * @param access Accessor (This refers to itself)
