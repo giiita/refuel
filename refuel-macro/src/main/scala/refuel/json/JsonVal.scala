@@ -2,7 +2,7 @@ package refuel.json
 
 import refuel.json.error.DeserializeFailed
 
-trait Json extends Serializable {
+trait JsonVal extends Serializable {
 
   /**
    * Detects hooked binding syntax of Json literal.
@@ -33,7 +33,7 @@ trait Json extends Serializable {
    * @param js join json objects.
    * @return
    */
-  def ++(js: Json): Json
+  def ++(js: JsonVal): JsonVal
 
   /**
    * Indicates that it is a joinable Json object.
@@ -52,7 +52,7 @@ trait Json extends Serializable {
    * @param key Target json key name
    * @return
    */
-  def named(key: String): Json
+  def named(key: String): JsonVal
 
   /**
    * Squash the Json buffer under construction.
@@ -60,7 +60,7 @@ trait Json extends Serializable {
    *
    * @return
    */
-  def squash: Json = this
+  def squash: JsonVal = this
 
   /**
    * Indicates whether the object is squashable.

@@ -4,7 +4,7 @@ import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.entry._
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
-import refuel.json.{Codec, Json}
+import refuel.json.{Codec, JsonVal}
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -23,7 +23,7 @@ private[codecs] trait AnyRefCodecs {
   private[this] class IterableOnceCodec[T, C[T] <: Iterable[T]]
   (c: => C[T], j: (C[T], T) => C[T])(tct: Codec[T]) extends Codec[C[T]] {
 
-    def fail(bf: Json, e: Throwable): DeserializeFailed = {
+    def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
       UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
     }
 
@@ -34,7 +34,7 @@ private[codecs] trait AnyRefCodecs {
      * @param bf Json syntax tree.
      * @return
      */
-    override def deserialize(bf: Json): Either[DeserializeFailed, C[T]] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, C[T]] = {
       bf match {
         case JsArray(x) =>
           x.foldLeft(Right(c): Either[DeserializeFailed, C[T]]) { (a, b) =>
@@ -54,7 +54,7 @@ private[codecs] trait AnyRefCodecs {
      * @param t Serializable object.
      * @return
      */
-    override def serialize(t: C[T]): Json = {
+    override def serialize(t: C[T]): JsonVal = {
       JsArray(t.map(this.tct.serialize))
     }
 
@@ -96,7 +96,7 @@ private[codecs] trait AnyRefCodecs {
    * @return
    */
   implicit final def ArrayCodec[T: ClassTag](_x: Codec[T]): Codec[Array[T]] = new Codec[Array[T]] {
-    def fail(bf: Json, e: Throwable): DeserializeFailed = {
+    def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
       UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
     }
 
@@ -107,7 +107,7 @@ private[codecs] trait AnyRefCodecs {
      * @param bf Json syntax tree.
      * @return
      */
-    override def deserialize(bf: Json): Either[DeserializeFailed, Array[T]] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Array[T]] = {
       bf match {
         case JsArray(x) =>
           x.foldLeft(Right(Array.empty): Either[DeserializeFailed, Array[T]]) { (a, b) =>
@@ -127,7 +127,7 @@ private[codecs] trait AnyRefCodecs {
      * @param t Serializable object.
      * @return
      */
-    override def serialize(t: Array[T]): Json = {
+    override def serialize(t: Array[T]): JsonVal = {
       JsArray(t.map(_x.serialize))
     }
 
@@ -153,11 +153,11 @@ private[codecs] trait AnyRefCodecs {
    */
   implicit final def MapCodec[K, V](_x: (Codec[K], Codec[V])): Codec[Map[K, V]] = new Codec[Map[K, V]] {
 
-    def fail(bf: Json, e: Throwable): DeserializeFailed = {
+    def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
       UnexpectedDeserializeType(s"Cannot deserialize to Map -> $bf", e)
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Map[K, V]] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Map[K, V]] = {
       bf match {
         case JsObject(x) =>
           x.foldRight(Right(Map()): Either[DeserializeFailed, Map[K, V]]) { (a, b) =>
@@ -175,7 +175,7 @@ private[codecs] trait AnyRefCodecs {
       }
     }
 
-    override def serialize(t: Map[K, V]): Json = {
+    override def serialize(t: Map[K, V]): JsonVal = {
       JsObject(
         t.map {
           case (k, v) => _x._1.serialize(k).asInstanceOf[JsString] -> _x._2.serialize(v)
@@ -196,19 +196,19 @@ private[codecs] trait AnyRefCodecs {
   implicit final def OptionCodec[T](_x: Codec[T]): Codec[Option[T]] = {
     new Codec[Option[T]] {
 
-      def fail(bf: Json, e: Throwable): DeserializeFailed = {
+      def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
         UnexpectedDeserializeType(s"Cannot deserialize to Option -> $bf", e)
       }
 
-      override def deserialize(bf: Json): Either[DeserializeFailed, Option[T]] = {
+      override def deserialize(bf: JsonVal): Either[DeserializeFailed, Option[T]] = {
         bf match {
           case JsNull => Right(None)
           case _ => _x.deserialize(bf).right.map(Some.apply[T])
         }
       }
 
-      override def serialize(t: Option[T]): Json = {
-        t.fold(JsEmpty: Json) { x =>
+      override def serialize(t: Option[T]): JsonVal = {
+        t.fold(JsEmpty: JsonVal) { x =>
           _x.serialize(x)
         }
       }

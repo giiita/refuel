@@ -1,7 +1,7 @@
 package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.codecs.builder.context.keylit.parser.{KeyLitParser, KeyLitPrefixer}
 import refuel.json.entry.JsObject
 
@@ -35,11 +35,11 @@ case class JsKeyLit(v: Seq[String]) extends JsKeyLitOps with KeyLitParser with K
    * @param x Root json object
    * @return
    */
-  override def rec(x: Json): Seq[Json] = Seq {
+  override def rec(x: JsonVal): Seq[JsonVal] = Seq {
     v.foldLeft(x)(_ named _)
   }
 
-  def additionalKeyRef(sers: Seq[Json]): Json = {
+  def additionalKeyRef(sers: Seq[JsonVal]): JsonVal = {
     v.foldRight(sers.head)((a, b) => JsObject(a -> b))
   }
 

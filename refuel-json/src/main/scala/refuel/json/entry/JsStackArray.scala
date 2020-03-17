@@ -2,11 +2,11 @@ package refuel.json.entry
 
 import java.util
 
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.error.IllegalJsonFormat
 
-private[refuel] case class JsStackArray(bf: Json) extends JsStack[Json](bf) {
-  protected var stack: Array[Json] = new Array[Json](1 << 2)
+private[refuel] case class JsStackArray(bf: JsonVal) extends JsStack[JsonVal](bf) {
+  protected var stack: Array[JsonVal] = new Array[JsonVal](1 << 2)
 
   private[this] var commad = 1
 
@@ -21,7 +21,7 @@ private[refuel] case class JsStackArray(bf: Json) extends JsStack[Json](bf) {
     } else duplicateComma
   }
 
-  override def squash: Json = {
+  override def squash: JsonVal = {
     bf ++ JsArray(stack.filter(_ != null))
   }
 
@@ -29,7 +29,7 @@ private[refuel] case class JsStackArray(bf: Json) extends JsStack[Json](bf) {
     stack = util.Arrays.copyOf(stack, Integer.highestOneBit(stack.length) << 1)
   }
 
-  def ++(js: Json): Json = {
+  def ++(js: JsonVal): JsonVal = {
     if (js != null && commad == 1) {
       if (pos == stack.length) glowArray
       stack(pos) = js

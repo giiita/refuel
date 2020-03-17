@@ -1,6 +1,6 @@
 package refuel.json.internal
 
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.tokenize.ReadStream
 
 /**
@@ -8,5 +8,5 @@ import refuel.json.tokenize.ReadStream
   * Please note that it may currently allow some syntax errors.
   */
 trait JsonTokenizer {
-  def run(v: ReadStream): Json
+  def run(v: ReadStream): JsonVal
 }

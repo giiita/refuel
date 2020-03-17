@@ -4,19 +4,19 @@ import refuel.internal.json.DeserializeResult
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.entry.JsNull
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
-import refuel.json.{Codec, Json}
+import refuel.json.{Codec, JsonVal}
 
 object JoinableCodec {
 
   abstract class T1[A, Z](apl: A => Z)
                          (upl: Z => Option[A])
                          (implicit n1: Codec[A]) extends Codec[Z] {
-    override def serialize(t: Z): Json = upl(t) match {
+    override def serialize(t: Z): JsonVal = upl(t) match {
       case Some(a) => keyLiteralRef.additionalKeyRef(Seq(n1.serialize(a)))
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       n1.deserialize(keyLiteralRef.rec(bf).head) match {
         case Right(x) => Right(apl(x))
         case Left(e) => Left(
@@ -29,7 +29,7 @@ object JoinableCodec {
   abstract class T2[A, B, Z](apl: (A, B) => Z)
                             (upl: Z => Option[(A, B)])
                             (implicit n1: Codec[A], n2: Codec[B]) extends Codec[Z] {
-    override def serialize(t: Z): Json = upl(t) match {
+    override def serialize(t: Z): JsonVal = upl(t) match {
       case Some((a, b)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -39,7 +39,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -61,7 +61,7 @@ object JoinableCodec {
   abstract class T3[A, B, C, Z](apl: (A, B, C) => Z)
                                (upl: Z => Option[(A, B, C)])
                                (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C]) extends Codec[Z] {
-    override def serialize(t: Z): Json = upl(t) match {
+    override def serialize(t: Z): JsonVal = upl(t) match {
       case Some((a, b, c)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -72,7 +72,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -96,7 +96,7 @@ object JoinableCodec {
   abstract class T4[A, B, C, D, Z](apl: (A, B, C, D) => Z)
                                   (upl: Z => Option[(A, B, C, D)])
                                   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D]) extends Codec[Z] {
-    override def serialize(t: Z): Json = upl(t) match {
+    override def serialize(t: Z): JsonVal = upl(t) match {
       case Some((a, b, c, d)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -108,7 +108,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -135,7 +135,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E) => Z)
   (upl: Z => Option[(A, B, C, D, E)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -148,7 +148,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -173,7 +173,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F) => Z)
   (upl: Z => Option[(A, B, C, D, E, F)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -187,7 +187,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -214,7 +214,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -229,7 +229,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -258,7 +258,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -274,7 +274,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -305,7 +305,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -322,7 +322,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -355,7 +355,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -373,7 +373,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -408,7 +408,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -427,7 +427,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -464,7 +464,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -484,7 +484,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -523,7 +523,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -544,7 +544,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -585,7 +585,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -606,7 +606,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -649,7 +649,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -672,7 +672,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -717,7 +717,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -741,7 +741,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -788,7 +788,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -813,7 +813,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -862,7 +862,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q], n18: Codec[R]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -888,7 +888,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -939,7 +939,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q], n18: Codec[R], n19: Codec[S]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -966,7 +966,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -1019,7 +1019,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q], n18: Codec[R], n19: Codec[S], n20: Codec[T]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -1047,7 +1047,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -1102,7 +1102,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q], n18: Codec[R], n19: Codec[S], n20: Codec[T], n21: Codec[U]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -1131,7 +1131,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))
@@ -1188,7 +1188,7 @@ object JoinableCodec {
   (apl: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V) => Z)
   (upl: Z => Option[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)])
   (implicit n1: Codec[A], n2: Codec[B], n3: Codec[C], n4: Codec[D], n5: Codec[E], n6: Codec[F], n7: Codec[G], n8: Codec[H], n9: Codec[I], n10: Codec[J], n11: Codec[K], n12: Codec[L], n13: Codec[M], n14: Codec[N], n15: Codec[O], n16: Codec[P], n17: Codec[Q], n18: Codec[R], n19: Codec[S], n20: Codec[T], n21: Codec[U], n22: Codec[V]) extends Codec[Z] {
-    override def serialize(_t: Z): Json = upl(_t) match {
+    override def serialize(_t: Z): JsonVal = upl(_t) match {
       case Some((a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v)) => keyLiteralRef.additionalKeyRef(
         Seq(
           n1.serialize(a),
@@ -1218,7 +1218,7 @@ object JoinableCodec {
       case None => JsNull
     }
 
-    override def deserialize(bf: Json): Either[DeserializeFailed, Z] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, Z] = {
       keyLiteralRef.rec(bf) match {
         case a => DeserializeResult(n1.deserialize(a.head))
           .and(n2.deserialize(a(1)))

@@ -2,11 +2,11 @@ package refuel.json.entry
 
 import java.util
 
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.error.{IllegalJsonFormat, StreamIndeterminate}
 
-private[refuel] case class JsStackObjects(bf: Json) extends JsStack[(JsString, Json)](bf) {
-  protected var stack: Array[(JsString, Json)] = new Array[(JsString, Json)](1 << 2)
+private[refuel] case class JsStackObjects(bf: JsonVal) extends JsStack[(JsString, JsonVal)](bf) {
+  protected var stack: Array[(JsString, JsonVal)] = new Array[(JsString, JsonVal)](1 << 2)
 
   private var standBy: Option[JsString] = None
 
@@ -17,16 +17,16 @@ private[refuel] case class JsStackObjects(bf: Json) extends JsStack[(JsString, J
       coloned = 1
   }
 
-  override def squash: Json = {
+  override def squash: JsonVal = {
     if (standBy.nonEmpty || coloned == 1) illegalJsonFormat(standBy.get)
     bf ++ JsObject.fromNullableArray(stack)
   }
 
-  private[this] final def requireAddJsStr(js: Json): Unit = {
+  private[this] final def requireAddJsStr(js: JsonVal): Unit = {
     throw StreamIndeterminate(s"Cannot add JsKey to JsObject. Must be JsString, but was $js")
   }
 
-  private[this] final def illegalJsonFormat(js: Json): Unit = {
+  private[this] final def illegalJsonFormat(js: JsonVal): Unit = {
     throw new IllegalJsonFormat(s"Unspecified json value of key: #$js#")
   }
 
@@ -34,7 +34,7 @@ private[refuel] case class JsStackObjects(bf: Json) extends JsStack[(JsString, J
     stack = util.Arrays.copyOf(stack, Integer.highestOneBit(stack.length) << 1)
   }
 
-  def ++(js: Json): Json = {
+  def ++(js: JsonVal): JsonVal = {
     if (js != null) {
       if (standBy.isEmpty) {
         js match {

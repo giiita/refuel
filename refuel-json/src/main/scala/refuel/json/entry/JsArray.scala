@@ -1,8 +1,8 @@
 package refuel.json.entry
 
-import refuel.json.Json
+import refuel.json.JsonVal
 
-case class JsArray private(bf: Seq[Json]) extends JsVariable {
+case class JsArray private(bf: Seq[JsonVal]) extends JsVariable {
   override def toString: String = {
     val x = new StringBuffer()
     pour(x)
@@ -20,7 +20,7 @@ case class JsArray private(bf: Seq[Json]) extends JsVariable {
     sb.append(']')
   }
 
-  def ++(js: Json): Json = {
+  def ++(js: JsonVal): JsonVal = {
     if (js == null) this else JsArray(bf :+ js)
   }
 
@@ -28,5 +28,5 @@ case class JsArray private(bf: Seq[Json]) extends JsVariable {
 }
 
 object JsArray {
-  def apply(bf: TraversableOnce[Json]): JsArray = new JsArray(bf.toSeq)
+  def apply(bf: TraversableOnce[JsonVal]): JsArray = new JsArray(bf.toSeq)
 }

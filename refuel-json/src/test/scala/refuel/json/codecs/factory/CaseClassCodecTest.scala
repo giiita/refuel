@@ -9,7 +9,7 @@ import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.error.DeserializeFailed
-import refuel.json.{Codec, CodecDef, Json, JsonTransform}
+import refuel.json.{Codec, CodecDef, JsonVal, JsonTransform}
 
 object CaseClassCodecTest {
 
@@ -55,14 +55,14 @@ class CaseClassCodecTest
   implicit val cLocalCodec: Codec[C] = CaseClassCodec.from[C]
 
   implicit def _bCodec: Codec[BBB] = new Codec[BBB] with All {
-    override def deserialize(bf: Json): Either[DeserializeFailed, BBB] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, BBB] = {
       for {
         a <- bf.named("bbbId").to(implicitly[Codec[Long]]).right
         b <- bf.named("aaa").to(OptionCodec(CaseClassCodec.from[AAA])).right
       } yield new BBB(a, b)
     }
 
-    override def serialize(t: BBB): Json = {
+    override def serialize(t: BBB): JsonVal = {
       implicit val _ = CaseClassCodec.from[AAA]
       JsObject()
         .++(JsString("bbbId"))
@@ -101,9 +101,9 @@ class CaseClassCodecTest
         Seq(new BBB(4, None), new BBB(5, Some(AAA(7, 8))), new BBB(6, None))
 
       implicit def _ddd: Codec[DDD] = new Codec[DDD] {
-        override def serialize(t: DDD): Json = ???
+        override def serialize(t: DDD): JsonVal = ???
 
-        override def deserialize(bf: Json): Either[DeserializeFailed, DDD] =
+        override def deserialize(bf: JsonVal): Either[DeserializeFailed, DDD] =
           Right(DDD(2, CCC(3, bbbs)))
 
         override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit

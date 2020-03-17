@@ -3,7 +3,7 @@ package refuel.internal.json
 import refuel.internal.PropertyDebugModeEnabler
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType}
-import refuel.json.{Codec, Json}
+import refuel.json.{Codec, JsonVal}
 
 import scala.reflect.macros.blackbox
 import scala.util.{Failure, Success}
@@ -13,7 +13,6 @@ class CaseCodecFactory(val c: blackbox.Context)
 
   import c.universe._
 
-  private[this] val JsonEntryPkg = q"refuel.json.entry"
   private[this] val KeyLits = q"refuel.json.codecs.builder.context.keylit"
 
   protected def recall[T](q: WeakTypeTag[T]): c.Expr[Codec[T]] =
@@ -156,7 +155,7 @@ class CaseCodecFactory(val c: blackbox.Context)
         c
           .parse(s"""val name: String = "${x._2.decodedName.toTermName}" """)
       }
-          ${x._1.tree}.deserialize(implicitly[${weakTypeTag[Json]}].named(name)) match {
+          ${x._1.tree}.deserialize(implicitly[${weakTypeTag[JsonVal]}].named(name)) match {
                 case Right(b) => b
                 case Left(e)  => throw e
               }"""
@@ -226,7 +225,7 @@ class CaseCodecFactory(val c: blackbox.Context)
       // case _ => c.abort(c.enclosingPosition, s"Unsupported unapply return type signature. ${up.returnType}")
     }
 
-    val serializeTrees: Seq[c.Expr[(String, Json)]] = up.returnType match {
+    val serializeTrees: Seq[c.Expr[(String, JsonVal)]] = up.returnType match {
       // This is codec for constructor that has result type be Tuple.
       case TypeRef(_, _, arg :: _) if arg.typeSymbol.name.toString.startsWith("Tuple") =>
         (ap.paramLists.headOption.toList.flatten, arg) match {
@@ -242,7 +241,7 @@ class CaseCodecFactory(val c: blackbox.Context)
                  implicit val ${c.parse(s"_codecInsertion$i")} = ${c.parse(s"self._codecChildren")}
                """
             }
-            Seq(c.Expr[(String, Json)](
+            Seq(c.Expr[(String, JsonVal)](
               q"""
                   ..$typeInTuple
                   ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(x.head)}.serialize(unapplied)
@@ -251,7 +250,7 @@ class CaseCodecFactory(val c: blackbox.Context)
           case (_, TypeRef(_, _, args)) =>
             paramNames.zip(args.zipWithIndex).map {
               case (name, (argType, index)) =>
-                c.Expr[(String, Json)](
+                c.Expr[(String, JsonVal)](
                   q"""
                 ${c.parse(s""""${name.toTermName}"""")} -> ${c.parse(s"self._codecChildren._${index + 1}")}.serialize(${c.parse(s"unapplied._${index + 1}")})
                   """)
@@ -261,7 +260,7 @@ class CaseCodecFactory(val c: blackbox.Context)
       // Example, Seq[T].unapplySeq, Vector[T].unapplySeq etc...
       case TypeRef(_, _, arg :: _) =>
         Seq(
-          c.Expr[(String, Json)](
+          c.Expr[(String, JsonVal)](
             q"""
                 ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(arg)}.serialize(unapplied)
            """)
@@ -274,25 +273,25 @@ class CaseCodecFactory(val c: blackbox.Context)
 
         private[this] val _codecChildren = c.Expr(q"""(..$childCodecs)""").splice
 
-        def fail(bf: Json, e: Throwable): DeserializeFailed = {
+        def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
           UnexpectedDeserializeType(
             s"Cannot deserialize to ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice} -> ${bf.toString}",
             e
           )
         }
 
-        override def serialize(t: T): Json = {
+        override def serialize(t: T): JsonVal = {
           implicit def v: T = t
 
-          c.Expr[Json](
+          c.Expr[JsonVal](
             q"""
                  val unapplied = ${weakTypeOf[T].typeSymbol.companion}.$up(implicitly[${weakTypeOf[T]}]).get
                  refuel.json.entry.JsObject.apply(Seq(..$serializeTrees): _*)
                 """).splice
         }
 
-        override def deserialize(bf: Json): Either[DeserializeFailed, T] = {
-          implicit def json: Json = bf
+        override def deserialize(bf: JsonVal): Either[DeserializeFailed, T] = {
+          implicit def json: JsonVal = bf
 
           scala.util.Try {
             c.Expr[T](

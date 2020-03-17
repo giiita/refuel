@@ -10,7 +10,7 @@ trait JsonTransform {
 
   /**
    * Serialize any object to Json syntax tree.
-   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[Json.pour]].
+   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[JsonVal.pour]].
    * A function that takes an implicit codec, but in many cases it will require explicit assignment.
    * {{{
    *   ???.toJson(CaseClassCodec.from[XXX])
@@ -20,7 +20,7 @@ trait JsonTransform {
    * @tparam T Any object type
    */
   protected implicit class JScribe[T](t: T) {
-    def toJson(implicit ct: Codec[T]): Json = ct.serialize(t)
+    def toJson(implicit ct: Codec[T]): JsonVal = ct.serialize(t)
 
     def toJString(implicit ct: Codec[T]): String = {
       val buf = new StringBuffer()
@@ -73,6 +73,6 @@ trait JsonTransform {
   protected implicit class JDescribe(t: String) {
     def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = jsonTree.to[E]
 
-    def jsonTree: Json = new JTransformRouter(t).jsonTree
+    def jsonTree: JsonVal = new JTransformRouter(t).jsonTree
   }
 }

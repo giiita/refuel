@@ -1,11 +1,11 @@
 package refuel.internal.json.codec.builder
 
-import refuel.json.Json
+import refuel.json.JsonVal
 
 trait JsKeyLitOps {
-  def rec(x: Json): Seq[Json]
+  def rec(x: JsonVal): Seq[JsonVal]
 
-  def additionalKeyRef(sers: Seq[Json]): Json
+  def additionalKeyRef(sers: Seq[JsonVal]): JsonVal
 
   def ++(that: JsKeyLitOps): JsKeyLitOps
 

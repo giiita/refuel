@@ -3,7 +3,7 @@ package refuel.json.codecs.builder.context.keylit.parser
 import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.builder.context.keylit.JsKeyLit
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
-import refuel.json.{Codec, Json}
+import refuel.json.{Codec, JsonVal}
 
 trait KeyLitPrefixer {
   self: JsKeyLit =>
@@ -35,13 +35,13 @@ trait KeyLitPrefixer {
    * @return
    */
   def extend[A](implicit v: Codec[A]): Codec[A] = new Codec[A] {
-    override def deserialize(bf: Json): Either[DeserializeFailed, A] = {
+    override def deserialize(bf: JsonVal): Either[DeserializeFailed, A] = {
       v.deserialize(keyLiteralRef.rec(bf).head)
     }
 
     override def keyLiteralRef: JsKeyLitOps = v.keyLiteralRef prefix self.v
 
-    override def serialize(t: A): Json = {
+    override def serialize(t: A): JsonVal = {
       keyLiteralRef.additionalKeyRef(Seq(v.serialize(t)))
     }
   }

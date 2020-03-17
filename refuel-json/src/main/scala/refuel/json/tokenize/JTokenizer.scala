@@ -2,7 +2,7 @@ package refuel.json.tokenize
 
 import java.util
 
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.entry._
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.tokenize.combinator.ExtensibleIndexWhere
@@ -59,7 +59,7 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
   }
 
   @tailrec
-  protected final def loop(rb: ResultBuff[Json]): Json = {
+  protected final def loop(rb: ResultBuff[JsonVal]): JsonVal = {
     indexWhere(_ > 32)
     val x = rs(pos)
     (x: @switch) match {

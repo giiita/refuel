@@ -1,9 +1,9 @@
 package refuel.json.entry
 
-import refuel.json.Json
+import refuel.json.JsonVal
 
-trait JsVariable extends Json {
+trait JsVariable extends JsonVal {
   override def approvalSyntax(c: Char): Unit = ()
 
-  override def named(key: String): Json = JsNull
+  override def named(key: String): JsonVal = JsNull
 }

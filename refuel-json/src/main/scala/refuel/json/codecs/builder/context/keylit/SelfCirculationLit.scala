@@ -1,17 +1,15 @@
 package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.Json
+import refuel.json.JsonVal
 import refuel.json.codecs.builder.context.keylit.parser.KeyLitParser
 
 case object SelfCirculationLit extends JsKeyLitOps with KeyLitParser {
-  val v: Seq[String] = Nil
+  def rec(x: JsonVal): Seq[JsonVal] = Seq(x)
 
-  override def rec(x: Json): Seq[Json] = Seq(x)
-
-  def additionalKeyRef(sers: Seq[Json]): Json = sers.head
+  def additionalKeyRef(sers: Seq[JsonVal]): JsonVal = sers.head
 
   def ++(that: JsKeyLitOps): JsKeyLitOps = MultipleKeyLit(Seq(this, that))
 
-  override def prefix(that: Seq[String]): JsKeyLitOps = JsKeyLit(that)
+  def prefix(that: Seq[String]): JsKeyLitOps = JsKeyLit(that)
 }
