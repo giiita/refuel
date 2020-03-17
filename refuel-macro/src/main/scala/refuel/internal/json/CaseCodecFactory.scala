@@ -266,84 +266,46 @@ class CaseCodecFactory(val c: blackbox.Context)
                 ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(arg)}.serialize(unapplied)
            """)
         )
-      // case _ => c.abort(c.enclosingPosition, s"Unsupported unapply return type signature. ${up.returnType}")
     }
 
-    val TypedJson = weakTypeOf[Json]
-    val TypedT = weakTypeOf[T]
+    reify {
+      new Codec[T] {
+        self =>
 
-//    c.Expr[Codec[T]](
-//      q"""
-//         new ${weakTypeOf[Codec[T]]} {
-//           val _codecChildren = (..$childCodecs)
-//
-//           def fail(bf: $TypedJson, e: ${weakTypeOf[Throwable]}): ${weakTypeOf[DeserializeFailed]} = {
-//             ${weakTypeOf[UnexpectedDeserializeType]}(
-//               ${
-//                 reify[String] {
-//                   s"Cannot deserialize to ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice} -> bf.toString"
-//                 }
-//               },
-//               e
-//             )
-//           }
-//
-//           override def serialize(t: $TypedT): $TypedJson = {
-//             val unapplied = $TypedT.$up(t).get
-//             $JsonEntryPkg.JsObject.apply(Seq(..$serializeTrees): _*)
-//           }
-//
-//           override def deserialize(bf: Json): Either[DeserializeFailed, T] = {
-//             scala.util.Try {
-//               $TypedT.$ap(..${createChildDeserializationTrees(ap, paramNames)})
-//             } match {
-//               case Success(r) => Right(r)
-//               case Failure(e) => Left(fail(bf, e))
-//             }
-//           }
-//
-//           override def keyLiteralRef: ${weakTypeOf[JsKeyLitOps]} = $KeyLits.SelfCirculationLit
-//         }
-//       """
-//    )
+        private[this] val _codecChildren = c.Expr(q"""(..$childCodecs)""").splice
 
-        reify {
-          new Codec[T] { self =>
+        def fail(bf: Json, e: Throwable): DeserializeFailed = {
+          UnexpectedDeserializeType(
+            s"Cannot deserialize to ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice} -> ${bf.toString}",
+            e
+          )
+        }
 
-            private[this] val _codecChildren = c.Expr(q"""(..$childCodecs)""").splice
+        override def serialize(t: T): Json = {
+          implicit def v: T = t
 
-            def fail(bf: Json, e: Throwable): DeserializeFailed = {
-              UnexpectedDeserializeType(
-                s"Cannot deserialize to ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice} -> ${bf.toString}",
-                e
-              )
-            }
-
-            override def serialize(t: T): Json = {
-              implicit def v: T = t
-
-              c.Expr[Json](
-                q"""
+          c.Expr[Json](
+            q"""
                  val unapplied = ${weakTypeOf[T].typeSymbol.companion}.$up(implicitly[${weakTypeOf[T]}]).get
                  refuel.json.entry.JsObject.apply(Seq(..$serializeTrees): _*)
                 """).splice
-            }
+        }
 
-            override def deserialize(bf: Json): Either[DeserializeFailed, T] = {
-              implicit def json: Json = bf
+        override def deserialize(bf: Json): Either[DeserializeFailed, T] = {
+          implicit def json: Json = bf
 
-              scala.util.Try {
-                c.Expr[T](
-                  q"${weakTypeOf[T].typeSymbol.companion}.$ap(..${createChildDeserializationTrees(ap, paramNames)})"
-                ).splice
-              } match {
-                case Success(r) => Right(r)
-                case Failure(e) => Left(fail(bf, e))
-              }
-            }
-
-            override def keyLiteralRef: JsKeyLitOps = c.Expr[JsKeyLitOps](q"""$KeyLits.SelfCirculationLit""").splice
+          scala.util.Try {
+            c.Expr[T](
+              q"${weakTypeOf[T].typeSymbol.companion}.$ap(..${createChildDeserializationTrees(ap, paramNames)})"
+            ).splice
+          } match {
+            case Success(r) => Right(r)
+            case Failure(e) => Left(fail(bf, e))
           }
         }
+
+        override def keyLiteralRef: JsKeyLitOps = c.Expr[JsKeyLitOps](q"""$KeyLits.SelfCirculationLit""").splice
+      }
+    }
   }
 }

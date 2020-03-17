@@ -4,6 +4,12 @@ import refuel.json.error.DeserializeFailed
 
 trait Json extends Serializable {
 
+  /**
+   * Detects hooked binding syntax of Json literal.
+   * This detects syntax errors when joining Json objects.
+   *The argument receives a delimiter that is not directly related to the construction of Json.
+   * @param c delimiter
+   */
   def approvalSyntax(c: Char): Unit
 
   /**
@@ -29,6 +35,11 @@ trait Json extends Serializable {
    */
   def ++(js: Json): Json
 
+  /**
+   * Indicates that it is a joinable Json object.
+   *
+   * @return
+   */
   def isIndependent: Boolean = false
 
   def to[T](implicit c: Codec[T]): Either[DeserializeFailed, T] =
@@ -43,8 +54,19 @@ trait Json extends Serializable {
    */
   def named(key: String): Json
 
-
+  /**
+   * Squash the Json buffer under construction.
+   * This will build a complete Json object.
+   *
+   * @return
+   */
   def squash: Json = this
 
+  /**
+   * Indicates whether the object is squashable.
+   * If squashable, the object is a Json buffer under construction.
+   *
+   * @return
+   */
   def isSquashable: Boolean = false
 }

@@ -2,7 +2,7 @@ package refuel.internal.json
 
 import refuel.internal.PropertyDebugModeEnabler
 import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.{Codec, Json}
+import refuel.json.Codec
 
 import scala.reflect.macros.blackbox
 
@@ -10,9 +10,7 @@ class ConstructCodecFactory(override val c: blackbox.Context) extends CaseCodecF
 
   import c.universe._
 
-  private[this] final val JsonPkg = q"refuel.json"
   private[this] final val Codecs = q"refuel.json.codecs"
-  private[this] final val JsonEntryPkg = q"refuel.json.entry"
 
   def fromConst1[A: c.WeakTypeTag, Z](n1: c.Expr[JsKeyLitOps])
                                      (apl: c.Expr[A => Z])
