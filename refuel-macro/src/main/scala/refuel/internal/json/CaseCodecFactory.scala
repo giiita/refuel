@@ -1,7 +1,6 @@
 package refuel.internal.json
 
 import refuel.internal.PropertyDebugModeEnabler
-import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType}
 import refuel.json.{Codec, JsonVal}
 
@@ -12,8 +11,6 @@ class CaseCodecFactory(val c: blackbox.Context)
   extends PropertyDebugModeEnabler {
 
   import c.universe._
-
-  private[this] val KeyLits = q"refuel.json.codecs.builder.context.keylit"
 
   protected def recall[T](q: WeakTypeTag[T]): c.Expr[Codec[T]] =
     c.Expr(q"refuel.json.codecs.factory.InferImplicitCodec.from[$q]")
@@ -66,8 +63,7 @@ class CaseCodecFactory(val c: blackbox.Context)
     val implicitExistence = inferImplicitCodecFactory(weakTypeOf[T])
     if (implicitExistence._2.nonEmpty) {
       c.Expr[Codec[T]](
-        q"""
-            ${implicitExistence._2}(..${implicitExistence._1.map(recall)})""")
+        q"""${implicitExistence._2}(..${implicitExistence._1.map(recall)})""")
     } else createNewImplicitTree[T]()
   }
 
@@ -141,24 +137,17 @@ class CaseCodecFactory(val c: blackbox.Context)
         case x@TypeRef(_, _, z)
           if z.nonEmpty && inferImplicitCodecFactory(x.typeSignature)._2.nonEmpty =>
           val enpr = inferImplicitCodecFactory(x.typeSignature)
-
-          c.Expr[Codec[_]](
-            q"""
-                 ${enpr._2}(..${enpr._1.map(recall)})""")
-        case x =>
-          recall(x)
+          c.Expr[Codec[_]](q"""${enpr._2}(..${enpr._1.map(recall)})""")
+        case x => recall(x)
       }
 
     typers.zip(paramNames).map { x =>
       q"""
-          ${
-        c
-          .parse(s"""val name: String = "${x._2.decodedName.toTermName}" """)
-      }
-          ${x._1.tree}.deserialize(implicitly[${weakTypeTag[JsonVal]}].named(name)) match {
-                case Right(b) => b
-                case Left(e)  => throw e
-              }"""
+        {
+          ${c.parse(s"""val name: String = "${x._2.decodedName.toTermName}" """)}
+          ${x._1.tree}.deserialize(implicitly[${weakTypeTag[JsonVal]}].named(name))
+        }
+       """
     }
   }
 
@@ -290,7 +279,7 @@ class CaseCodecFactory(val c: blackbox.Context)
                 """).splice
         }
 
-        override def deserialize(bf: JsonVal): Either[DeserializeFailed, T] = {
+        override def deserialize(bf: JsonVal): T = {
           implicit def json: JsonVal = bf
 
           scala.util.Try {
@@ -298,12 +287,10 @@ class CaseCodecFactory(val c: blackbox.Context)
               q"${weakTypeOf[T].typeSymbol.companion}.$ap(..${createChildDeserializationTrees(ap, paramNames)})"
             ).splice
           } match {
-            case Success(r) => Right(r)
-            case Failure(e) => Left(fail(bf, e))
+            case Success(r) => r
+            case Failure(e) => throw fail(bf, e)
           }
         }
-
-        override def keyLiteralRef: JsKeyLitOps = c.Expr[JsKeyLitOps](q"""$KeyLits.SelfCirculationLit""").splice
       }
     }
   }

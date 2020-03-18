@@ -2,8 +2,6 @@ package refuel.json.codecs.definition
 
 import java.time.ZonedDateTime
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.codecs.builder.context.keylit.EndPointKeyLit
 import refuel.json.entry.{JsAnyVal, JsNull, JsString}
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
 import refuel.json.{Codec, JsonVal}
@@ -24,19 +22,17 @@ private[codecs] trait AnyValCodecs {
 
     override def serialize(t: T): JsonVal = JsAnyVal(t.toString)
 
-    override final def deserialize(bf: JsonVal): Either[DeserializeFailed, T] = {
+    override final def deserialize(bf: JsonVal): T = {
       Try {
         bf match {
           case JsNull => throw UnsupportedOperation("Null value cannot deserialize to String.")
           case _ => parse(bf)
         }
       } match {
-        case Success(x) => Right(x)
-        case Failure(x) => Left(fail(bf, x))
+        case Success(x) => x
+        case Failure(x) => throw fail(bf, x)
       }
     }
-
-    override val keyLiteralRef: JsKeyLitOps = EndPointKeyLit
   }
 
   implicit final val IntCdc: Codec[Int] = new AnyValCodec[Int] {
@@ -124,16 +120,12 @@ private[codecs] trait AnyValCodecs {
 
     override def serialize(t: ZonedDateTime): JsonVal = JsString(t.format())
 
-    override def deserialize(bf: JsonVal): Either[DeserializeFailed, ZonedDateTime] = {
+    override def deserialize(bf: JsonVal): ZonedDateTime = {
       bf match {
-        case x: JsAnyVal => LongCdc.deserialize(x).right.map(_.datetime)
-        case JsString(x) => Right(x.datetime)
-        case _ => Left(
-          fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
-        )
+        case x: JsAnyVal => LongCdc.deserialize(x).datetime
+        case JsString(x) => x.datetime
+        case _ => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
       }
     }
-
-    override val keyLiteralRef: JsKeyLitOps = EndPointKeyLit
   }
 }

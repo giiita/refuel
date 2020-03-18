@@ -1,8 +1,6 @@
 package refuel.json
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.{Read, Write}
-import refuel.json.error.DeserializeFailed
 
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
@@ -35,8 +33,6 @@ object Codec {
      * @param bf Json syntax tree.
      * @return
      */
-    override def deserialize(bf: JsonVal): Either[DeserializeFailed, T] = ???
-
-    override def keyLiteralRef: JsKeyLitOps = ???
+    override def deserialize(bf: JsonVal): T = f(bf)
   }
 }

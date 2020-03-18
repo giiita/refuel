@@ -1,13 +1,12 @@
 package refuel.json
 
-import refuel.json.error.DeserializeFailed
-
 trait JsonVal extends Serializable {
 
   /**
    * Detects hooked binding syntax of Json literal.
    * This detects syntax errors when joining Json objects.
-   *The argument receives a delimiter that is not directly related to the construction of Json.
+   * The argument receives a delimiter that is not directly related to the construction of Json.
+   *
    * @param c delimiter
    */
   def approvalSyntax(c: Char): Unit
@@ -42,7 +41,7 @@ trait JsonVal extends Serializable {
    */
   def isIndependent: Boolean = false
 
-  def to[T](implicit c: Codec[T]): Either[DeserializeFailed, T] =
+  def to[T](implicit c: Codec[T]): T =
     c.deserialize(this)
 
   /**

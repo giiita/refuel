@@ -1,10 +1,8 @@
 package refuel.json.codecs.definition
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.internal.json.{DeserializeResult, TupleCodecs}
-import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
-import refuel.json.entry.{JsArray, JsObject, JsString}
-import refuel.json.error.{DeserializeFailed, IllegalJsonSyntaxTreeBuilding}
+import refuel.internal.json.TupleCodecs
+import refuel.json.entry.{JsArray, JsObject}
+import refuel.json.error.IllegalJsonSyntaxTreeBuilding
 import refuel.json.{Codec, JsonVal}
 
 /**
@@ -18,729 +16,811 @@ import refuel.json.{Codec, JsonVal}
 private[codecs] trait TupleCodecsImpl extends TupleCodecs {
 
   private[this] sealed abstract class TupleCodec[X] extends Codec[X] {
-    override def deserialize(bf: JsonVal): Either[DeserializeFailed, X] = tb(
-      keyLiteralRef.rec(bf).head match {
+    override def deserialize(bf: JsonVal): X = tb(
+      bf match {
         case JsObject(x) => x.map(_._2).toList
         case JsArray(x) => x.toList
-        case _ => throw IllegalJsonSyntaxTreeBuilding("Tuple deserialization was expected JsObject or JsArray")
+        case _ => throw IllegalJsonSyntaxTreeBuilding("Tuple deserialization was expected JsArray or JsArray")
       }
     )
 
-    protected def tb(that: List[JsonVal]): Either[DeserializeFailed, X]
-
-    override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
+    protected def tb(that: List[JsonVal]): X
   }
 
   private[this] class Tuple2CodecConst[A, B](a: Codec[A], b: Codec[B]) extends TupleCodec[(A, B)] {
-    override def serialize(t: (A, B)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2)
+    override def serialize(t: (A, B)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2)
+      )
     )
 
-    protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B)] = that match {
+    protected def tb(that: List[JsonVal]): (A, B) = that match {
       case ae :: be :: _ =>
-        DeserializeResult(a.deserialize(ae)).and(b.deserialize(be)).asTuple2
+        (
+          a.deserialize(ae),
+          b.deserialize(be)
+        )
     }
   }
 
   private[this] class Tuple3CodecConst[A, B, C](a: Codec[A], b: Codec[B], c: Codec[C]) extends TupleCodec[(A, B, C)] {
-    override def serialize(t: (A, B, C)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3)
+    override def serialize(t: (A, B, C)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3)
+      )
     )
 
-    protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C)] = that match {
+    protected def tb(that: List[JsonVal]): (A, B, C) = that match {
       case ae :: be :: ce :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
           c.deserialize(ce)
-        }.asTuple3
+        )
+      }
     }
   }
 
   private[this] class Tuple4CodecConst[A, B, C, D](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D]) extends TupleCodec[(A, B, C, D)] {
-    override def serialize(t: (A, B, C, D)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4)
+    override def serialize(t: (A, B, C, D)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4)
+      )
     )
 
-    protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D)] = that match {
+    protected def tb(that: List[JsonVal]): (A, B, C, D) = that match {
       case ae :: be :: ce :: de :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
           d.deserialize(de)
-        }.asTuple4
+        )
+      }
     }
   }
 
   private[this] class Tuple5CodecConst[A, B, C, D, E](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E]) extends TupleCodec[(A, B, C, D, E)] {
-    override def serialize(t: (A, B, C, D, E)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5)
+    override def serialize(t: (A, B, C, D, E)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E) = that match {
       case ae :: be :: ce :: de :: ee :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
           e.deserialize(ee)
-        }.asTuple5
+        )
+      }
     }
   }
 
   private[this] class Tuple6CodecConst[A, B, C, D, E, F](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F]) extends TupleCodec[(A, B, C, D, E, F)] {
-    override def serialize(t: (A, B, C, D, E, F)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6)
+    override def serialize(t: (A, B, C, D, E, F)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
           f.deserialize(fe)
-        }.asTuple6
+        )
+      }
     }
   }
 
   private[this] class Tuple7CodecConst[A, B, C, D, E, F, G](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G]) extends TupleCodec[(A, B, C, D, E, F, G)] {
-    override def serialize(t: (A, B, C, D, E, F, G)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7)
+    override def serialize(t: (A, B, C, D, E, F, G)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
           g.deserialize(ge)
-        }.asTuple7
+        )
+      }
     }
   }
 
   private[this] class Tuple8CodecConst[A, B, C, D, E, F, G, H](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H]) extends TupleCodec[(A, B, C, D, E, F, G, H)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8)
+    override def serialize(t: (A, B, C, D, E, F, G, H)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
           h.deserialize(he)
-        }.asTuple8
+        )
+      }
     }
   }
 
   private[this] class Tuple9CodecConst[A, B, C, D, E, F, G, H, I](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I]) extends TupleCodec[(A, B, C, D, E, F, G, H, I)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
           i.deserialize(ie)
-        }.asTuple9
+        )
+      }
     }
   }
 
   private[this] class Tuple10CodecConst[A, B, C, D, E, F, G, H, I, J](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
           j.deserialize(je)
-        }.asTuple10
+        )
+      }
     }
   }
 
   private[this] class Tuple11CodecConst[A, B, C, D, E, F, G, H, I, J, K](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
           k.deserialize(ke)
-        }.asTuple11
+        )
+      }
     }
   }
 
   private[this] class Tuple12CodecConst[A, B, C, D, E, F, G, H, I, J, K, L](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
           l.deserialize(le)
-        }.asTuple12
+        )
+      }
     }
   }
 
 
   private[this] class Tuple13CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
           m.deserialize(me)
-        }.asTuple13
+        )
+      }
     }
   }
 
   private[this] class Tuple14CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
           n.deserialize(ne)
-        }.asTuple14
+        )
+      }
     }
   }
 
   private[this] class Tuple15CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
           o.deserialize(oe)
-        }.asTuple15
+        )
+      }
     }
   }
 
   private[this] class Tuple16CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
           p.deserialize(pe)
-        }.asTuple16
+        )
+      }
     }
   }
 
   private[this] class Tuple17CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
           q.deserialize(qe)
-        }.asTuple17
+        )
+      }
     }
   }
 
   private[this] class Tuple18CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17),
-      "_18" -> r.serialize(t._18)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17),
+      r.serialize(t._18)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
-          q.deserialize(qe) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
+          q.deserialize(qe),
           r.deserialize(re)
-        }.asTuple18
+        )
+      }
     }
   }
 
   private[this] class Tuple19CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17),
-      "_18" -> r.serialize(t._18),
-      "_19" -> s.serialize(t._19)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)): JsonVal = JsArray(
+      Seq(
+        a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17),
+      r.serialize(t._18),
+      s.serialize(t._19)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
-          q.deserialize(qe) and
-          r.deserialize(re) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
+          q.deserialize(qe),
+          r.deserialize(re),
           s.deserialize(se)
-        }.asTuple19
+        )
+      }
     }
   }
 
   private[this] class Tuple20CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17),
-      "_18" -> r.serialize(t._18),
-      "_19" -> s.serialize(t._19),
-      "_20" -> tc.serialize(t._20)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)): JsonVal = JsArray(
+      Seq(
+      a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17),
+      r.serialize(t._18),
+      s.serialize(t._19),
+      tc.serialize(t._20)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
-          q.deserialize(qe) and
-          r.deserialize(re) and
-          s.deserialize(se) and
+        (a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
+          q.deserialize(qe),
+          r.deserialize(re),
+          s.deserialize(se),
           tc.deserialize(te)
-        }.asTuple20
+        )
+      }
     }
   }
 
   private[this] class Tuple21CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T], u: Codec[U]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17),
-      "_18" -> r.serialize(t._18),
-      "_19" -> s.serialize(t._19),
-      "_20" -> tc.serialize(t._20),
-      "_21" -> u.serialize(t._21)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)): JsonVal = JsArray(
+      Seq(
+      a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17),
+      r.serialize(t._18),
+      s.serialize(t._19),
+      tc.serialize(t._20),
+      u.serialize(t._21)
+      )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: ue :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
-          q.deserialize(qe) and
-          r.deserialize(re) and
-          s.deserialize(se) and
-          tc.deserialize(te) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
+          q.deserialize(qe),
+          r.deserialize(re),
+          s.deserialize(se),
+          tc.deserialize(te),
           u.deserialize(ue)
-        }.asTuple21
+        )
+      }
     }
   }
 
   private[this] class Tuple22CodecConst[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](a: Codec[A], b: Codec[B], c: Codec[C], d: Codec[D], e: Codec[E], f: Codec[F], g: Codec[G], h: Codec[H], i: Codec[I], j: Codec[J], k: Codec[K], l: Codec[L], m: Codec[M], n: Codec[N], o: Codec[O], p: Codec[P], q: Codec[Q], r: Codec[R], s: Codec[S], tc: Codec[T], u: Codec[U], v: Codec[V]) extends TupleCodec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] {
-    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)): JsonVal = JsObject(
-      "_1" -> a.serialize(t._1),
-      "_2" -> b.serialize(t._2),
-      "_3" -> c.serialize(t._3),
-      "_4" -> d.serialize(t._4),
-      "_5" -> e.serialize(t._5),
-      "_6" -> f.serialize(t._6),
-      "_7" -> g.serialize(t._7),
-      "_8" -> h.serialize(t._8),
-      "_9" -> i.serialize(t._9),
-      "_10" -> j.serialize(t._10),
-      "_11" -> k.serialize(t._11),
-      "_12" -> l.serialize(t._12),
-      "_13" -> m.serialize(t._13),
-      "_14" -> n.serialize(t._14),
-      "_15" -> o.serialize(t._15),
-      "_16" -> p.serialize(t._16),
-      "_17" -> q.serialize(t._17),
-      "_18" -> r.serialize(t._18),
-      "_19" -> s.serialize(t._19),
-      "_20" -> tc.serialize(t._20),
-      "_21" -> u.serialize(t._21),
-      "_22" -> v.serialize(t._22)
+    override def serialize(t: (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)): JsonVal = JsArray(
+      Seq(
+      a.serialize(t._1),
+      b.serialize(t._2),
+      c.serialize(t._3),
+      d.serialize(t._4),
+      e.serialize(t._5),
+      f.serialize(t._6),
+      g.serialize(t._7),
+      h.serialize(t._8),
+      i.serialize(t._9),
+      j.serialize(t._10),
+      k.serialize(t._11),
+      l.serialize(t._12),
+      m.serialize(t._13),
+      n.serialize(t._14),
+      o.serialize(t._15),
+      p.serialize(t._16),
+      q.serialize(t._17),
+      r.serialize(t._18),
+      s.serialize(t._19),
+      tc.serialize(t._20),
+      u.serialize(t._21),
+        v.serialize(t._22)
+    )
     )
 
-    override protected def tb(that: List[JsonVal]): Either[DeserializeFailed, (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = that match {
+    override protected def tb(that: List[JsonVal]): (A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V) = that match {
       case ae :: be :: ce :: de :: ee :: fe :: ge :: he :: ie :: je :: ke :: le :: me :: ne :: oe :: pe :: qe :: re :: se :: te :: ue :: ve :: _ => {
-        DeserializeResult(a.deserialize(ae)) and
-          b.deserialize(be) and
-          c.deserialize(ce) and
-          d.deserialize(de) and
-          e.deserialize(ee) and
-          f.deserialize(fe) and
-          g.deserialize(ge) and
-          h.deserialize(he) and
-          i.deserialize(ie) and
-          j.deserialize(je) and
-          k.deserialize(ke) and
-          l.deserialize(le) and
-          m.deserialize(me) and
-          n.deserialize(ne) and
-          o.deserialize(oe) and
-          p.deserialize(pe) and
-          q.deserialize(qe) and
-          r.deserialize(re) and
-          s.deserialize(se) and
-          tc.deserialize(te) and
-          u.deserialize(ue) and
+        (
+          a.deserialize(ae),
+          b.deserialize(be),
+          c.deserialize(ce),
+          d.deserialize(de),
+          e.deserialize(ee),
+          f.deserialize(fe),
+          g.deserialize(ge),
+          h.deserialize(he),
+          i.deserialize(ie),
+          j.deserialize(je),
+          k.deserialize(ke),
+          l.deserialize(le),
+          m.deserialize(me),
+          n.deserialize(ne),
+          o.deserialize(oe),
+          p.deserialize(pe),
+          q.deserialize(qe),
+          r.deserialize(re),
+          s.deserialize(se),
+          tc.deserialize(te),
+          u.deserialize(ue),
           v.deserialize(ve)
-        }.asTuple22
+        )
+      }
     }
   }
 

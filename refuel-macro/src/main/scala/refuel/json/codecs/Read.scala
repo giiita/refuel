@@ -1,8 +1,6 @@
 package refuel.json.codecs
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.{Codec, JsonVal, ReadOnly}
-import refuel.json.error.DeserializeFailed
+import refuel.json.JsonVal
 
 /**
  * This is a reader of json syntax tree.
@@ -17,7 +15,5 @@ trait Read[T] {
    * @param bf Json syntax tree.
    * @return
    */
-  def deserialize(bf: JsonVal): Either[DeserializeFailed, T]
-
-  def keyLiteralRef: JsKeyLitOps
+  def deserialize(bf: JsonVal): T
 }

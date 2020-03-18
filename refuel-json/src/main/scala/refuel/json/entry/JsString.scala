@@ -1,6 +1,6 @@
 package refuel.json.entry
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
+import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.JsonVal
 import refuel.json.error.{CannotAccessJsonKey, IllegalJsonSyntaxTreeBuilding}
 
@@ -38,5 +38,5 @@ case class JsString(literal: String) extends JsVariable {
 }
 
 object JsString {
-  def apply(literal: JsKeyLitOps): JsString = new JsString(literal.toString)
+  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString)
 }

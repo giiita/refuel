@@ -11,7 +11,7 @@ import scala.io.Source
 
 @State(org.openjdk.jmh.annotations.Scope.Benchmark)
 class Bench extends JsonTransform with CodecDef {
-  implicit val _codec: Codec[Root] = "root".parsed(seq(CaseClassCodec.from[Hoge])).apply(Root)(Root.unapply)
+  implicit val _codec: Codec[Root] = "root".parsed(seq(CaseClassCodec.from[Hoge])).apply(Root.apply)(Root.unapply)
 
   val source = Source.fromFile(
     new File("/Users/takagi/src/refuel/refuel-json/src/test/resources/test.json"),
@@ -47,12 +47,7 @@ class Bench extends JsonTransform with CodecDef {
 //    Json.stringify(Json.toJson(p.get))
 //  }
 
-  val r = jt.jsonTree.to[Root] match {
-    case Left(e) =>
-      e.printStackTrace()
-      throw e
-    case Right(e) => e
-  }
+  val r = jt.jsonTree.to[Root]
 
   @Benchmark
   def refuelSerialize = {
@@ -66,6 +61,6 @@ class Bench extends JsonTransform with CodecDef {
 
   @Benchmark
   def refuelDeserialize = {
-    jt.jsonTree.to[Root].right.get
+    jt.jsonTree.to[Root]
   }
 }

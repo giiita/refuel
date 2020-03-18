@@ -3,13 +3,10 @@ package refuel.json.codecs.factory
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.internal.json.codec.builder.JsKeyLitOps
 import refuel.json.codecs.All
-import refuel.json.codecs.builder.context.keylit.SelfCirculationLit
 import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
-import refuel.json.error.DeserializeFailed
-import refuel.json.{Codec, CodecDef, JsonVal, JsonTransform}
+import refuel.json.{Codec, CodecDef, JsonTransform, JsonVal}
 
 object CaseClassCodecTest {
 
@@ -55,11 +52,11 @@ class CaseClassCodecTest
   implicit val cLocalCodec: Codec[C] = CaseClassCodec.from[C]
 
   implicit def _bCodec: Codec[BBB] = new Codec[BBB] with All {
-    override def deserialize(bf: JsonVal): Either[DeserializeFailed, BBB] = {
-      for {
-        a <- bf.named("bbbId").to(implicitly[Codec[Long]]).right
-        b <- bf.named("aaa").to(OptionCodec(CaseClassCodec.from[AAA])).right
-      } yield new BBB(a, b)
+    override def deserialize(bf: JsonVal): BBB = {
+      new BBB(
+        bf.named("bbbId").to(implicitly[Codec[Long]]),
+        bf.named("aaa").to(OptionCodec(CaseClassCodec.from[AAA]))
+      )
     }
 
     override def serialize(t: BBB): JsonVal = {
@@ -70,8 +67,6 @@ class CaseClassCodecTest
         .++(JsString("aaa"))
         .++(CaseClassCodec.from[Option[AAA]].serialize(t.aaa))
     }
-
-    override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
   }
 
   "Load implicit codec" should {
@@ -103,10 +98,8 @@ class CaseClassCodecTest
       implicit def _ddd: Codec[DDD] = new Codec[DDD] {
         override def serialize(t: DDD): JsonVal = ???
 
-        override def deserialize(bf: JsonVal): Either[DeserializeFailed, DDD] =
-          Right(DDD(2, CCC(3, bbbs)))
-
-        override def keyLiteralRef: JsKeyLitOps = SelfCirculationLit
+        override def deserialize(bf: JsonVal): DDD =
+          DDD(2, CCC(3, bbbs))
       }
 
       s"""{"eeeId":1,"ddd":{"overwrite":"insertion value"}}""".as(
@@ -118,13 +111,11 @@ class CaseClassCodecTest
 
     "Used implicitly codec of refuel" in {
       s"""{"id": 0, "value": {"value": {"hoge": {"id": 1, "value": "AAA"}, "huga": {"id": 2, "value": "BBB"}}}}"""
-        .as(CaseClassCodec.from[DDDD]) match {
-        case Left(_) => fail()
-        case Right(r) =>
-          r shouldBe DDDD(
-            0,
-            CCCC(Map("hoge" -> BBBB(1, "AAA"), "huga" -> BBBB(2, "BBB")))
-          )
+        .as(CaseClassCodec.from[DDDD]) shouldBe Right {
+        DDDD(
+          0,
+          CCCC(Map("hoge" -> BBBB(1, "AAA"), "huga" -> BBBB(2, "BBB")))
+        )
       }
     }
   }
