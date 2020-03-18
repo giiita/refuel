@@ -22,11 +22,11 @@ trait JsonTransform {
    * @tparam T Any object type
    */
   protected implicit class JScribe[T](t: T) {
-    def toJson(implicit ct: Codec[T]): JsonVal = ct.serialize(t)
+    def toJson[X >: T](implicit ct: Codec[X]): JsonVal = ct.serialize(t)
 
-    def toJString(implicit ct: Codec[T]): String = {
+    def toJString[X >: T](implicit ct: Codec[X]): String = {
       val buf = new StringBuffer()
-      toJson.pour(buf)
+      toJson[X].pour(buf)
       buf.toString
     }
   }
