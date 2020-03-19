@@ -27,7 +27,7 @@ refuel-json automatically generates codec and supports JSON mutual conversion fa
 [info] Serialize.runPlayJson          avgt   10   0.614 ±  0.020  ms/op
 [info] Serialize.runCirce             avgt   10   0.425 ±  0.030  ms/op
 [info] Serialize.runSprayJson         avgt   10   0.354 ±  0.006  ms/op
-[info] Serialize.runRefuelParsing     avgt   10   0.323 ±  0.004  ms/op <<
+[info] Serialize.runRefuelParsing     avgt   10   0.263 ±  0.009  ms/op <<
 [info] Serialize.runSphereJson        avgt   10   0.254 ±  0.003  ms/op
 [info] Serialize.runUJson             avgt   10   0.225 ±  0.002  ms/op
 [info] Serialize.runJacksonParsing    avgt   10   0.078 ±  0.001  ms/op
