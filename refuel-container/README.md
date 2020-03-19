@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.0"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.1"
 ````
 
 # Usage
@@ -65,7 +65,7 @@ object A extends X with AutoInject
 object B extends X with AutoInject
 // This is the highest priority
 @Inject(Primary)
-object C extends AutoInjectCustomPriority[X](9999) with X
+object C extends AutoInject with X
 
 trait X
 ```

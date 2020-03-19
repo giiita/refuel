@@ -1,7 +1,7 @@
 # refuel-json
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-json" % "1.0.0"
+libraryDependencies += "com.phylage" %% "refuel-json" % "1.0.1"
 ```
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.
@@ -9,31 +9,29 @@ refuel-json automatically generates codec and supports JSON mutual conversion fa
 ```
 [info] Benchmark                      Mode  Cnt   Score    Error  Units
 
+[info] Deserialize.runJson4sNative    avgt   10   1.276 ±  0.021  ms/op
+[info] Deserialize.runPlayJson        avgt   10   1.202 ±  0.017  ms/op
+[info] Deserialize.runJson4sJackson   avgt   10   1.181 ±  0.064  ms/op
+[info] Deserialize.runArgonautJson    avgt   10   0.846 ±  0.029  ms/op
+[info] Deserialize.runRefuelParsing   avgt   10   0.491 ±  0.017  ms/op <<
+[info] Deserialize.runCirce           avgt   10   0.339 ±  0.026  ms/op
+[info] Deserialize.runSphereJson      avgt   10   0.316 ±  0.008  ms/op
+[info] Deserialize.runUJson           avgt   10   0.293 ±  0.004  ms/op
+[info] Deserialize.runSprayJson       avgt   10   0.258 ±  0.004  ms/op
+[info] Deserialize.runJacksonParsing  avgt   10   0.182 ±  0.002  ms/op
+[info] Deserialize.runJsoniter        avgt   10   0.091 ±  0.001  ms/op
 
-[info] Deserialize.runJson4sNative    avgt   10   1.339 ±  0.049  ms/op
-[info] Deserialize.runJson4sJackson   avgt   10   1.147 ±  0.013  ms/op
-[info] Deserialize.runArgonautJson    avgt   10   0.806 ±  0.015  ms/op
-[info] Deserialize.runPlayJson        avgt   10   0.676 ±  0.016  ms/op
-[info] Deserialize.runUJson           avgt   10   0.577 ±  0.956  ms/op
-[info] Deserialize.runRefuelParsing   avgt   10   0.504 ±  0.011  ms/op <= It.
-[info] Deserialize.runCirce           avgt   10   0.320 ±  0.020  ms/op
-[info] Deserialize.runSphereJson      avgt   10   0.317 ±  0.003  ms/op
-[info] Deserialize.runSprayJson       avgt   10   0.264 ±  0.001  ms/op
-[info] Deserialize.runJacksonParsing  avgt   10   0.168 ±  0.002  ms/op
-[info] Deserialize.runJsoniter        avgt   10   0.092 ±  0.001  ms/op
-
-
-[info] Serialize.runJson4sJackson     avgt   10   0.891 ±  0.022  ms/op
-[info] Serialize.runArgonautJson      avgt   10   0.832 ±  0.100  ms/op
-[info] Serialize.runJson4sNative      avgt   10   0.819 ±  0.011  ms/op
-[info] Serialize.runPlayJson          avgt   10   0.804 ±  0.034  ms/op
-[info] Serialize.runCirce             avgt   10   0.478 ±  0.056  ms/op
+[info] Serialize.runJson4sJackson     avgt   10   0.874 ±  0.021  ms/op
+[info] Serialize.runJson4sNative      avgt   10   0.798 ±  0.006  ms/op
+[info] Serialize.runArgonautJson      avgt   10   0.796 ±  0.051  ms/op
+[info] Serialize.runPlayJson          avgt   10   0.614 ±  0.020  ms/op
+[info] Serialize.runCirce             avgt   10   0.425 ±  0.030  ms/op
 [info] Serialize.runSprayJson         avgt   10   0.354 ±  0.006  ms/op
-[info] Serialize.runSphereJson        avgt   10   0.279 ±  0.052  ms/op
-[info] Serialize.runUJson             avgt   10   0.226 ±  0.002  ms/op
-[info] Serialize.runRefuelParsing     avgt   10   0.168 ±  0.007  ms/op <= It.
-[info] Serialize.runJacksonParsing    avgt   10   0.079 ±  0.001  ms/op
-[info] Serialize.runJsoniter          avgt   10   0.059 ±  0.001  ms/op
+[info] Serialize.runRefuelParsing     avgt   10   0.323 ±  0.004  ms/op <<
+[info] Serialize.runSphereJson        avgt   10   0.254 ±  0.003  ms/op
+[info] Serialize.runUJson             avgt   10   0.225 ±  0.002  ms/op
+[info] Serialize.runJacksonParsing    avgt   10   0.078 ±  0.001  ms/op
+[info] Serialize.runJsoniter          avgt   10   0.060 ±  0.004  ms/op
 ```
 
 ## Usage
@@ -88,6 +86,26 @@ val value = b
 ```
 
 Similarly, ConstCodec does not need to declare the inner class Codec.<br/>
+In addition, the value class that inherits AnyVal is converted in the state of being internally expanded.
+
+```scala
+case class StringVal(value: String) extends AnyVal
+case class LongVal(value: Long) extends AnyVal
+case class A(str: StringVal, lng: LongVal)
+
+// {"str": "foo", "lng": 11}
+A(StringVal("foo"), LongVal(11)).toJString(CaseClassCodec.from[A])
+
+// A(StringVal("foo"), LongVal(11))
+"""{"str": "foo", "lng": 11}""".as(CaseClassCodec.from[A])
+```
+
+If you do not need flat expansion, you need to define codec in implicit scope by yourself.
+
+```scala
+implicit val StringValCodec = ConstCodec.from("value")(StringVal.apply)(StringVal.unapply)
+implicit val LongValCodec = ConstCodec.from("value")(LongVal.apply)(LongVal.unapply)
+```
 
 ## Codec build DSL
 
@@ -140,4 +158,47 @@ It is possible to build arbitrary Codec by combining specific Codec.
 
 In this way, codecs can be generated according to JsonFormat, domain model, etc.
 
+## Dynamic codec creation
 
+Codec by macro cannot be generated conditional on dynamic values.
+It will be inconvenient to consider polymorphism.
+
+```scala 
+sealed abstract class Animal
+case class Cat(name: String, beard: Int = 6) extends Animal
+case class Shark(name: String, filet: Int = 4) extends Animal
+
+// This cannot be compiled due to the nature of macro expansion
+def animalCodec(v: Animal): Codec[Animal] = v match {
+  case _: Cat   => ContsCodec.from(v.name)(x => Cat(v.name))(x => Some(x))
+  case _: Shark => ContsCodec.from(v.name)(x => Shark(v.name))(x => Some(x))
+}
+```
+
+To work around this, use dynamic codec creation.
+
+```scala
+trait AnimalCodec extends CodecDef {
+  sealed abstract class Animal(name: String)
+  case class Cat(name: String, beard: Int = 6) extends Animal(name)
+  case class Shark(name: String, filet: Int = 4) extends Animal(name)
+  
+  def animalDeserializer: Read[Animal] = Deserialize { json =>
+    json.named("name") match {
+      case JsString("cat") => Cat("cat", json.named("beard").to[Int])
+      case JsString("shark") => Shark("shark", json.named("filet").to[Int])
+    }
+  }
+  def animalSerializer: Write[Animal] = Serialize {
+    case Cat(a, b) => Json.obj(
+      "name" -> a,
+      "beard" -> b
+    )
+    case Shark(a, b) => Json.obj(
+      "name" -> a,
+      "filet" -> b
+    )
+  }
+  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)
+} 
+```

@@ -1,7 +1,10 @@
 package refuel.json
 
-import refuel.json.error.DeserializeFailed
-import refuel.json.tokenize.JTransformRouter
+import refuel.json.codecs.{Read, Write}
+import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
+import refuel.json.tokenize.JsonTransformRouter
+
+import scala.util.Try
 
 /**
  * Context that performs Json serialize / deserialize by refuel json.
@@ -10,7 +13,7 @@ trait JsonTransform {
 
   /**
    * Serialize any object to Json syntax tree.
-   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[Json.pour]].
+   * In this state, it is not JsonRawData, but it becomes JsonRawData by [[JsonVal.pour]].
    * A function that takes an implicit codec, but in many cases it will require explicit assignment.
    * {{{
    *   ???.toJson(CaseClassCodec.from[XXX])
@@ -20,11 +23,11 @@ trait JsonTransform {
    * @tparam T Any object type
    */
   protected implicit class JScribe[T](t: T) {
-    def toJson(implicit ct: Codec[T]): Json = ct.serialize(t)
+    def toJson[X >: T](implicit ct: Write[X]): JsonVal = ct.serialize(t)
 
-    def toJString(implicit ct: Codec[T]): String = {
+    def toJString[X >: T](implicit ct: Write[X]): String = {
       val buf = new StringBuffer()
-      toJson.pour(buf)
+      toJson[X].pour(buf)
       buf.toString
     }
   }
@@ -71,8 +74,11 @@ trait JsonTransform {
    * @param t Json literal
    */
   protected implicit class JDescribe(t: String) {
-    def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = jsonTree.to[E]
+    def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] = Try {
+      jsonTree.to[E]
+    }.toEither.left.map(DeserializeFailPropagation("Internal structure analysis raised an exception.", _))
 
-    def jsonTree: Json = new JTransformRouter(t).jsonTree
+    def jsonTree: JsonVal = new JsonTransformRouter(t).jsonTree
   }
+
 }

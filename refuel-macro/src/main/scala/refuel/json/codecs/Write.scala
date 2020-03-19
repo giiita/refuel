@@ -1,6 +1,6 @@
 package refuel.json.codecs
 
-import refuel.json.Json
+import refuel.json.JsonVal
 
 /**
   * This is a writer of json syntax tree.
@@ -15,5 +15,5 @@ trait Write[T] {
     * @param t Serializable object.
     * @return
     */
-  def serialize(t: T): Json
+  def serialize(t: T): JsonVal
 }

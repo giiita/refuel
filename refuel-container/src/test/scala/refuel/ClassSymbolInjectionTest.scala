@@ -188,6 +188,10 @@ object ClassSymbolInjectionTest {
 
   }
 
+  object TEST_M {
+    case class M() extends AutoInject
+  }
+
 }
 
 class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
@@ -283,6 +287,12 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       }
       narrow[LInner](inner2).accept[L].indexing()
       inject[L]._provide.value shouldBe inner2
+    }
+
+    "Unused interfaces." in {
+      import refuel.ClassSymbolInjectionTest.TEST_M._
+
+      inject[M]._provide shouldBe M()
     }
   }
 

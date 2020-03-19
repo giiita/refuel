@@ -76,14 +76,14 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     }
 
     def buildLiteralCodecDep2A(pattern: Int): Codec[Depth2LineA] = pattern match {
-      case 1 => "1/4".extend(
+      case 1 => "1/4".parsed(
         {
           buildLiteralCodecDep3A(1) ++
             buildLiteralCodecDep3A(2) ++
             option(buildLiteralCodecDep3A(3))
         }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
       )
-      case 2 => "2/4".extend(
+      case 2 => "2/4".parsed(
         {
           buildLiteralCodecDep3A(1) ++
             buildLiteralCodecDep3A(2) ++
@@ -101,7 +101,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
       )(Depth2LineB.apply)(Depth2LineB.unapply)
     }
 
-    implicit val rootCodec: Codec[Depth1] = "root".extend(
+    implicit val rootCodec: Codec[Depth1] = "root".parsed(
       (buildLiteralCodecDep2A(1) ++
       buildLiteralCodecDep2A(2) ++
       option(buildLiteralCodecDep2B(1)) ++
@@ -198,7 +198,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
          |}
          |""".stripMargin
 
-    val codec = "root".extend(
+    val codec = "root".parsed(
       {
         ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply) ++
           option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
@@ -240,10 +240,10 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
          |""".stripMargin
 
     val codec: Codec[(String, String, String, Option[String])] = {
-      ("root" / "test1").extend[String] ++
-        ("root" / "test2").extend[String] ++
-        ("root" / "test3").extend[String] ++
-        option(("root" / "test8").extend[String])
+      ("root" / "test1").apply[String] ++
+        ("root" / "test2")[String] ++
+        ("root" / "test3")[String] ++
+        option(("root" / "test8")[String])
     }.apply((a,b,c,d) => (a,b,c,d))(x => Some(x))
 
     "deserialize verification of complex codec build" in {
@@ -254,6 +254,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
 
     "serialize verification of complex codec build" in {
       val x = ("test1#","test2#","test3#",None): (String, String, String, Option[String])
+      val xxx = x.toJString(codec)
       x.toJString(codec).as(codec) shouldBe Right(x)
     }
   }

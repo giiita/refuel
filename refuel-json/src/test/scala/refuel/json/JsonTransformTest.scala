@@ -32,7 +32,7 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
       s"""{"value":"3"}""".as(ConstCodec.from("hoge")(JString.apply)(JString.unapply)) match {
         case Left(e) =>
           e.printStackTrace()
-          e.getMessage shouldBe s"""Internal structure analysis raised an exception at {value -> 3}"""
+          e.getMessage shouldBe s"""Internal structure analysis raised an exception."""
           e.getCause.getMessage shouldBe s"""Cannot deserialize to String -> null"""
         case Right(r) => fail(r.toString)
       }

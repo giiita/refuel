@@ -1,7 +1,7 @@
 package refuel.json.entry
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
-import refuel.json.Json
+import refuel.internal.json.codec.builder.JsonKeyRef
+import refuel.json.JsonVal
 import refuel.json.error.{CannotAccessJsonKey, IllegalJsonSyntaxTreeBuilding}
 
 import scala.annotation.tailrec
@@ -32,11 +32,11 @@ case class JsString(literal: String) extends JsVariable {
     b.append('"')
   }
 
-  override def ++(js: Json): Json = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsLiteral.")
+  override def ++(js: JsonVal): JsonVal = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsLiteral.")
 
-  override def named(key: String): Json = throw CannotAccessJsonKey(s"Cannot access key : $key of $toString")
+  override def named(key: String): JsonVal = throw CannotAccessJsonKey(s"Cannot access key : $key of $toString")
 }
 
 object JsString {
-  def apply(literal: JsKeyLitOps): JsString = new JsString(literal.toString)
+  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString)
 }

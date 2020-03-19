@@ -413,381 +413,213 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with
   "json serialize" should {
     "Tuple2 wrapper serialize" in {
       TestJson.JTuple2((1, 2)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 2).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 2).mkString(",")}]}"""
       }
     }
     "Tuple3 wrapper serialize" in {
       TestJson.JTuple3((1, 2, 3)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 3).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 3).mkString(",")}]}"""
       }
     }
     "Tuple4 wrapper serialize" in {
       TestJson.JTuple4((1, 2, 3, 4)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 4).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 4).mkString(",")}]}"""
       }
     }
     "Tuple5 wrapper serialize" in {
       TestJson.JTuple5((1, 2, 3, 4, 5)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 5).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 5).mkString(",")}]}"""
       }
     }
     "Tuple6 wrapper serialize" in {
       TestJson.JTuple6((1, 2, 3, 4, 5, 6)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 6).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 6).mkString(",")}]}"""
       }
     }
     "Tuple7 wrapper serialize" in {
       TestJson.JTuple7((1, 2, 3, 4, 5, 6, 7)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 7).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 7).mkString(",")}]}"""
       }
     }
     "Tuple8 wrapper serialize" in {
       TestJson.JTuple8((1, 2, 3, 4, 5, 6, 7, 8)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 8).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 8).mkString(",")}]}"""
       }
     }
     "Tuple9 wrapper serialize" in {
       TestJson.JTuple9((1, 2, 3, 4, 5, 6, 7, 8, 9)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 9).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 9).mkString(",")}]}"""
       }
     }
     "Tuple10 wrapper serialize" in {
       TestJson.JTuple10((1, 2, 3, 4, 5, 6, 7, 8, 9, 10)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 10).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 10).mkString(",")}]}"""
       }
     }
     "Tuple11 wrapper serialize" in {
       TestJson.JTuple11((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 11).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 11).mkString(",")}]}"""
       }
     }
     "Tuple12 wrapper serialize" in {
       TestJson.JTuple12((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 12).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 12).mkString(",")}]}"""
       }
     }
     "Tuple13 wrapper serialize" in {
       TestJson.JTuple13((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 13).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 13).mkString(",")}]}"""
       }
     }
     "Tuple14 wrapper serialize" in {
       TestJson.JTuple14((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 14).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 14).mkString(",")}]}"""
       }
     }
     "Tuple15 wrapper serialize" in {
       TestJson.JTuple15((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 15).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 15).mkString(",")}]}"""
       }
     }
     "Tuple16 wrapper serialize" in {
       TestJson.JTuple16((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 16).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 16).mkString(",")}]}"""
       }
     }
     "Tuple17 wrapper serialize" in {
       TestJson.JTuple17((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 17).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 17).mkString(",")}]}"""
       }
     }
     "Tuple18 wrapper serialize" in {
       TestJson.JTuple18((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 18).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 18).mkString(",")}]}"""
       }
     }
     "Tuple19 wrapper serialize" in {
       TestJson.JTuple19((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 19).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 19).mkString(",")}]}"""
       }
     }
     "Tuple20 wrapper serialize" in {
       TestJson.JTuple20((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 20).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 20).mkString(",")}]}"""
       }
     }
     "Tuple21 wrapper serialize" in {
       TestJson.JTuple21((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 21).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 21).mkString(",")}]}"""
       }
     }
     "Tuple22 wrapper serialize" in {
       TestJson.JTuple22((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)).toJson.toString shouldBe {
-        s"""{value -> {${
-          (1 to 22).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}}"""
+        s"""{value -> [${(1 to 22).mkString(",")}]}"""
       }
     }
 
     "Tuple2 serialize" in {
       (1, 2).toJson.toString shouldBe {
-        s"""{${
-          (1 to 2).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 2).mkString(",")}]"""
       }
     }
     "Tuple3 serialize" in {
       (1, 2, 3).toJson.toString shouldBe {
-        s"""{${
-          (1 to 3).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 3).mkString(",")}]"""
       }
     }
     "Tuple4 serialize" in {
       (1, 2, 3, 4).toJson.toString shouldBe {
-        s"""{${
-          (1 to 4).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 4).mkString(",")}]"""
       }
     }
     "Tuple5 serialize" in {
       (1, 2, 3, 4, 5).toJson.toString shouldBe {
-        s"""{${
-          (1 to 5).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 5).mkString(",")}]"""
       }
     }
     "Tuple6 serialize" in {
       (1, 2, 3, 4, 5, 6).toJson.toString shouldBe {
-        s"""{${
-          (1 to 6).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 6).mkString(",")}]"""
       }
     }
     "Tuple7 serialize" in {
       (1, 2, 3, 4, 5, 6, 7).toJson.toString shouldBe {
-        s"""{${
-          (1 to 7).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 7).mkString(",")}]"""
       }
     }
     "Tuple8 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8).toJson.toString shouldBe {
-        s"""{${
-          (1 to 8).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 8).mkString(",")}]"""
       }
     }
     "Tuple9 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9).toJson.toString shouldBe {
-        s"""{${
-          (1 to 9).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 9).mkString(",")}]"""
       }
     }
     "Tuple10 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10).toJson.toString shouldBe {
-        s"""{${
-          (1 to 10).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 10).mkString(",")}]"""
       }
     }
     "Tuple11 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).toJson.toString shouldBe {
-        s"""{${
-          (1 to 11).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 11).mkString(",")}]"""
       }
     }
     "Tuple12 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).toJson.toString shouldBe {
-        s"""{${
-          (1 to 12).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 12).mkString(",")}]"""
       }
     }
     "Tuple13 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13).toJson.toString shouldBe {
-        s"""{${
-          (1 to 13).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 13).mkString(",")}]"""
       }
     }
     "Tuple14 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14).toJson.toString shouldBe {
-        s"""{${
-          (1 to 14).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 14).mkString(",")}]"""
       }
     }
     "Tuple15 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15).toJson.toString shouldBe {
-        s"""{${
-          (1 to 15).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 15).mkString(",")}]"""
       }
     }
     "Tuple16 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16).toJson.toString shouldBe {
-        s"""{${
-          (1 to 16).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 16).mkString(",")}]"""
       }
     }
     "Tuple17 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17).toJson.toString shouldBe {
-        s"""{${
-          (1 to 17).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 17).mkString(",")}]"""
       }
     }
     "Tuple18 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18).toJson.toString shouldBe {
-        s"""{${
-          (1 to 18).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 18).mkString(",")}]"""
       }
     }
     "Tuple19 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19).toJson.toString shouldBe {
-        s"""{${
-          (1 to 19).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 19).mkString(",")}]"""
       }
     }
     "Tuple20 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20).toJson.toString shouldBe {
-        s"""{${
-          (1 to 20).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 20).mkString(",")}]"""
       }
     }
     "Tuple21 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21).toJson.toString shouldBe {
-        s"""{${
-          (1 to 21).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 21).mkString(",")}]"""
       }
     }
     "Tuple22 serialize" in {
       (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22).toJson.toString shouldBe {
-        s"""{${
-          (1 to 22).map { x =>
-            s"""_$x -> $x"""
-          }.mkString(", ")
-        }}"""
+        s"""[${(1 to 22).mkString(",")}]"""
       }
     }
   }

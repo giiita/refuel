@@ -1,6 +1,6 @@
 package refuel.json.codecs.builder
 
-import refuel.internal.json.codec.builder.JsKeyLitOps
+import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.Codec
 import refuel.json.codecs.builder.CBuildComp.CBuildComp2
 import refuel.json.codecs.factory.ConstCodec
@@ -11,7 +11,7 @@ import refuel.json.codecs.factory.ConstCodec
   * @tparam A Codec type for temporarily stacked children
   */
 private[json] abstract class CBuildComp[A: Codec] {
-  private[json] def k: JsKeyLitOps
+  private[json] def k: JsonKeyRef
 
   private[json] def _c: Codec[A] = implicitly[Codec[A]]
 
