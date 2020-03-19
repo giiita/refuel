@@ -9,9 +9,10 @@ import refuel.json.tokenize.combinator.ExtensibleIndexWhere
 
 import scala.annotation.{switch, tailrec}
 
-class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
+class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
   override protected var pos: Int = 0
+  private[this] var closingSintaxCheckEnable: Boolean = false
 
   private[this] final def glowArray(addStrLen: Int): Unit = {
     chbuff = util.Arrays.copyOf(chbuff, Integer.highestOneBit(addStrLen) << 1)
@@ -45,16 +46,18 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
   @tailrec
   private[this] final def detectAnyVal(len: Int): Int = {
-    if (pos >= length) beEOF
-    (rs(pos): @switch) match {
-      case ',' | ':' | ' ' | '}' | ']' =>
-        len
-      case s =>
-        incl
-        val lastLen = len + 1
-        if (chbuff.length < lastLen) glowArray(len)
-        chbuff(len) = s
-        detectAnyVal(lastLen)
+    if (pos >= length) len
+    else {
+      (rs(pos): @switch) match {
+        case ',' | ':' | ' ' | '}' | ']' =>
+          len
+        case s =>
+          incl
+          val lastLen = len + 1
+          if (chbuff.length < lastLen) glowArray(len)
+          chbuff(len) = s
+          detectAnyVal(lastLen)
+      }
     }
   }
 
@@ -66,15 +69,19 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
       case '"' =>
         incl
         val len = detectLiteral(0)
-        loop(rb ++ JsString(new String(chbuff, 0, len)))
+        if (closingSintaxCheckEnable) {
+          loop(rb ++ JsString(new String(chbuff, 0, len)))
+        } else JsString(new String(chbuff, 0, len))
       case ':' | ',' =>
         incl
         rb.approvalSyntax(x)
         loop(rb)
       case '{' =>
+        closingSintaxCheckEnable = true
         incl
         loop(JsStackObjects(rb))
       case '[' =>
+        closingSintaxCheckEnable = true
         incl
         loop(JsStackArray(rb))
       case '}' | ']' =>
@@ -82,8 +89,11 @@ class JTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         val skashed = rb.squash
         if (skashed.isSquashable) loop(skashed) else skashed
       case _ =>
+
         val len = detectAnyVal(0)
-        loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))
+        if (closingSintaxCheckEnable) {
+          loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))
+        } else JsAnyVal(new String(chbuff, 0, len))
     }
   }
 }

@@ -3,6 +3,7 @@ package refuel.json
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import refuel.json.codecs.{Read, Write}
 import refuel.json.codecs.factory.InferImplicitCodec
 import refuel.json.entry.JsString
 
@@ -11,13 +12,13 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
   case class Cat(name: String, beard: Int = 6) extends Animal(name)
   case class Shark(name: String, filet: Int = 4) extends Animal(name)
 
-  def animalDeserializer: Codec[Animal] = Deserialize { json =>
+  def animalDeserializer: Read[Animal] = Deserialize { json =>
     json.named("name") match {
       case JsString("cat") => Cat("cat", json.named("beard").to[Int])
       case JsString("shark") => Shark("shark", json.named("filet").to[Int])
     }
   }
-  def animalSerializer: Codec[Animal] = Serialize {
+  def animalSerializer: Write[Animal] = Serialize {
     case Cat(a, b) => Json.obj(
       "name" -> a,
       "beard" -> b

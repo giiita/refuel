@@ -41,6 +41,8 @@ object CaseClassCodecTest {
 
   case class EEE(eeeId: Long, ddd: DDD)
 
+  case class Id(value: Long) extends AnyVal
+  case class Name(value: String) extends AnyVal
 }
 
 class CaseClassCodecTest
@@ -70,8 +72,15 @@ class CaseClassCodecTest
   }
 
   "Load implicit codec" should {
+    "anyval Long codec" in {
+      val codec = CaseClassCodec.from[Id]
+      Id(11).toJString(codec).as(codec) shouldBe Right(Id(11))
+    }
+    "anyval String codec" in {
+      val codec = CaseClassCodec.from[Name]
+      Name("HOGE").toJString(codec).as(codec) shouldBe Right(Name("HOGE"))
+    }
     "single member codec type" in {
-
       s"""{"c": {"b": {"a": {"value": "hoge"}}}}""".as(CaseClassCodec.from[D]) match {
         case Left(e) => fail(e)
         case Right(x) => x shouldBe D(C(B(A("hoge"))))

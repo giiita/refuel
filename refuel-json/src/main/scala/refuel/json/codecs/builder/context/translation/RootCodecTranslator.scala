@@ -7,11 +7,11 @@ import refuel.json.codecs.builder.context.keylit.SelfKeyRef
 import scala.language.implicitConversions
 
 trait RootCodecTranslator {
-  protected implicit def toRootCodecBuilder[Z](codec: Codec[Z]): CBuildComp[Z] = {
+  protected implicit def __toRootCodecBuilder[Z](codec: Codec[Z]): CBuildComp[Z] = {
     SelfKeyRef.parsed(codec)
   }
 
-  protected implicit def toRootCodecBuilder[Z](codec: CBuildComp[Z]): Codec[Z] = {
+  protected implicit def __toRootCodecBuilder[Z](codec: CBuildComp[Z]): Codec[Z] = {
     codec.apply(x => x)(x => Some(x))
   }
 }

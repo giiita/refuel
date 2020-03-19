@@ -1,5 +1,7 @@
 package refuel.json
 
+import refuel.json.codecs.Read
+
 trait JsonVal extends Serializable {
 
   /**
@@ -34,14 +36,7 @@ trait JsonVal extends Serializable {
    */
   def ++(js: JsonVal): JsonVal
 
-  /**
-   * Indicates that it is a joinable Json object.
-   *
-   * @return
-   */
-  def isIndependent: Boolean = false
-
-  def to[T](implicit c: Codec[T]): T =
+  def to[T](implicit c: Read[T]): T =
     c.deserialize(this)
 
   /**

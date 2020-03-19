@@ -44,8 +44,6 @@ case class JsObject private[entry](bf: Seq[(JsString, JsonVal)]) extends JsVaria
     }
   }
 
-  override def isIndependent: Boolean = true
-
   override def named(key: String): JsonVal = {
     bf.collectFirst {
       case (k, v) if k.toString == key => v

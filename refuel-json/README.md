@@ -86,6 +86,19 @@ val value = b
 ```
 
 Similarly, ConstCodec does not need to declare the inner class Codec.<br/>
+In addition, the value class that inherits AnyVal is converted in the state of being internally expanded.
+
+```scala
+case class StringVal(value: String) extends AnyVal
+case class LongVal(value: Long) extends AnyVal
+case class A(str: StringVal, lng: LongVal)
+
+// {"str": "foo", "lng": 11}
+A(StringVal("foo"), LongVal(11)).toJString(CaseClassCodec.from[A])
+
+// A(StringVal("foo"), LongVal(11))
+"""{"str": "foo", "lng": 11}""".as(CaseClassCodec.from[A])
+```
 
 ## Codec build DSL
 
@@ -163,13 +176,13 @@ trait AnimalCodec extends CodecDef {
   case class Cat(name: String, beard: Int = 6) extends Animal(name)
   case class Shark(name: String, filet: Int = 4) extends Animal(name)
   
-  def animalDeserializer: Codec[Animal] = Deserialize { json =>
+  def animalDeserializer: Read[Animal] = Deserialize { json =>
     json.named("name") match {
       case JsString("cat") => Cat("cat", json.named("beard").to[Int])
       case JsString("shark") => Shark("shark", json.named("filet").to[Int])
     }
   }
-  def animalSerializer: Codec[Animal] = Serialize {
+  def animalSerializer: Write[Animal] = Serialize {
     case Cat(a, b) => Json.obj(
       "name" -> a,
       "beard" -> b

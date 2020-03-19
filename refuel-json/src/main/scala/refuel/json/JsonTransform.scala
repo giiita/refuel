@@ -1,7 +1,8 @@
 package refuel.json
 
+import refuel.json.codecs.{Read, Write}
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
-import refuel.json.tokenize.JTransformRouter
+import refuel.json.tokenize.JsonTransformRouter
 
 import scala.util.Try
 
@@ -22,9 +23,9 @@ trait JsonTransform {
    * @tparam T Any object type
    */
   protected implicit class JScribe[T](t: T) {
-    def toJson[X >: T](implicit ct: Codec[X]): JsonVal = ct.serialize(t)
+    def toJson[X >: T](implicit ct: Write[X]): JsonVal = ct.serialize(t)
 
-    def toJString[X >: T](implicit ct: Codec[X]): String = {
+    def toJString[X >: T](implicit ct: Write[X]): String = {
       val buf = new StringBuffer()
       toJson[X].pour(buf)
       buf.toString
@@ -73,11 +74,11 @@ trait JsonTransform {
    * @param t Json literal
    */
   protected implicit class JDescribe(t: String) {
-    def as[E](implicit c: Codec[E]): Either[DeserializeFailed, E] = Try {
+    def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] = Try {
       jsonTree.to[E]
     }.toEither.left.map(DeserializeFailPropagation("Internal structure analysis raised an exception.", _))
 
-    def jsonTree: JsonVal = new JTransformRouter(t).jsonTree
+    def jsonTree: JsonVal = new JsonTransformRouter(t).jsonTree
   }
 
 }

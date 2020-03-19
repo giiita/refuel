@@ -64,7 +64,7 @@ class CaseCodecFactory(val c: blackbox.Context)
     if (implicitExistence._2.nonEmpty) {
       c.Expr[Codec[T]](
         q"""${implicitExistence._2}(..${implicitExistence._1.map(recall)})""")
-    } else createNewImplicitTree[T]()
+    } else createNewCodecTree[T]()
   }
 
   /**
@@ -132,7 +132,7 @@ class CaseCodecFactory(val c: blackbox.Context)
                                                      ap: MethodSymbol,
                                                      paramNames: List[Symbol#NameType]
                                                    ): List[c.universe.Tree] = {
-    val typers: List[c.Expr[Codec[_]]] =
+    val paramCodecs: List[c.Expr[Codec[_]]] =
       ap.paramLists.headOption.toList.flatten.map {
         case x@TypeRef(_, _, z)
           if z.nonEmpty && inferImplicitCodecFactory(x.typeSignature)._2.nonEmpty =>
@@ -141,13 +141,19 @@ class CaseCodecFactory(val c: blackbox.Context)
         case x => recall(x)
       }
 
-    typers.zip(paramNames).map { x =>
-      q"""
-        {
-          ${c.parse(s"""val name: String = "${x._2.decodedName.toTermName}" """)}
-          ${x._1.tree}.deserialize(implicitly[${weakTypeTag[JsonVal]}].named(name))
-        }
-       """
+    if (ap.returnType.<:<(c.weakTypeOf[AnyVal])) {
+      paramCodecs.map { x =>
+        q"""${x.tree}.deserialize(${c.parse("bf")})"""
+      }
+    } else {
+      paramCodecs.zip(paramNames).map { x =>
+        q"""
+          {
+            ${c.parse(s"""val name: String = "${x._2.decodedName.toTermName}" """)}
+            ${x._1.tree}.deserialize(${c.parse("bf")}.named(name))
+          }
+         """
+      }
     }
   }
 
@@ -157,7 +163,7 @@ class CaseCodecFactory(val c: blackbox.Context)
    * @tparam T
    * @return
    */
-  private[this] def createNewImplicitTree[T: WeakTypeTag]()
+  private[this] def createNewCodecTree[T: WeakTypeTag]()
   : c.Expr[Codec[T]] = {
 
     val (ap, up) = {
@@ -200,7 +206,7 @@ class CaseCodecFactory(val c: blackbox.Context)
           // For tuple codecs.
           // Example, case class Sample(value: (String, Int))
           // Sample unapply function return tuple that equal to [[ case class Sample(value: String, value: Int) ]]
-          case (x, TypeRef(_, _, constructs))
+          case (x, TypeRef(_, _, _))
             if x.headOption.fold(false)(
               _.typeSignature.typeSymbol.name.toString.startsWith("Tuple")
             ) =>
@@ -214,7 +220,7 @@ class CaseCodecFactory(val c: blackbox.Context)
       // case _ => c.abort(c.enclosingPosition, s"Unsupported unapply return type signature. ${up.returnType}")
     }
 
-    val serializeTrees: Seq[c.Expr[(String, JsonVal)]] = up.returnType match {
+    val serializeTrees: c.Tree = up.returnType match {
       // This is codec for constructor that has result type be Tuple.
       case TypeRef(_, _, arg :: _) if arg.typeSymbol.name.toString.startsWith("Tuple") =>
         (ap.paramLists.headOption.toList.flatten, arg) match {
@@ -230,30 +236,37 @@ class CaseCodecFactory(val c: blackbox.Context)
                  implicit val ${c.parse(s"_codecInsertion$i")} = ${c.parse(s"self._codecChildren")}
                """
             }
-            Seq(c.Expr[(String, JsonVal)](
-              q"""
-                  ..$typeInTuple
-                  ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(x.head)}.serialize(unapplied)
-                """))
+            q"""
+               ..$typeInTuple
+               refuel.json.Json.obj(
+                 ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(x.head)}.serialize(unapplied)
+               )
+             """
           // For other case class codecs.
           case (_, TypeRef(_, _, args)) =>
-            paramNames.zip(args.zipWithIndex).map {
+            val result = paramNames.zip(args.zipWithIndex).map {
               case (name, (argType, index)) =>
                 c.Expr[(String, JsonVal)](
                   q"""
                 ${c.parse(s""""${name.toTermName}"""")} -> ${c.parse(s"self._codecChildren._${index + 1}")}.serialize(${c.parse(s"unapplied._${index + 1}")})
                   """)
             }
+            q"""
+               refuel.json.Json.obj(
+                 ..$result
+               )
+             """
         }
+      case TypeRef(_, _, arg :: _) if ap.returnType.<:<(c.weakTypeOf[AnyVal]) =>
+        q"""${recall(arg)}.serialize(unapplied)"""
       // This is codec for constructor that has result type not be Tuple.
       // Example, Seq[T].unapplySeq, Vector[T].unapplySeq etc...
       case TypeRef(_, _, arg :: _) =>
-        Seq(
-          c.Expr[(String, JsonVal)](
-            q"""
-                ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(arg)}.serialize(unapplied)
-           """)
-        )
+        q"""
+           refuel.json.Json.obj(
+             ${c.parse(s""""${paramNames.head.toTermName}"""")} -> ${recall(arg)}.serialize(unapplied)
+           )
+         """
     }
 
     reify {
@@ -270,18 +283,14 @@ class CaseCodecFactory(val c: blackbox.Context)
         }
 
         override def serialize(t: T): JsonVal = {
-          implicit def v: T = t
-
           c.Expr[JsonVal](
             q"""
-                 val unapplied = ${weakTypeOf[T].typeSymbol.companion}.$up(implicitly[${weakTypeOf[T]}]).get
-                 refuel.json.entry.JsObject.apply(Seq(..$serializeTrees): _*)
+                 val unapplied = ${weakTypeOf[T].typeSymbol.companion}.$up(${c.parse("t")}).get
+                 $serializeTrees
                 """).splice
         }
 
         override def deserialize(bf: JsonVal): T = {
-          implicit def json: JsonVal = bf
-
           scala.util.Try {
             c.Expr[T](
               q"${weakTypeOf[T].typeSymbol.companion}.$ap(..${createChildDeserializationTrees(ap, paramNames)})"
