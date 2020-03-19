@@ -100,6 +100,13 @@ A(StringVal("foo"), LongVal(11)).toJString(CaseClassCodec.from[A])
 """{"str": "foo", "lng": 11}""".as(CaseClassCodec.from[A])
 ```
 
+If you do not need flat expansion, you need to define codec in implicit scope by yourself.
+
+```scala
+implicit val StringValCodec = ConstCodec.from("value")(StringVal.apply)(StringVal.unapply)
+implicit val LongValCodec = ConstCodec.from("value")(LongVal.apply)(LongVal.unapply)
+```
+
 ## Codec build DSL
 
 It is possible to build arbitrary Codec by combining specific Codec.
