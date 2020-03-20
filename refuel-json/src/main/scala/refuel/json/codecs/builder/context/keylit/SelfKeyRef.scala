@@ -1,9 +1,8 @@
 package refuel.json.codecs.builder.context.keylit
 
 import refuel.internal.json.codec.builder.JsonKeyRef
+import refuel.json.JsonVal
 import refuel.json.codecs.builder.context.keylit.parser.KeyLitParser
-import refuel.json.error.UnsupportedOperation
-import refuel.json.{Json, JsonVal}
 
 /**
  * Json key literal builder.
