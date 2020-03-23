@@ -20,11 +20,11 @@ trait CodecBuildFeature extends IterableCodecTranslator
    * @param v initial json key literal
    * @return
    */
-  implicit def __jsonKeyLiteralBuild(v: String): NatureKeyRef = NatureKeyRef(v)
+  protected implicit def __jsonKeyLiteralBuild(v: String): NatureKeyRef = NatureKeyRef(v)
 
-  implicit def __serializeToConst[T](v: Write[T]): T => JsonVal = v.serialize
+  protected implicit def __serializeToConst[T](v: Write[T]): T => JsonVal = v.serialize
 
-  implicit def __deserializeToConst[T](v: Read[T]): JsonVal => T = v.deserialize
+  protected implicit def __deserializeToConst[T](v: Read[T]): JsonVal => T = v.deserialize
 
-  implicit def __jsonBuildCriteria[V](v: V)(implicit c: Codec[V]): JsonVal = c.serialize(v)
+  protected implicit def __jsonBuildCriteria[V](v: V)(implicit c: Codec[V]): JsonVal = c.serialize(v)
 }
