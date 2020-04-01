@@ -3,6 +3,7 @@ package refuel.lang
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
+import refuel.container.anno.RecognizedDynamicInjection
 import refuel.injector.Injector
 import refuel.lang.period.{EpochDateTime, FromTo}
 
@@ -11,7 +12,7 @@ object ScalaTime extends Injector {
     * If not setting auto injectable RuntimeTz,
     * use default RuntimeTZ.
     */
-  private[this] val TZ = inject[RuntimeTZ]
+  private[this] val TZ = inject[RuntimeTZ@RecognizedDynamicInjection]
 
   /**
     * Get a current time.
