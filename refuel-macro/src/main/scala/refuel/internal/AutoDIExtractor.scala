@@ -3,7 +3,9 @@ package refuel.internal
 import refuel.Config
 import refuel.Config.AdditionalPackage
 import refuel.container.Container
+import refuel.container.anno.RecognizedDynamicInjection
 import refuel.injector.AutoInject
+import refuel.internal.di.{ConfirmedCands, ExcludingRuntime, InjectionCands}
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
@@ -11,15 +13,40 @@ import scala.reflect.macros.blackbox
 object AutoDIExtractor {
   private[this] var buffer: Option[AutoInjectableSymbols[_]] = None
 
-  def collectApplyTarget[C <: blackbox.Context, T: c.WeakTypeTag](c: C)(ctn: c.Tree): c.Expr[T] = {
+  /**
+   * Returns a list of dependencies found at compile time.
+   * If a @RecognizedDynamicInjection is found in the search property,
+   * I would expect runtime to be ranked together.
+   * Otherwise, terminate the compilation or respond to the found candidates.
+   *
+   * @param c context
+   * @tparam C Context type
+   * @tparam T Search property
+   * @return [[ExcludingRuntime]] or [[ConfirmedCands]]
+   */
+  def searchInjectionCands[C <: blackbox.Context, T: c.WeakTypeTag](c: C): InjectionCands[C] = {
+    import c.universe._
+
+    val runtimeClasspathInjectAcception = weakTypeOf[RecognizedDynamicInjection]
 
     val richSets = new AutoInjectableSet[c.type](c)
+    val x = getList[C, T](c)
+    val compileTimeCandidates = richSets.filterModuleSymbols[T](x) ++ richSets.filterClassSymbol[T](x)
 
-    getList[C, T](c) match {
-      case x => new InjectionCompound[c.type](c).buildOne(ctn)(
-        richSets.filterModuleSymbols[T](x),
-        richSets.filterClassSymbol[T](x)
-      )
+    val annos = weakTypeOf[T] match {
+      case x: AnnotatedType => x.annotations ++ weakTypeOf[T].typeSymbol.annotations
+      case _ => weakTypeOf[T].typeSymbol.annotations
+    }
+
+    if (annos.exists(_.tree.tpe.=:=(runtimeClasspathInjectAcception))) {
+      // If a @RecognizedDynamicInjection had been granted
+      ExcludingRuntime(c)(compileTimeCandidates)
+    } else if (compileTimeCandidates.isEmpty) {
+      // If a @RecognizedDynamicInjection had not been granted and no candidate is found
+      c.abort(c.enclosingPosition, s"Can't find a dependency registration of ${c.weakTypeOf[T]}. Injection from runtime classpath must be given @RecognizedDynamicInjection.")
+    } else {
+      // If a @RecognizedDynamicInjection had not been granted and a candidate is found
+      ConfirmedCands(c)(compileTimeCandidates)
     }
   }
 
@@ -70,7 +97,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   }
 
   @tailrec
-  private final def recursivePackageExplore(selfPackages: Vector[Symbol],
+  private final def recursivePackageExplore(selfPackages: Vector[c.Symbol],
                                             injectableSymbols: AutoInjectableSymbols[c.type] = AutoInjectableSymbols.empty[c.type](c)): AutoInjectableSymbols[c.type] = {
 
     selfPackages match {
@@ -81,7 +108,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
             None -> None
           case x if x.isPackage =>
             Some(x) -> None
-          case x if (x.isModule && !x.isAbstract) || x.isModuleClass || x.isInjectableOnce =>
+          case x if !x.name.toString.contains("$") && ((x.isModule && !x.isAbstract) || x.isModuleClass || x.isInjectableOnce) =>
             None -> Some(x)
         } match {
           case x => x.flatMap(_._1) -> x.flatMap(_._2)
@@ -115,40 +142,66 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
               injectableSymbols.add(x.flatMap(_._1), x.flatMap(_._2))
             )
         }
-
-
     }
   }
 
-  implicit class RichSymbol(v: c.Symbol) {
-    def isInjectableOnce: Boolean = v match {
-      case x => scala.util.Try {
+  @tailrec
+  private[this] final def recursiveStubTesting(x: c.Type*): Boolean = {
+    val prts = x.collect {
+      case api: ClassInfoTypeApi => api.parents
+      case typeRef: TypeRef => typeRef.typeSymbol.typeSignature match {
+        case _api: ClassInfoTypeApi => _api.parents
+        case PolyType(_, b) => Seq(b)
+      }
+    }.flatten
+    if (prts.isEmpty) {
+      true
+    } else if (!prts.exists { pr =>
+      pr.typeSymbol.isClass && pr.typeSymbol.asClass.isInstanceOf[scala.reflect.internal.Symbols#StubClassSymbol]
+    }) {
+      recursiveStubTesting(prts: _*)
+    } else {
+      false
+    }
+
+  }
+
+  implicit class RichSymbol(x: c.Symbol) {
+    def isInjectableOnce: Boolean = scala.util.Try {
+      recursiveStubTesting(x.typeSignature) &&
         x.isClass &&
-          !x.isAbstract &&
-          x.asClass.primaryConstructor.isMethod &&
-          x.typeSignature.baseClasses.contains(AutoInjectionTag.typeSymbol)
-      }.getOrElse(false)
+        !x.isAbstract &&
+        brokenCheck(x) &&
+        x.asClass.primaryConstructor.isMethod &&
+        x.typeSignature.baseClasses.contains(AutoInjectionTag.typeSymbol)
+    }.getOrElse(false)
+  }
+
+  private[this] def brokenCheck(value: c.Symbol): Boolean = {
+    try {
+      if (value.isModule) {
+        c.typecheck(
+          c.parse(
+            value.fullName.replaceAll("(.+)\\$(.+)", "$1#$2")
+          ),
+          silent = true
+        ).nonEmpty
+      } else {
+        c.typecheck(
+          tree = c.parse(
+            s"type `${c.freshName()}` = ${value.fullName.replaceAll("(.+)\\$(.+)", "$1.$2")}"
+          ),
+          silent = true
+        ).nonEmpty
+      }
+    } catch {
+      case _: Throwable => false
     }
   }
 
   implicit class RichVectorSymbol(value: Vector[c.Symbol]) {
     def accessible: Vector[c.Symbol] = {
-      value.flatMap {
-        case x if x.fullName == "org.scalatest.tools.Framework" => None
-        case x if x.toString.endsWith("package$") => None
-        case x => try {
-          c.typecheck(
-            c.parse(
-              x.fullName.replaceAll("([\\w]+)\\$([\\w]+)", "$1#$2")
-            ),
-            silent = true
-          ).symbol match {
-            case _ => Some(x)
-          }
-        } catch {
-          case _: Throwable => None
-        }
-      }
+      value.filter(brokenCheck)
     }
   }
 

@@ -5,11 +5,12 @@ import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.Types.@@
+import refuel.container.anno.{Effective, RecognizedDynamicInjection}
+import refuel.domination.Inject
 import refuel.domination.InjectionPriority.{Default, Finally, Overwrite}
-import refuel.domination.{Inject, InjectionPriority}
-import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, Injector}
+import refuel.internal.di.Effect
 import refuel.provider.{Lazy, Tag}
 
 import scala.util.Try
@@ -67,19 +68,6 @@ object ModuleSymbolInjectionTest {
 
     @Inject(Default)
     object TestIFImpl_5_CUSTOM extends AutoInject with TestIF_5
-
-  }
-
-  object TEST6 {
-
-    trait TestIF_6
-
-    object TestIFImpl_6_AUTO extends TestIF_6 with AutoInject
-
-    case object Defaul1 extends InjectionPriority(1)
-
-    @Inject(Defaul1)
-    object TestIFImpl_6_CUSTOM extends AutoInject with TestIF_6
 
   }
 
@@ -326,6 +314,7 @@ object ModuleSymbolInjectionTest {
 
   object TEST303 {
 
+    @RecognizedDynamicInjection
     trait Wrap_303[+T <: TestIF] {
       val inst: T
     }
@@ -349,28 +338,6 @@ object ModuleSymbolInjectionTest {
     trait TestIF_304_A
 
     trait TestIF_304_B
-
-  }
-
-  object TEST305 {
-
-    trait TestIF
-
-    trait TestIF_305_A extends TestIF
-
-    trait TestIF_305_B extends TestIF
-
-    abstract class Wrap_305[+T <: TestIF] {
-      val inst: T
-    }
-
-    object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject {
-      val inst: TestIF_305_A = new TestIF_305_A {}
-    }
-
-    object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject {
-      val inst: TestIF_305_B = new TestIF_305_B {}
-    }
 
   }
 
@@ -408,19 +375,10 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
       inject[TestIF_5]._provide != null shouldBe true
     }
 
-    "auto vs custom(999) inject priority == auto" in {
-      import TEST6._
-      inject[TestIF_6]._provide shouldBe TestIFImpl_6_AUTO
-    }
-
     "auto vs custom(1000) inject priority == name after win" in {
-      import TEST7._
 
-      val err = intercept[refuel.exception.DIAutoInitializationException] {
-        inject[TestIF_7]._provide
-      }
-      err.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7."
-      err.getCause.getMessage shouldBe "Invalid dependency definition of interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7. There must be one automatic injection of inject[T] per priority. But found [refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7, refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7]"
+      assertDoesNotCompile("inject[TestIF_7]._provide")
+
     }
 
     "auto vs custom(1001) inject priority == custom" in {
@@ -505,18 +463,6 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
       AccessorC.get._provide shouldBe TestIFImpl_106_AUTO
     }
 
-    "confirm vs narrow class" in {
-      import TEST107._
-
-      object LOCAL_TestIF_107 extends TestIF_107
-
-      val inspection = bind[TestIF_107]
-
-      narrow[TestIF_107](LOCAL_TestIF_107).accept[ModuleSymbolInjectionTest].indexing()
-
-      inspection shouldBe TestIFImpl_107_AUTO
-    }
-
     "shade pattern" in {
       import TEST108._
 
@@ -549,15 +495,14 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
   "Tagging" should {
     "tag inspect" in {
       import TEST201._
-      intercept[refuel.exception.DIAutoInitializationException] {
-        inject[TestIF_201]._provide
-      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
+      assertDoesNotCompile("inject[TestIF_201]._provide")
       inject[TestIF_201 @@ TestTagA]._provide shouldBe TestIFImpl_201_TAGA
       inject[TestIF_201 @@ TestTagB]._provide shouldBe TestIFImpl_201_TAGB
 
-      intercept[DIAutoInitializationException] {
-        inject[TestIF_201 @@ TestTagC]._provide
-      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
+      // Be compile error at v1.1.0
+      assertDoesNotCompile(
+        "inject[TestIF_201 @@ TestTagC]._provide"
+      )
     }
   }
 
@@ -565,12 +510,7 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
     "pattern 1" in {
       import TEST301._
       inject[TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
-      Try {
-        inject[EX_TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
-      }
+      assertDoesNotCompile("inject[EX_TestIF_301]._provide shouldBe TestIFImpl_301_AUTO")
     }
     "pattern 2" in {
       import TEST302._
@@ -597,6 +537,9 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
     "type erase with Seq" in {
       import TEST304._
 
+
+      type Alias[T] = Seq[T]
+
       val r_A = Seq(
         new TestIF_304_A {},
         new TestIF_304_A {},
@@ -609,21 +552,11 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
         new TestIF_304_B {}
       )
 
-      overwrite[Seq[TestIF_304_A]](r_A)
-      overwrite[Seq[TestIF_304_B]](r_B)
+      overwrite[Alias[TestIF_304_A]](r_A)
+      overwrite[Alias[TestIF_304_B]](r_B)
 
-      inject[Seq[TestIF_304_A]]._provide shouldBe r_A
-      inject[Seq[TestIF_304_B]]._provide shouldBe r_B
-    }
-
-    "type erase with Auto" in {
-      import TEST305._
-
-      import scala.reflect.runtime.universe._
-      def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
-
-      get[TestIF_305_A]._provide shouldBe TestIF_305_A_WRAP
-      get[TestIF_305_B]._provide shouldBe TestIF_305_B_WRAP
+      inject[Alias[TestIF_304_A]@RecognizedDynamicInjection]._provide shouldBe r_A
+      inject[Alias[TestIF_304_B]@RecognizedDynamicInjection]._provide shouldBe r_B
     }
   }
 }

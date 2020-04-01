@@ -3,6 +3,7 @@ package refuel.lang
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
+import refuel.container.anno.RecognizedDynamicInjection
 import refuel.injector.Injector
 import refuel.lang.period.{EpochDateTime, FromTo}
 
@@ -11,7 +12,7 @@ object ScalaTime extends Injector {
     * If not setting auto injectable RuntimeTz,
     * use default RuntimeTZ.
     */
-  private[this] val TZ = inject[RuntimeTZ]
+  private[this] val TZ = inject[RuntimeTZ@RecognizedDynamicInjection]
 
   /**
     * Get a current time.
@@ -44,9 +45,11 @@ object ScalaTime extends Injector {
       * @return
       */
     def datetime: ZonedDateTime = {
-      ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).map { x =>
+      ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).fold{
+        throw new IllegalArgumentException(s"Unexpected datetime format. $value")
+      } { x =>
         ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), ScalaTimeSupport.convertWith), TZ.ZONE_ID)
-      } getOrElse (throw new IllegalArgumentException(s"Unexpected datetime format. $value"))
+      }
     }
   }
 
@@ -205,11 +208,18 @@ object ScalaTime extends Injector {
 
   implicit class UnixTimeBs(value: Long) {
     /**
-      * Unixtime to ZonedDateTime.
-      *
-      * @return
-      */
+     * Unixtime to ZonedDateTime.
+     *
+     * @return
+     */
     def datetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), TZ.ZONE_ID)
+
+    /**
+     * Unixtime to ZonedDateTime.
+     *
+     * @return
+     */
+    def milliToDatetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), TZ.ZONE_ID)
   }
 
 }

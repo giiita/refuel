@@ -1,11 +1,13 @@
 package refuel.container
 
+import refuel.container.anno.Effective
 import refuel.domination.InjectionPriority.Default
 import refuel.domination.{Inject, InjectionPriority}
-import refuel.effect.{Effect, EffectLike, Effective}
+import refuel.effect.EffectLike
 import refuel.exception.InjectDefinitionException
 import refuel.injector.InjectionPool.LazyConstruction
 import refuel.injector.scope.IndexedSymbol
+import refuel.internal.di.Effect
 import refuel.runtime.{InjectionReflector, RuntimeAutoDIExtractor, RuntimeAutoInjectableSymbols}
 
 import scala.reflect.runtime.{universe => u}
@@ -19,7 +21,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
   /* Reflector */
   private[this] lazy val reflector = implicitly[InjectionReflector]
   /* An injectable buffer that has not yet been initialized */
-  private[this] val buffer: RuntimeAutoInjectableSymbols = RuntimeAutoDIExtractor.run()
+  private[this] lazy val buffer: RuntimeAutoInjectableSymbols = RuntimeAutoDIExtractor.run()
   /**
    * Return function of inject activated effects.
    * Regardless of the injection request, all valid effects are returned.
@@ -107,8 +109,8 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
    * @return
    */
   private[this] def mayBeEffectiveApply[T, S <: u.Symbol](v: Set[InjectRankingSymbol[S]])
-                                             (f: S => InjectionPriority => IndexedSymbol[T])
-                                             (c: Container)
+                                                         (f: S => InjectionPriority => IndexedSymbol[T])
+                                                         (c: Container)
   : Seq[(InjectionPriority, InjectionPriority => IndexedSymbol[T])] = {
     v.partition(_._2.isEmpty) match {
       case (uneffected, effected) if effected.isEmpty =>

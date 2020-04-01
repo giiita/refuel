@@ -6,9 +6,10 @@ import refuel.Types
 import refuel.Types.@@
 import refuel.container.indexer.{CanBeClosedIndexer, Indexer}
 import refuel.domination.InjectionPriority
-import refuel.effect.{Effect, EffectLike}
+import refuel.effect.EffectLike
 import refuel.injector.scope.{CanBeRestrictedSymbol, IndexedSymbol, TypedAcceptContext}
 import refuel.internal.AtomicUpdater
+import refuel.internal.di.Effect
 import refuel.provider.Tag
 
 import scala.collection.concurrent.TrieMap
