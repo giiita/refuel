@@ -4,17 +4,19 @@
 libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.2"
 ````
 
+## Features
+
+In most cases, refuel-container injections are checked and confirmed at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection.
+
+
 # Usage
 
-The general DI method only inherits `AutoInject[T]` to the target object.<br/>
+The general DI method only inherits `AutoInject` to the target object.<br/>
 To use it, inherit `Injector` and call `inject[T]`.<br/>
-There is no restriction on calling `inject[T]`.
 
 
 ```scala
-object A extends A with AutoInject
-
-trait A {
+class A extends AutoInject {
   def toString: String = "TEST"
 }
 
@@ -24,149 +26,109 @@ object TestA extends Injector {
 ```
 
 <br/>
-
-`inject[T]` expects `Lazy[T]` as the return type.
-<br>However, if you fix the return type of `inject[T]` to `T`, dependencies are assigned immediately; once initialization is complete, it cannot be changed.
-<br>Therefore, it is not recommended.
-
-```scala
-object TestA extends Injector {
-  // Dependencies are determined when object TestA is initialized
-  private val x: A = inject[A]
-  // This expects `Lazy[A]`
-  private val y = inject[A]
-}
-```
-
 <br/>
-Instread, You can confirm dependencies at compile time with `confirm[T]`.<br/>
-In this case, anything that is not forseen happens at runtime.<br/>
+Dependencies determined by compiling are output to the compile log.
+The same is true for the automatic injection of constructors.
 
-```scala
-object TestA extends Injector {
-  // This expects `A`
-  private val x = confirm[A]
-}
+```
+[info] Foo.scala:266:26: refuel.FooImpl will be decided.
+[info]       inject[Foo]
+[info]
+[info] <macro>:1:118: refuel.BarImpl will be decided.
+[info] new refuel.FooImpl(inject[refuel.Bar]) with refuel.injector.Injector
 ```
 
 <br/><br/><br/>
 
 ## Dependency handling
 
-Classes that inherit AutoInjector are automatically pooled.<br/>
+Classes that inherit AutoInject are automatically pooled.<br/>
 Dependencies defined as inner objects of trait or class can not be registered automatically.<br/>
 <br/>
 
-In AutoInjector, if multiple dependencies of the same type are registered, refuel will automatically insert the highest priority first deployed module.
+In AutoInjector, if multiple dependencies of the same type are registered, will automatically insert the highest priority module.
+If the same priority is found more than once, a compile error will occur.
+The priority is set by `@Inject` annotation. If you don't set it, it will be default, but in most cases you won't need to set it.
 
 ```scala
+trait X
+
 @Inject(Finally)
 object A extends X with AutoInject
+
+// This is the default priority
 object B extends X with AutoInject
+
 // This is the highest priority
 @Inject(Primary)
-object C extends AutoInject with X
+object C extends X with AutoInject
 
-trait X
 ```
 
 
 If you want to control multiple overlapping dependencies, there are several approaches.
 
-### case 1. Custom priority injection
+### case 1. Tagging injection
 
-Each injection interface has a priority.<br/>
-During injection, the highest priority object registered in the container is returned, 
-so set priorities appropriately with multiple same interfaces.<br/>
-You can also create an `AutoInject[_]` interface with any priority by mixing in `CustomPriority[T]`, which inherits from `AutoInject[T]`.
-
-```scala
-/**
- * AutoInject priority = 1000
- * Injector.overwrite[X](x) = 1100
- * AutoInjectCustomPriority = ???
- * RecoveredInject priority = 0
- * narrow[X](X).indexing() priority = Int.MAX
- */
-case object MyPriority extends InjectionPriority(-1)
-object A extends AutoInject with A
-@Inject(MyPriority)
-object B extends AutoInject with A {
-  override def toString: String = "I am B."
-}
-
-trait A {
-  def toString: String = "I am A"
-}
-```
-
-
-```scala
-object TestA extends Injector {
-  println(inject[A].toString) // "I am B."
-}
-```
-
-### case 2. Tagging injection
-
-If you want to inject object only with arbitrary tags, you can use the tag `@@`.
-<br/>
-For example, an object that inherits from `AutoInject[T @@ TAG]` will not be injected unless you call `inject[T @@ TAG]`.
+You can define a dependency with any tag.
 
 ```scala
 trait AliasA
 trait AliasB
 trait AliasC
 
-object A extends A with Tag[AliasA] with AutoInject
+trait A {
+  def toString: String
+}
+
+object A extends A with Tag[AliasA] with AutoInject {
+  override def toString: String = "I am A."
+}
 object B extends A with Tag[AliasB] with AutoInject {
   override def toString: String = "I am B."
 }
-object C extends A with Tag[AliasC] with AutoInject { // I have not AutoInject tag
+object C extends A with Tag[AliasC] with AutoInject {
   override def toString: String = "I am C."
 }
 
-trait A {
-  def toString: String = "I am A"
-}
 ```
 
 ```scala
 object TestA extends Injector {
-  println(inject[A].toString) // "I am C.". Because refuel recognizes objects that inherit tags as different objects
+  // A and the class that inherits AutoInject cannot be compiled because it has a duplicate priority.
+  println(inject[A].toString)
   
-  println(inject[A @@ AliasA].toString) // "I am A."
+  // "I am A."
+  println(inject[A @@ AliasA].toString)
   
+  // "I am B."
   println(inject[A @@ AliasB].toString) // "I am B."
 }
 ```
 
 <br/><br/>
 
-## Effective injection
+## case 2. Effective injection
 
-If you want to load an specific object from different environment, you can use Effective Injection.
+If you want to switch dependencies according to your environment or other conditions, you can use Effective Injection.
 
-
-For example, if you want to load a different `Conf` for each `dev` / `stg` / `prd` and the environment setting is set to `sys.props`, prepare an Effect to judge it for each environment.
+For example, load a different `Conf` for each `dev` / `stg` / `prd`. 
 
 ```scala
 object Effects {
   def getKind = sys.props.getOrElse("env", "dev")
   
-  object DEV extends refuel.effect.Effect {
+  case object DEV extends refuel.effect.Effect {
     def activate: Boolean = getKind == "dev"
   }
-  object STG extends refuel.effect.Effect {
+  case object STG extends refuel.effect.Effect {
     def activate: Boolean = getKind == "stg"
   }
-  object PRD extends refuel.effect.Effect {
+  case object PRD extends refuel.effect.Effect {
     def activate: Boolean = getKind == "prd"
   }
 }
 ```
-
-Then, declare the object that gave the effect to `@Effective`
 
 ```scala
 @Effective(DEV)
@@ -179,65 +141,106 @@ object StgConf extends Conf with AutoInject
 object PrdConf extends Conf with AutoInject
 ```
 
-This will assign an appropriate Conf for each environment to `inject[Conf]`.
-<br>You can check the valid Effect by seeing the result of `def activate: Boolean`.
+By this, an appropriate Conf is assigned to `inject[Conf]` for each environment.
 
-When you call `inject[???]` and `@Effective(???)` appears as an assignment candidate,
-the `inject[???]` is considered as an effective injection, and only objects with a valid effect can be assigned.
+It is evaluated in order of injection priority > effect, so it injects the dependencies that have the highest priority and have a valid effect. If none of the dependencies has a valid effect, the non-effect dependencies will be assigned with the same priority as those dependencies. If it doesn't even exist, an exception will be thrown.
 
+###caution
+
+Effective injection is always sublimated to runtime injection.
+At the Macro expantion, it is not possible to evaluate the content of the Effect.
 
 <br/><br/>
 
-## Injection across modules / projects
+## Injection of non-existent dependencies in the compilation classpath
 
-Dependencies that can be referenced from the runtime classpath are always loaded.
-Such an injection will also work as expected.
-
-Here is an example.
-https://github.com/giiita/refuel/tree/master/test-across-module
+In a normal injection, if a candidate dependency is not found at the Macro expantion stage, you cannot compile it, but you may want to achieve it for the convenience of the software architecture.
 
 <br/>
 
-When there are projects A, B and C, C depends on B, B depends on A.<br/>
+There are projects application, domain, and kernel.
 
-【 PROJECT A 】
+【 PROJECT kernel 】
 ```scala
-trait N {
-  val value = "I am N in project A."
+trait Interface {
+  val value: String
 }
 ```
 
-【 PROJECT B 】
+【 PROJECT domain 】
 
 ```scala
-trait UseN extends Injector {
-  def exec: String = inject[N].value
+class UseInterface extends Injector {
+  // It can't compile.
+  // Interface implementation cannot be found.
+  def exec: String = inject[Interface].value
 }
-object UseN extends UseN with AutoInject 
 ```
 
-【 PROJECT C 】
+【 PROJECT application 】
 
 ```scala
-object NImpl extends N with AutoInject {
-  val value = "I am NImpl in project C."
+object InterfaceImpl extends Interface with AutoInject {
+  val value: String = "I am InterfaceImpl"
 }
 
 object Main extends App with Injector {
-  println(UseN.exec) // "I am NImpl in project C."
+  // It will be fail.
+  // It should be able to compile itself. However, the compilation fails because DOMAIN is failing to compile.
+  println(inject[UseInterface].exec)
+}
+```
+
+To resolve this, either suppress the explicit deployment at UseInterface or switch to RuntimeInjection.
+
+### Suppress the explicit deployment at UseInterface
+
+```scala
+class UseInterface(interface: Interface) extends Injector {
+  def exec: String = interface.value
+}
+
+object Main extends App with Injector {
+  println(inject[UseInterface].exec)
+}
+```
+
+This allows the project application only to be deployed in this way.
+
+```scala
+println(inject[UseInterface].exec)
+// STEP1
+println(UseInterface(inject[Interface]).exec)
+// STEP2
+println(UseInterface(InterfaceImpl).exec)
+```
+
+### Switch to RuntimeInjection
+
+By adding `@RecognizedDynamicInjection` to the type passed to the inject function, the injection for that class will be a Runtime injection.
+
+```scala
+@RecognizedDynamicInjection
+trait Interface {
+  val value: String
 }
 ```
 
 
+However, in this way, the injection of `Interface` is always Runtime.
+Use `inject[T@RecognizedDynamicInjection]` if you want to switch to Runtime only for some calls.
+This can also be used for reserved type classes.
 
-
+```scala
+class UseInterface extends Injector {
+  def exec: String = inject[Interface@RecognizedDynamicInjection].value
+}
+```
 
 
 <br/>
 
 ### Testing
-
-
 
 When UnitTest parallel execution is enabled, overriding global scope dependencies such as `overwrite` in a test may result in unexpected overwrites between different threads.<br/>
 There are two cases for dealing with the problem.<br/>
@@ -255,7 +258,7 @@ These can be registered multiple times, and in addition to objects, access from 
   targetService.exec() // MockA is used for A in targetService
 ```
 
-### case 2. Container shadind
+### case 2. Container shading
 
 Classes that inherit Injector can call the `shade` function.<br/>
 Calling this will create a temporary mock container.<br/>
@@ -339,26 +342,6 @@ When overwriting with a limited scope in the test, We recommend it.<br>
 narrow[T](new T {}).accept(this).indexing()
 ```
 Overwriting with `depends` and running tests in parallel may unexpectedly overwrite globally.
-
-
-### Advanced usage
-
-```scala
-  trait A
-  object B extends A
-  object C extends A
-  
-  trait BInjector extends Injector {
-    overwrite[A](B)
-  }
-  
-  object Test extends BInjector {
-    def test = {
-      println(inject[A]) // B
-    }
-  }
-  
-```
 
 ### This will not work
 

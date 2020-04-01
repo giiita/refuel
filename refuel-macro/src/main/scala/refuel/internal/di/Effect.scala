@@ -1,5 +1,6 @@
-package refuel.effect
+package refuel.internal.di
 
+import refuel.effect.EffectLike
 import refuel.injector.AutoInject
 
 /**

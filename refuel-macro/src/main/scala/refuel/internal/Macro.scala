@@ -15,14 +15,6 @@ class Macro(val c: blackbox.Context) {
     )
   }
 
-  def diligentInject[T: c.WeakTypeTag](ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[T] = {
-    new LazyInitializer[c.type](c).diligentInit[T](
-      ctn,
-      ip,
-      access
-    )
-  }
-
   def scratch: c.Tree = {
     import c.universe._
     q"""

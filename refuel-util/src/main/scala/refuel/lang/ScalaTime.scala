@@ -44,9 +44,11 @@ object ScalaTime extends Injector {
       * @return
       */
     def datetime: ZonedDateTime = {
-      ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).map { x =>
+      ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).fold{
+        throw new IllegalArgumentException(s"Unexpected datetime format. $value")
+      } { x =>
         ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), ScalaTimeSupport.convertWith), TZ.ZONE_ID)
-      } getOrElse (throw new IllegalArgumentException(s"Unexpected datetime format. $value"))
+      }
     }
   }
 
@@ -205,11 +207,18 @@ object ScalaTime extends Injector {
 
   implicit class UnixTimeBs(value: Long) {
     /**
-      * Unixtime to ZonedDateTime.
-      *
-      * @return
-      */
+     * Unixtime to ZonedDateTime.
+     *
+     * @return
+     */
     def datetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), TZ.ZONE_ID)
+
+    /**
+     * Unixtime to ZonedDateTime.
+     *
+     * @return
+     */
+    def milliToDatetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), TZ.ZONE_ID)
   }
 
 }

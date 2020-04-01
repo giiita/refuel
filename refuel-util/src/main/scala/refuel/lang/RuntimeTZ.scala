@@ -20,15 +20,22 @@ object RuntimeTZ extends RuntimeTZ with AutoInject {
 }
 
 /**
-  * When using a fixed time zone
-  * {{{
-  * object MyTZ extends AsiaTokyoTZ with AutoInject[RuntimeTZ]
-  * }}}
-  */
+ * When using a fixed time zone
+ * {{{
+ * object MyTZ extends AsiaTokyoTZ with AutoInject
+ * }}}
+ */
 class AsiaTokyoTZ extends RuntimeTZ {
   override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
   override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
   override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
+  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+}
+
+class UtcTZ extends RuntimeTZ {
+  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Etc/UCT")
+  override val ZONE_ID: ZoneId = ZoneId.of("Etc/UCT")
+  override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(0)
   override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
 }
 

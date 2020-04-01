@@ -6,7 +6,7 @@ package refuel.domination
  *
  * @param value priority
  */
-abstract class InjectionPriority(val value: Int)
+sealed abstract class InjectionPriority(val value: Int)
 
 /**
  *

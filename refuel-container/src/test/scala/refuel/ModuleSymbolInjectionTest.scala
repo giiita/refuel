@@ -5,11 +5,12 @@ import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.Types.@@
+import refuel.container.anno.{Effective, RecognizedDynamicInjection}
+import refuel.domination.Inject
 import refuel.domination.InjectionPriority.{Default, Finally, Overwrite}
-import refuel.domination.{Inject, InjectionPriority}
-import refuel.effect.{Effect, Effective}
 import refuel.exception.DIAutoInitializationException
 import refuel.injector.{AutoInject, Injector}
+import refuel.internal.di.Effect
 import refuel.provider.{Lazy, Tag}
 
 import scala.util.Try
@@ -67,19 +68,6 @@ object ModuleSymbolInjectionTest {
 
     @Inject(Default)
     object TestIFImpl_5_CUSTOM extends AutoInject with TestIF_5
-
-  }
-
-  object TEST6 {
-
-    trait TestIF_6
-
-    object TestIFImpl_6_AUTO extends TestIF_6 with AutoInject
-
-    case object Defaul1 extends InjectionPriority(1)
-
-    @Inject(Defaul1)
-    object TestIFImpl_6_CUSTOM extends AutoInject with TestIF_6
 
   }
 
@@ -326,6 +314,7 @@ object ModuleSymbolInjectionTest {
 
   object TEST303 {
 
+    @RecognizedDynamicInjection
     trait Wrap_303[+T <: TestIF] {
       val inst: T
     }
@@ -352,28 +341,6 @@ object ModuleSymbolInjectionTest {
 
   }
 
-  object TEST305 {
-
-    trait TestIF
-
-    trait TestIF_305_A extends TestIF
-
-    trait TestIF_305_B extends TestIF
-
-    abstract class Wrap_305[+T <: TestIF] {
-      val inst: T
-    }
-
-    object TestIF_305_A_WRAP extends Wrap_305[TestIF_305_A] with AutoInject {
-      val inst: TestIF_305_A = new TestIF_305_A {}
-    }
-
-    object TestIF_305_B_WRAP extends Wrap_305[TestIF_305_B] with AutoInject {
-      val inst: TestIF_305_B = new TestIF_305_B {}
-    }
-
-  }
-
 }
 
 class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
@@ -382,248 +349,214 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
 
   import ModuleSymbolInjectionTest._
 
-  "auto inject" should {
-    "default auto inject" in {
-      import TEST1._
-      inject[TestIF_1].value shouldBe "value"
-    }
-
-    "recovered inject" in {
-      import TEST2._
-      inject[TestIF_2]._provide shouldBe TestIFImpl_2
-    }
-
-    "recovered vs default auto inject priority" in {
-      import TEST3._
-      inject[TestIF_3]._provide shouldBe TestIFImpl_3_AUTO
-    }
-
-    "recovered vs custom(1) inject priority" in {
-      import TEST4._
-      inject[TestIF_4]._provide shouldBe TestIFImpl_4_CUSTOM
-    }
-
-    "recovered vs custom(0) inject priority == name after win" in {
-      import TEST5._
-      inject[TestIF_5]._provide != null shouldBe true
-    }
-
-    "auto vs custom(999) inject priority == auto" in {
-      import TEST6._
-      inject[TestIF_6]._provide shouldBe TestIFImpl_6_AUTO
-    }
-
-    "auto vs custom(1000) inject priority == name after win" in {
-      import TEST7._
-
-      val err = intercept[refuel.exception.DIAutoInitializationException] {
-        inject[TestIF_7]._provide
-      }
-      err.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7."
-      err.getCause.getMessage shouldBe "Invalid dependency definition of interface refuel.ModuleSymbolInjectionTest$TEST7$TestIF_7. There must be one automatic injection of inject[T] per priority. But found [refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7, refuel.ModuleSymbolInjectionTest.TEST7.TestIF_7]"
-    }
-
-    "auto vs custom(1001) inject priority == custom" in {
-      import TEST8._
-      inject[TestIF_8]._provide shouldBe TestIFImpl_8_CUSTOM
-    }
-  }
-
-  "narrow" should {
-    "auto vs narrow instance" in {
-      import TEST101._
-
-      object LOCAL_TestIF_101 extends TestIF_101
-
-      narrow[TestIF_101](LOCAL_TestIF_101).accept(this).indexing()
-
-      inject[TestIF_101]._provide shouldBe LOCAL_TestIF_101
-    }
-
-    "out of scope instance" in {
-      import TEST102._
-
-      object LOCAL_TestIF_102 extends TestIF_102
-
-      narrow[TestIF_102](LOCAL_TestIF_102).accept(TEST101.TestIFImpl_101_AUTO).indexing()
-
-      inject[TestIF_102]._provide shouldBe TestIFImpl_102_AUTO
-    }
-
-    "auto vs narrow class" in {
-      import TEST103._
-
-      object LOCAL_TestIF_103 extends TestIF_103
-
-      narrow[TestIF_103](LOCAL_TestIF_103).accept[ModuleSymbolInjectionTest].indexing()
-
-      inject[TestIF_103]._provide shouldBe LOCAL_TestIF_103
-    }
-
-    "out of scope class" in {
-      import TEST104._
-
-      object LOCAL_TestIF_104 extends TestIF_104
-
-      narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).indexing()
-
-      inject[TestIF_104]._provide shouldBe TestIFImpl_104_AUTO
-    }
-
-    "add scope of multiple types" in {
-      import TEST104._
-
-      object LOCAL_TestIF_104 extends TestIF_104
-
-      Try {
-        narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).accept[ModuleSymbolInjectionTest].indexing()
-      } match {
-        case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "If you have already authorized any instance, you can not authorize new types."
-      }
-    }
-    "Meny acception instance" in {
-      import TEST105._
-
-      object LOCAL_TestIF_105 extends TestIF_105
-
-      narrow[TestIF_105](LOCAL_TestIF_105).accept(AccessorA).accept(AccessorB).indexing()
-
-      AccessorA.get._provide shouldBe LOCAL_TestIF_105
-      AccessorB.get._provide shouldBe LOCAL_TestIF_105
-      AccessorC.get._provide shouldBe TestIFImpl_105_AUTO
-    }
-    "Meny acception class" in {
-      import TEST106._
-
-      object LOCAL_TestIF_106 extends TestIF_106
-
-      narrow[TestIF_106](LOCAL_TestIF_106).accept[AccessorTestA].accept[AccessorTestB].indexing()
-
-      AccessorA.get._provide shouldBe LOCAL_TestIF_106
-      AccessorB.get._provide shouldBe LOCAL_TestIF_106
-      AccessorC.get._provide shouldBe TestIFImpl_106_AUTO
-    }
-
-    "confirm vs narrow class" in {
-      import TEST107._
-
-      object LOCAL_TestIF_107 extends TestIF_107
-
-      val inspection = bind[TestIF_107]
-
-      narrow[TestIF_107](LOCAL_TestIF_107).accept[ModuleSymbolInjectionTest].indexing()
-
-      inspection shouldBe TestIFImpl_107_AUTO
-    }
-
-    "shade pattern" in {
-      import TEST108._
-
-      shade[Assertion] { implicit c =>
-        overwrite[A108](A108_REPLACE)
-        inject[C108].b.a._provide shouldBe A108_REPLACE
-      }
-
-      inject[C108].b.a._provide shouldBe A108
-    }
-
-    "Effective injection" in {
-      import TEST109._
-
-      inject[A109]._provide shouldBe A109_2
-    }
-
-    "Effect is desabled all" in {
-      import TEST110._
-
-      Try {
-        inject[A110]._provide
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
-      }
-    }
-  }
-
-  "Tagging" should {
-    "tag inspect" in {
-      import TEST201._
-      intercept[refuel.exception.DIAutoInitializationException] {
-        inject[TestIF_201]._provide
-      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
-      inject[TestIF_201 @@ TestTagA]._provide shouldBe TestIFImpl_201_TAGA
-      inject[TestIF_201 @@ TestTagB]._provide shouldBe TestIFImpl_201_TAGB
-
-      intercept[DIAutoInitializationException] {
-        inject[TestIF_201 @@ TestTagC]._provide
-      }.getMessage shouldBe "Failed to initialize interface refuel.ModuleSymbolInjectionTest$TEST201$TestIF_201."
-    }
-  }
-
-  "Inheritance relationship" should {
-    "pattern 1" in {
-      import TEST301._
-      inject[TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
-      Try {
-        inject[EX_TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
-      }
-    }
-    "pattern 2" in {
-      import TEST302._
-      inject[TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
-    }
-
-    "type erase" in {
-      import TEST303._
-
-      val r_A = Wrap(new TestIF_303_A {})
-
-      val r_B = Wrap(new TestIF_303_B {})
-
-      overwrite[Wrap_303[TestIF_303_A]](r_A)
-      overwrite[Wrap_303[TestIF_303_B]](r_B)
-
-      import scala.reflect.runtime.universe._
-      def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
-
-      get[TestIF_303_A]._provide shouldBe r_A
-      get[TestIF_303_B]._provide shouldBe r_B
-    }
-
-    "type erase with Seq" in {
-      import TEST304._
-
-      val r_A = Seq(
-        new TestIF_304_A {},
-        new TestIF_304_A {},
-        new TestIF_304_A {}
-      )
-
-      val r_B = Seq(
-        new TestIF_304_B {},
-        new TestIF_304_B {},
-        new TestIF_304_B {}
-      )
-
-      overwrite[Seq[TestIF_304_A]](r_A)
-      overwrite[Seq[TestIF_304_B]](r_B)
-
-      inject[Seq[TestIF_304_A]]._provide shouldBe r_A
-      inject[Seq[TestIF_304_B]]._provide shouldBe r_B
-    }
-
-    "type erase with Auto" in {
-      import TEST305._
-
-      import scala.reflect.runtime.universe._
-      def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_305[T]] = inject[Wrap_305[T]]
-
-      get[TestIF_305_A]._provide shouldBe TestIF_305_A_WRAP
-      get[TestIF_305_B]._provide shouldBe TestIF_305_B_WRAP
-    }
-  }
+//  "auto inject" should {
+//    "default auto inject" in {
+//      import TEST1._
+//      inject[TestIF_1].value shouldBe "value"
+//    }
+//
+//    "recovered inject" in {
+//      import TEST2._
+//      inject[TestIF_2]._provide shouldBe TestIFImpl_2
+//    }
+//
+//    "recovered vs default auto inject priority" in {
+//      import TEST3._
+//      inject[TestIF_3]._provide shouldBe TestIFImpl_3_AUTO
+//    }
+//
+//    "recovered vs custom(1) inject priority" in {
+//      import TEST4._
+//      inject[TestIF_4]._provide shouldBe TestIFImpl_4_CUSTOM
+//    }
+//
+//    "recovered vs custom(0) inject priority == name after win" in {
+//      import TEST5._
+//      inject[TestIF_5]._provide != null shouldBe true
+//    }
+//
+//    "auto vs custom(1000) inject priority == name after win" in {
+//
+//      assertDoesNotCompile("inject[TestIF_7]._provide")
+//
+//    }
+//
+//    "auto vs custom(1001) inject priority == custom" in {
+//      import TEST8._
+//      inject[TestIF_8]._provide shouldBe TestIFImpl_8_CUSTOM
+//    }
+//  }
+//
+//  "narrow" should {
+//    "auto vs narrow instance" in {
+//      import TEST101._
+//
+//      object LOCAL_TestIF_101 extends TestIF_101
+//
+//      narrow[TestIF_101](LOCAL_TestIF_101).accept(this).indexing()
+//
+//      inject[TestIF_101]._provide shouldBe LOCAL_TestIF_101
+//    }
+//
+//    "out of scope instance" in {
+//      import TEST102._
+//
+//      object LOCAL_TestIF_102 extends TestIF_102
+//
+//      narrow[TestIF_102](LOCAL_TestIF_102).accept(TEST101.TestIFImpl_101_AUTO).indexing()
+//
+//      inject[TestIF_102]._provide shouldBe TestIFImpl_102_AUTO
+//    }
+//
+//    "auto vs narrow class" in {
+//      import TEST103._
+//
+//      object LOCAL_TestIF_103 extends TestIF_103
+//
+//      narrow[TestIF_103](LOCAL_TestIF_103).accept[ModuleSymbolInjectionTest].indexing()
+//
+//      inject[TestIF_103]._provide shouldBe LOCAL_TestIF_103
+//    }
+//
+//    "out of scope class" in {
+//      import TEST104._
+//
+//      object LOCAL_TestIF_104 extends TestIF_104
+//
+//      narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).indexing()
+//
+//      inject[TestIF_104]._provide shouldBe TestIFImpl_104_AUTO
+//    }
+//
+//    "add scope of multiple types" in {
+//      import TEST104._
+//
+//      object LOCAL_TestIF_104 extends TestIF_104
+//
+//      Try {
+//        narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).accept[ModuleSymbolInjectionTest].indexing()
+//      } match {
+//        case scala.util.Success(_) => fail()
+//        case scala.util.Failure(exception) => exception.getMessage shouldBe "If you have already authorized any instance, you can not authorize new types."
+//      }
+//    }
+//    "Meny acception instance" in {
+//      import TEST105._
+//
+//      object LOCAL_TestIF_105 extends TestIF_105
+//
+//      narrow[TestIF_105](LOCAL_TestIF_105).accept(AccessorA).accept(AccessorB).indexing()
+//
+//      AccessorA.get._provide shouldBe LOCAL_TestIF_105
+//      AccessorB.get._provide shouldBe LOCAL_TestIF_105
+//      AccessorC.get._provide shouldBe TestIFImpl_105_AUTO
+//    }
+//    "Meny acception class" in {
+//      import TEST106._
+//
+//      object LOCAL_TestIF_106 extends TestIF_106
+//
+//      narrow[TestIF_106](LOCAL_TestIF_106).accept[AccessorTestA].accept[AccessorTestB].indexing()
+//
+//      AccessorA.get._provide shouldBe LOCAL_TestIF_106
+//      AccessorB.get._provide shouldBe LOCAL_TestIF_106
+//      AccessorC.get._provide shouldBe TestIFImpl_106_AUTO
+//    }
+//
+//    "shade pattern" in {
+//      import TEST108._
+//
+//      shade[Assertion] { implicit c =>
+//        overwrite[A108](A108_REPLACE)
+//        inject[C108].b.a._provide shouldBe A108_REPLACE
+//      }
+//
+//      inject[C108].b.a._provide shouldBe A108
+//    }
+//
+//    "Effective injection" in {
+//      import TEST109._
+//
+//      inject[A109]._provide shouldBe A109_2
+//    }
+//
+//    "Effect is desabled all" in {
+//      import TEST110._
+//
+//      Try {
+//        inject[A110]._provide
+//      } match {
+//        case scala.util.Failure(_: DIAutoInitializationException) => succeed
+//        case _ => fail()
+//      }
+//    }
+//  }
+//
+//  "Tagging" should {
+//    "tag inspect" in {
+//      import TEST201._
+//      assertDoesNotCompile("inject[TestIF_201]._provide")
+//      inject[TestIF_201 @@ TestTagA]._provide shouldBe TestIFImpl_201_TAGA
+//      inject[TestIF_201 @@ TestTagB]._provide shouldBe TestIFImpl_201_TAGB
+//
+//      // Be compile error at v1.1.0
+//      assertDoesNotCompile(
+//        "inject[TestIF_201 @@ TestTagC]._provide"
+//      )
+//    }
+//  }
+//
+//  "Inheritance relationship" should {
+//    "pattern 1" in {
+//      import TEST301._
+//      inject[TestIF_301]._provide shouldBe TestIFImpl_301_AUTO
+//      assertDoesNotCompile("inject[EX_TestIF_301]._provide shouldBe TestIFImpl_301_AUTO")
+//    }
+//    "pattern 2" in {
+//      import TEST302._
+//      inject[TestIF_302]._provide shouldBe TestIFImpl_302_AUTO
+//    }
+//
+//    "type erase" in {
+//      import TEST303._
+//
+//      val r_A = Wrap(new TestIF_303_A {})
+//
+//      val r_B = Wrap(new TestIF_303_B {})
+//
+//      overwrite[Wrap_303[TestIF_303_A]](r_A)
+//      overwrite[Wrap_303[TestIF_303_B]](r_B)
+//
+//      import scala.reflect.runtime.universe._
+//      def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
+//
+//      get[TestIF_303_A]._provide shouldBe r_A
+//      get[TestIF_303_B]._provide shouldBe r_B
+//    }
+//
+//    "type erase with Seq" in {
+//      import TEST304._
+//
+//
+//      type Alias[T] = Seq[T]
+//
+//      val r_A = Seq(
+//        new TestIF_304_A {},
+//        new TestIF_304_A {},
+//        new TestIF_304_A {}
+//      )
+//
+//      val r_B = Seq(
+//        new TestIF_304_B {},
+//        new TestIF_304_B {},
+//        new TestIF_304_B {}
+//      )
+//
+//      overwrite[Alias[TestIF_304_A]](r_A)
+//      overwrite[Alias[TestIF_304_B]](r_B)
+//
+//      inject[Alias[TestIF_304_A]@RecognizedDynamicInjection]._provide shouldBe r_A
+//      inject[Alias[TestIF_304_B]@RecognizedDynamicInjection]._provide shouldBe r_B
+//    }
+//  }
 }
