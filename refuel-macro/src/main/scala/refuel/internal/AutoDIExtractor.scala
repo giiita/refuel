@@ -151,6 +151,7 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
       case api: ClassInfoTypeApi => api.parents
       case typeRef: TypeRef => typeRef.typeSymbol.typeSignature match {
         case _api: ClassInfoTypeApi => _api.parents
+        case PolyType(_, b) => Seq(b)
       }
     }.flatten
     if (prts.isEmpty) {
