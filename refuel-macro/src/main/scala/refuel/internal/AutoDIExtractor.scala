@@ -145,15 +145,33 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
     }
   }
 
+  @tailrec
+  private[this] final def recursiveStubTesting(x: c.Type*): Boolean = {
+    val prts = x.collect {
+      case api: ClassInfoTypeApi => api.parents
+      case typeRef: TypeRef => typeRef.typeSymbol.typeSignature match {
+        case _api: ClassInfoTypeApi => _api.parents
+      }
+    }.flatten
+    if (prts.isEmpty) {
+      true
+    } else if (!prts.exists { pr =>
+      pr.typeSymbol.isClass && pr.typeSymbol.asClass.isInstanceOf[scala.reflect.internal.Symbols#StubClassSymbol]
+    }) {
+      recursiveStubTesting(prts: _*)
+    } else {
+      false
+    }
+
+  }
+
   implicit class RichSymbol(x: c.Symbol) {
     def isInjectableOnce: Boolean = scala.util.Try {
-      x.isClass &&
+      recursiveStubTesting(x.typeSignature) &&
+        x.isClass &&
         !x.isAbstract &&
         brokenCheck(x) &&
         x.asClass.primaryConstructor.isMethod &&
-        !x.typeSignature.asInstanceOf[ClassInfoTypeApi].parents.exists { pr =>
-          pr.typeSymbol.isClass && pr.typeSymbol.asClass.isInstanceOf[scala.reflect.internal.Symbols#StubClassSymbol]
-        } &&
         x.typeSignature.baseClasses.contains(AutoInjectionTag.typeSymbol)
     }.getOrElse(false)
   }
@@ -172,12 +190,11 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
           tree = c.parse(
             s"type `${c.freshName()}` = ${value.fullName.replaceAll("(.+)\\$(.+)", "$1.$2")}"
           ),
-          mode = c.PATTERNmode,
           silent = true
         ).nonEmpty
       }
     } catch {
-      case e: Throwable => false
+      case _: Throwable => false
     }
   }
 

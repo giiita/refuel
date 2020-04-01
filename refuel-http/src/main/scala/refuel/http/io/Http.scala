@@ -2,8 +2,10 @@ package refuel.http.io
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
+import refuel.container.anno.RecognizedDynamicInjection
 import refuel.http.io.setting.HttpSetting
 import refuel.injector.Injector
+import refuel.provider.Lazy
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -13,7 +15,7 @@ import scala.reflect.ClassTag
 object Http extends Injector {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
 
-  private[http] val setting = inject[HttpSetting]
+  private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting@RecognizedDynamicInjection]
 
   implicit class UrlParameters(value: Map[String, Any]) {
     /**
