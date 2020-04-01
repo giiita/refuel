@@ -62,10 +62,27 @@ object ClassSymbolInjectionTest {
     class A_EFFECTIVE5 extends A_EFFECTIVE_IF with AutoInject {
       val v: String = "B"
     }
+
   }
 
   object TEST_B {
-    val depend: Seq[Int] = Seq(11)
+
+    trait B[T[_]] {
+      def xxx: T[String]
+    }
+
+    case class ID1[+T](value: T)
+
+    case class ID2[+T](value: T)
+
+    class B_IMPL_1() extends B[ID1] with AutoInject {
+      override def xxx: ID1[String] = ID1("ID1")
+    }
+
+    class B_IMPL_2() extends B[ID2] with AutoInject {
+      override def xxx: ID2[String] = ID2("ID2")
+    }
+
   }
 
   object TEST_C {
@@ -228,6 +245,11 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
     "Reserved type injection" in {
       overwrite(Seq(11))
       inject[Seq[Int]@RecognizedDynamicInjection]._provide shouldBe Seq(11)
+    }
+    "higher kind injection" in {
+      import refuel.ClassSymbolInjectionTest.TEST_B._
+      inject[B[ID1]].xxx shouldBe ID1("ID1")
+      inject[B[ID2]].xxx shouldBe ID2("ID2")
     }
     "Effective injection" in {
       import refuel.ClassSymbolInjectionTest.TEST_C._
