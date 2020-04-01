@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.0.2"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.1.0"
 ````
 
 ## Features
