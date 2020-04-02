@@ -6,7 +6,7 @@ libraryDependencies += "com.phylage" %% "refuel-container" % "1.1.0"
 
 ## Features
 
-In most cases, refuel-container injections are checked and confirmed at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection.
+In most cases, refuel-container injections are inspected at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection. In this case, the error can be avoided even if the dependency is not found at compile time.
 
 
 # Usage
