@@ -1,13 +1,14 @@
 package refuel.http.io
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import akka.actor.ActorSystem
 import org.scalatest._
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
-import refuel.http.io.HttpTest.TestEntity.Jokes
+import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, InnerJokes, Jokes}
 import refuel.injector.Injector
+import refuel.json.CodecDef
 
-object HttpTest {
+object HttpTest extends Injector {
 
   object TestEntity {
 
@@ -15,38 +16,38 @@ object HttpTest {
                         joke: String,
                         categories: Seq[String])
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     case class Jokes(status: String, value: JokeBody)
+
+
+    case class InnerJokeBody(id: Int,
+                             joke: String,
+                             categories: Seq[String])
+
+    case class InnerJokes(value: InnerJokeBody)
 
   }
 
 }
 
-class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector {
+class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector with CodecDef {
+
+  ActorSystem().index()
 
   "Http io test" should {
-    case class InnerJokeBody(id: Int,
-                             joke: String,
-                             categories: Seq[String])
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    case class InnerJokes(value: InnerJokeBody)
 
     "inner class can not deserialize" in {
       http[GET]("http://localhost:3289/endpoint")
-        .as[InnerJokes]
-        .map { x =>
-          x.value.joke
-        }
+        .as[InnerJokeBody](CaseClassCodec.from)
+        .map(_.joke)
         .run
         .map(x => fail(x))
         .recover {
-          case e => e.getMessage should startWith("Cannot deseialize to refuel.http.io.HttpTest")
+          case e => e.getMessage should startWith("Internal structure analysis raised an exception.")
         }
     }
     "deserializing" in {
       http[GET]("http://localhost:3289/endpoint")
-        .as[Jokes]
+        .as[Jokes](CaseClassCodec.from)
         .map { x =>
           x.value.joke
         }

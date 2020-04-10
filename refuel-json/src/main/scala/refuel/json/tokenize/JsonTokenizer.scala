@@ -12,7 +12,7 @@ import scala.annotation.{switch, tailrec}
 class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
   override protected var pos: Int = 0
-  private[this] var closingSintaxCheckEnable: Boolean = false
+  private[this] var closingSyntaxCheckEnable: Boolean = false
 
   private[this] final def glowArray(addStrLen: Int): Unit = {
     chbuff = util.Arrays.copyOf(chbuff, Integer.highestOneBit(addStrLen) << 1)
@@ -69,7 +69,7 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
       case '"' =>
         incl
         val len = detectLiteral(0)
-        if (closingSintaxCheckEnable) {
+        if (closingSyntaxCheckEnable) {
           loop(rb ++ JsString(new String(chbuff, 0, len)))
         } else JsString(new String(chbuff, 0, len))
       case ':' | ',' =>
@@ -77,11 +77,11 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         rb.approvalSyntax(x)
         loop(rb)
       case '{' =>
-        closingSintaxCheckEnable = true
+        closingSyntaxCheckEnable = true
         incl
         loop(JsStackObjects(rb))
       case '[' =>
-        closingSintaxCheckEnable = true
+        closingSyntaxCheckEnable = true
         incl
         loop(JsStackArray(rb))
       case '}' | ']' =>
@@ -91,7 +91,7 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
       case _ =>
 
         val len = detectAnyVal(0)
-        if (closingSintaxCheckEnable) {
+        if (closingSyntaxCheckEnable) {
           loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))
         } else JsAnyVal(new String(chbuff, 0, len))
     }

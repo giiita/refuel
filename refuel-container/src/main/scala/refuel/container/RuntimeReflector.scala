@@ -37,7 +37,7 @@ object RuntimeReflector extends InjectionReflector with Injector {
 
       c.find(clazz)(tpe, ClassTypeAcceptContext) getOrElse {
         ip.collect(clazz)(tpe)(c).fold(
-          throw new InjectDefinitionException(s"Cannot found $tpe implementations.")
+          throw new InjectDefinitionException(s"Cannot found ${tpe.tpe.typeSymbol} implementations.")
         ) {
           case (p, fs) if fs.size == 1 => fs.head(p).value
           case (p, fs) =>
