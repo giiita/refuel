@@ -2,7 +2,6 @@ package refuel.http.io.setting
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpEntity, HttpProtocols, HttpRequest}
-import akka.stream.ActorMaterializer
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.injector.AutoInject
@@ -15,25 +14,22 @@ import refuel.injector.AutoInject
  *   object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject[HttpRequestSetting]
  * }}}
  *
- * @param retryThreshold    Retry threshold. When 2 is set, up to one failure is allowed.
- * @param requestBuilder    Http request builder.
- *                          Default set,
- *                          protocol: `Http/1.1`
- *                          ContentType: `application/json`
- * @param responseBuilder   Http response entity builder.
- *                          For example, AkkaHttpClient has a capacity for response processing stream size.
- *                          It is possible to cut this.
+ * @param retryThreshold  Retry threshold. When 2 is set, up to one failure is allowed.
+ * @param requestBuilder  Http request builder.
+ *                        Default set,
+ *                        protocol: `Http/1.1`
+ *                        ContentType: `application/json`
+ * @param responseBuilder Http response entity builder.
+ *                        For example, AkkaHttpClient has a capacity for response processing stream size.
+ *                        It is possible to cut this.
  * {{{
  *   responseBuilder = _.withoutSizeLimit()
  * }}}
- * @param actorSystem       Actor system.
- * @param actorMaterializer Actor materializer generator.
  */
 class HttpSetting(val retryThreshold: Int = 1,
                   val requestBuilder: HttpRequest => HttpRequest = HttpSetting.DEFAULT,
                   val responseBuilder: HttpEntity.Strict => HttpEntity.Strict = x => x,
-                  val actorSystem: ActorSystem = ActorSystem(),
-                  val actorMaterializer: ActorSystem => ActorMaterializer = x => ActorMaterializer()(x))
+                  val actorSystem: ActorSystem)
 
 object HttpSetting {
 
@@ -44,6 +40,6 @@ object HttpSetting {
   }
 
   @Inject(Finally)
-  object RecoveredHttpSetting extends HttpSetting with AutoInject
+  class RecoveredHttpSetting(override val actorSystem: ActorSystem) extends HttpSetting(actorSystem = actorSystem) with AutoInject
 
 }

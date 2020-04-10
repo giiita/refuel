@@ -4,10 +4,10 @@ import refuel.injector.scope.IndexedSymbol
 import refuel.runtime.InjectionReflector
 
 import scala.collection.concurrent.TrieMap
-import scala.reflect.internal.util.WeakHashSet
+import scala.collection.mutable
 
 package object container {
-  type ContainerPool = TrieMap[ContainerIndexedKey, WeakHashSet[IndexedSymbol[_]]]
+  type ContainerPool = TrieMap[ContainerIndexedKey, mutable.HashSet[IndexedSymbol[_]]]
 
   private[container] implicit val injectionReflector: InjectionReflector = RuntimeReflector
 }

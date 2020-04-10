@@ -3,8 +3,25 @@
 ## Usage
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-http" % "1.1.0"
+libraryDependencies ++= Seq(
+  "com.phylage"       %% "refuel-http" % "1.1.1",
+  "com.typesafe.akka" %% "akka-stream" % "2.6.4",
+  "com.typesafe.akka" %% "akka-http"   % "10.1.11"
+)
+
+
 ````
+
+refuel-http infers ActorSystem from DI container.
+To use it, you need to index.
+
+```scala
+object Main extends Injector {
+  def main(args: Array[String]): Unit = {
+    implicit val system: ActorSystem = ActorSystem().index()
+  }
+}
+```
 
 ## Examples
 
@@ -13,7 +30,7 @@ libraryDependencies += "com.phylage" %% "refuel-http" % "1.1.0"
 ```
 import refuel.http.io.Http._
 
-object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject[HttpRequestSetting]
+object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject
 
 val requets = Map(
   "id" -> 1,

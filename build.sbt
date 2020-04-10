@@ -2,7 +2,7 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 lazy val buildTargetVersion = Seq("2.12.10", "2.13.1")
-scalaVersion in ThisBuild := "2.12.10"
+scalaVersion in ThisBuild := "2.13.1"
 
 lazy val assemblySettings = Seq(
   sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
@@ -133,7 +133,7 @@ lazy val cipher = (project in file("refuel-cipher"))
   .settings(
     name := "refuel-cipher",
     description := "Cipher module for Scala.",
-    unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
+    unmanagedClasspath in Test ++= (unmanagedResources in Compile).value
   ).enablePlugins(JavaAppPackaging)
 
 lazy val http = (project in file("refuel-http"))
@@ -143,10 +143,8 @@ lazy val http = (project in file("refuel-http"))
     name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-actor" % "2.5.23",
-      "com.typesafe.akka" %% "akka-stream" % "2.5.23",
-      "com.typesafe.akka" %% "akka-http-jackson" % "10.1.8",
-      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
+      "com.typesafe.akka" %% "akka-stream" % "2.6.4" % Provided,
+      "com.typesafe.akka" %% "akka-http" % "10.1.11" % Provided
     ),
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
     testOptions in Test ++= Seq(

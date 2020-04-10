@@ -13,7 +13,7 @@ import refuel.internal.di.Effect
 import refuel.provider.Tag
 
 import scala.collection.concurrent.TrieMap
-import scala.reflect.internal.util.WeakHashSet
+import scala.collection.mutable
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
@@ -51,7 +51,7 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
   private[refuel] final def cache[T](value: IndexedSymbol[T]): IndexedSymbol[T] = {
     val key = ContainerIndexedKey(value.tag)
     _buffer.readOnlySnapshot().get(key) match {
-      case None => _buffer.+=(key -> new WeakHashSet().+=(value))
+      case None => _buffer.+=(key -> new mutable.HashSet().+=(value))
       case Some(x) => _buffer.update(key, x.+=(value))
     }
     value

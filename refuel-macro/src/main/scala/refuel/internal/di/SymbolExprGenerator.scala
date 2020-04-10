@@ -82,12 +82,16 @@ class SymbolExprGenerator[C <: blackbox.Context](c: C) {
       c.Expr[T](c.parse(target.fullName))
     } else {
       c.Expr[T] {
+//        Vector[(String, String)]().grou
         c.parse(
           s"""new ${target.fullName}(${
-            target.asClass.primaryConstructor.asMethod.paramLists.map { curry =>
-              curry.map { param =>
-                s"inject[${param.typeSignature.toString}]"
-              }.mkString(",")
+            val a = target.asClass.primaryConstructor.asMethod
+            val b = a.paramLists
+            target.asClass.primaryConstructor.asMethod.paramLists.collect {
+              case curry if !curry.exists(_.isImplicit) =>
+                curry.map { param =>
+                  s"inject[${param.typeSignature.toString}]"
+                }.mkString(",")
             }.mkString(")(")
           }) with refuel.injector.Injector"""
         )

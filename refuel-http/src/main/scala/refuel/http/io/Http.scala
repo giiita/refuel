@@ -1,18 +1,19 @@
 package refuel.http.io
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
 import refuel.container.anno.RecognizedDynamicInjection
 import refuel.http.io.setting.HttpSetting
 import refuel.injector.Injector
+import refuel.json.JsonTransform
+import refuel.json.codecs.Read
 import refuel.provider.Lazy
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.reflect.ClassTag
 
-object Http extends Injector {
+object Http extends Injector with JsonTransform {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
 
   private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting@RecognizedDynamicInjection]
@@ -30,10 +31,9 @@ object Http extends Injector {
     }
   }
 
-  implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) extends JacksonParser {
+  implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
-    private[this] implicit val sys = setting.actorSystem
-    private[this] implicit val mat = setting.actorMaterializer(sys)
+    implicit val sys: ActorSystem = setting.actorSystem
 
     /**
      * Regist a type of returning deserialized json texts.
@@ -41,38 +41,11 @@ object Http extends Injector {
      * @tparam X Deserialized type.
      * @return
      */
-    def as[X: ClassTag]: HttpRunner[X] = {
-      asString.map(super.deserialize[X])
-    }
-
-    /**
-     * Regist a type of returning deserialized json texts.
-     *
-     * Sets the upper limit for akka stream to close the stream.
-     * [[akka.http.scaladsl.model.EntityStreamSizeException]] occurs when receiving a response exceeding the setting.
-     * The usual limit is 8MB.
-     *
-     * @tparam X Deserialized type.
-     * @return
-     */
-    @deprecated("Custom HttpSetting.responseBuilder instead. " +
-      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
-    def asLimit[X: ClassTag](limit: Long): HttpRunner[X] = {
-      asStringLimit(limit).map(super.deserialize[X])
-    }
-
-    /**
-     * Regist a type of returning deserialized json texts.
-     * Cut the reception size limit.
-     * The usual limit is 8MB.
-     *
-     * @tparam X
-     * @return
-     */
-    @deprecated("Custom HttpSetting.responseBuilder instead. " +
-      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
-    def asLimitCut[X: ClassTag]: HttpRunner[X] = {
-      asStringLimitCut.map(super.deserialize[X])
+    def as[X: Read]: HttpRunner[X] = {
+      asString.flatMap { x =>
+        println(x)
+        x.as[X].fold(Future.failed, Future(_)(Http.setting.actorSystem.dispatcher))
+      }
     }
 
     /**
@@ -80,40 +53,12 @@ object Http extends Injector {
      * There is a 3 second timeout to load all streams into memory.
      *
      * The current development progress does not support Streaming call.
+     *
      * @return
      */
     def asString: HttpRunner[String] = {
-      value.map(_.entity.dataBytes)
       value.flatMap(_.entity.toStrict(3.seconds))
-        .flatMap(setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
-    }
-
-    /**
-     * Regist a type of returning deserialized json texts.
-     *
-     * Sets the upper limit for akka stream to close the stream.
-     * [[akka.http.scaladsl.model.EntityStreamSizeException]] occurs when receiving a response exceeding the setting.
-     * The usual limit is 8MB.
-     *
-     * @return
-     */
-    @deprecated("Custom HttpSetting.responseBuilder instead. " +
-      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
-    def asStringLimit(limit: Long): HttpRunner[String] = {
-      value.flatMap(_.entity.withSizeLimit(limit).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
-    }
-
-    /**
-     * Regist a type of returning deserialized json texts.
-     * Cut the reception size limit.
-     * The usual limit is 8MB.
-     *
-     * @return
-     */
-    @deprecated("Custom HttpSetting.responseBuilder instead. " +
-      "class CustomHttpSetting() extends HttpSetting(responseBuilder = _.withoutSizeLimit()) with AutoInject[HttpSetting]")
-    def asStringLimitCut: HttpRunner[String] = {
-      value.flatMap(_.entity.withoutSizeLimit().dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String))
+        .flatMap(setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(sys.dispatcher))
     }
   }
 

@@ -248,6 +248,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
     }
     "higher kind injection" in {
       import refuel.ClassSymbolInjectionTest.TEST_B._
+      val xx: B[ID1] = inject[B[ID1]]
       inject[B[ID1]].xxx shouldBe ID1("ID1")
       inject[B[ID2]].xxx shouldBe ID2("ID2")
     }

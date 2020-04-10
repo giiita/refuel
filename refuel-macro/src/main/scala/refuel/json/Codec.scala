@@ -1,6 +1,6 @@
 package refuel.json
 
-import refuel.json.codecs.{Read, Write}
+import refuel.json.codecs.{CodecRaiseable, Read, Write}
 
 import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
@@ -11,7 +11,9 @@ import scala.language.implicitConversions
  * @tparam T Target type param.
  */
 @implicitNotFound("Cannot found ${T}")
-trait Codec[T] extends Read[T] with Write[T]
+trait Codec[T] extends Read[T] with Write[T] with CodecRaiseable[T] {
+  override def raise: Codec[T] = this
+}
 
 object Codec {
   private[refuel] implicit def both[T](const: (JsonVal => T, T => JsonVal)): Codec[T] = new Codec[T] {

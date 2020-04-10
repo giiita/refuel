@@ -3,16 +3,14 @@ package refuel.http.io
 import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
+import refuel.json.JsonTransform
+import refuel.json.codecs.Write
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extends JacksonParser {
+sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extends JsonTransform {
 
   import akka.http.scaladsl.model.MediaTypes._
-
-  private[this] implicit val sys = Http.setting.actorSystem
-  private[this] implicit val mat = Http.setting.actorMaterializer(sys)
 
   /**
    * Set a request body.
@@ -22,9 +20,9 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
    * @tparam X Request body type.
    * @return
    */
-  def body[X](value: X, withCharset: NonBinary = `application/json`): HttpRunner[T] = {
+  def body[X: Write](value: X, withCharset: NonBinary = `application/json`): HttpRunner[T] = {
     new HttpRunner[T](
-      request.withEntity(withCharset, serialize(value)),
+      request.withEntity(withCharset, value.toJString),
       task
     )
   }
@@ -62,7 +60,7 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {
-      def execute(request: HttpRequest): Future[R] = run.map(func)
+      def execute(request: HttpRequest): Future[R] = run.map(func)(Http.setting.actorSystem.dispatcher)
     }
   )
 
@@ -83,7 +81,7 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {
-      def execute(request: HttpRequest): Future[R] = run.flatMap(func)
+      def execute(request: HttpRequest): Future[R] = run.flatMap(func)(Http.setting.actorSystem.dispatcher)
     }
   )
 
