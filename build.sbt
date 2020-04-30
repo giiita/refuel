@@ -1,8 +1,10 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.12.11")
 scalaVersion in ThisBuild := "2.13.2"
+
+releaseCrossBuild in Scope.Global := true
+crossScalaVersions in Scope.Global := Seq("2.12.11", "2.13.2")
 
 lazy val assemblySettings = Seq(
   sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
@@ -19,8 +21,6 @@ lazy val assemblySettings = Seq(
       "-language:higherKinds",
       "-language:implicitConversions"
     ),
-  releaseCrossBuild := true,
-  crossScalaVersions := buildTargetVersion,
   licenses += ("Apache-2.0", url(
       "https://www.apache.org/licenses/LICENSE-2.0.html"
     )),
@@ -76,7 +76,6 @@ lazy val root = project
   .settings(
     publishLocal in ThisProject := {},
     publishArtifact in ThisProject := false,
-    crossScalaVersions := buildTargetVersion,
     resourceDirectories in Compile += {
       (ThisProject / baseDirectory).value / "project" / "resources"
     }
