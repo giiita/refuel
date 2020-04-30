@@ -3,8 +3,7 @@ package refuel.container.indexer
 import refuel.container.Container
 import refuel.injector.scope.{AcceptedFromTypeSymbol, IndexedSymbol}
 
-import scala.reflect.{ClassTag, classTag}
-
+import scala.reflect.{classTag, ClassTag}
 
 /**
   * Indexer into container.
@@ -16,6 +15,7 @@ import scala.reflect.{ClassTag, classTag}
   * @tparam T Symbol type
   */
 class NarrowTypeIndexer[T](scope: AcceptedFromTypeSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+
   /**
     * Index a new symbol in the injection container.
     *

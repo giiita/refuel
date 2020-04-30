@@ -11,7 +11,7 @@ import scala.annotation.{switch, tailrec}
 
 class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
-  override protected var pos: Int = 0
+  override protected var pos: Int                     = 0
   private[this] var closingSyntaxCheckEnable: Boolean = false
 
   private[this] final def glowArray(addStrLen: Int): Unit = {
@@ -89,7 +89,6 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         val skashed = rb.squash
         if (skashed.isSquashable) loop(skashed) else skashed
       case _ =>
-
         val len = detectAnyVal(0)
         if (closingSyntaxCheckEnable) {
           loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))

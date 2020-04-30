@@ -13,30 +13,30 @@ import refuel.injector.AutoInject
   */
 @Inject(Finally)
 object RuntimeTZ extends RuntimeTZ with AutoInject {
-  override val TIME_ZONE: TimeZone = TimeZone.getDefault
-  override val ZONE_ID: ZoneId = java.time.ZoneId.systemDefault()
+  override val TIME_ZONE: TimeZone     = TimeZone.getDefault
+  override val ZONE_ID: ZoneId         = java.time.ZoneId.systemDefault()
   override val ZONE_OFFSET: ZoneOffset = ZONE_ID.getRules.getOffset(Instant.now())
-  override val DEFAULT_FORMAT: String = "yyyy/M/d H:m:s"
+  override val DEFAULT_FORMAT: String  = "yyyy/M/d H:m:s"
 }
 
 /**
- * When using a fixed time zone
- * {{{
- * object MyTZ extends AsiaTokyoTZ with AutoInject
- * }}}
- */
+  * When using a fixed time zone
+  * {{{
+  * object MyTZ extends AsiaTokyoTZ with AutoInject
+  * }}}
+  */
 class AsiaTokyoTZ extends RuntimeTZ {
-  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-  override val ZONE_ID: ZoneId = ZoneId.of("Asia/Tokyo")
+  override val TIME_ZONE: TimeZone     = TimeZone.getTimeZone("Asia/Tokyo")
+  override val ZONE_ID: ZoneId         = ZoneId.of("Asia/Tokyo")
   override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(9)
-  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+  override val DEFAULT_FORMAT: String  = RuntimeTZ.DEFAULT_FORMAT
 }
 
 class UtcTZ extends RuntimeTZ {
-  override val TIME_ZONE: TimeZone = TimeZone.getTimeZone("Etc/UCT")
-  override val ZONE_ID: ZoneId = ZoneId.of("Etc/UCT")
+  override val TIME_ZONE: TimeZone     = TimeZone.getTimeZone("Etc/UCT")
+  override val ZONE_ID: ZoneId         = ZoneId.of("Etc/UCT")
   override val ZONE_OFFSET: ZoneOffset = ZoneOffset.ofHours(0)
-  override val DEFAULT_FORMAT: String = RuntimeTZ.DEFAULT_FORMAT
+  override val DEFAULT_FORMAT: String  = RuntimeTZ.DEFAULT_FORMAT
 }
 
 /**

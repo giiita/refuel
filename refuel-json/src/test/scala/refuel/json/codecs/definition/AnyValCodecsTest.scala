@@ -20,13 +20,11 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       }
     }
 
-
     "Long deserialize" in {
       s"""{"value":9223372036854775807}""".as[JLong](CaseClassCodec.from[JLong]) shouldBe Right {
         JLong(Long.MaxValue)
       }
     }
-
 
     "String deserialize" in {
       s"""{"value":"body"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
@@ -44,30 +42,27 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       }
     }
 
-
     "Float deserialize" in {
       s"""{"value":0.123}""".as[JFloat](CaseClassCodec.from[JFloat]) shouldBe Right {
-        JFloat(0.123F)
+        JFloat(0.123f)
       }
     }
     "Float deserialize ^ minus" in {
       s"""{"value":-0.123}""".as[JFloat](CaseClassCodec.from[JFloat]) shouldBe Right {
-        JFloat(-0.123F)
+        JFloat(-0.123f)
       }
     }
 
-
     "Double deserialize" in {
       s"""{"value":0.123}""".as[JDouble](CaseClassCodec.from[JDouble]) shouldBe Right {
-        JDouble(0.123D)
+        JDouble(0.123d)
       }
     }
     "Double deserialize ^ minus" in {
       s"""{"value":-0.123}""".as[JDouble](CaseClassCodec.from[JDouble]) shouldBe Right {
-        JDouble(-0.123D)
+        JDouble(-0.123d)
       }
     }
-
 
     "Boolean deserialize true" in {
       s"""{"value":true}""".as[JBoolean](CaseClassCodec.from[JBoolean]) shouldBe Right {
@@ -91,12 +86,10 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       str.toJString(CaseClassCodec.from[JInt]) shouldBe s"""{"value":-3}"""
     }
 
-
     "Long serialize" in {
       val str: JLong = JLong(Long.MaxValue)
       str.toJString(CaseClassCodec.from[JLong]).toString shouldBe s"""{"value":9223372036854775807}"""
     }
-
 
     "String serialize" in {
       val str: JString = JString("body")
@@ -111,26 +104,23 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
     }
 
-
     "Float serialize" in {
-      val str: JFloat = JFloat(0.123F)
+      val str: JFloat = JFloat(0.123f)
       str.toJString(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":0.123}"""
     }
     "Float serialize ^ minus" in {
-      val str: JFloat = JFloat(-0.123F)
+      val str: JFloat = JFloat(-0.123f)
       str.toJString(CaseClassCodec.from[JFloat]).toString shouldBe s"""{"value":-0.123}"""
     }
 
-
     "Double serialize" in {
-      val str: JDouble = JDouble(0.123D)
+      val str: JDouble = JDouble(0.123d)
       str.toJString(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":0.123}"""
     }
     "Double serialize ^ minus" in {
-      val str: JDouble = JDouble(-0.123D)
+      val str: JDouble = JDouble(-0.123d)
       str.toJString(CaseClassCodec.from[JDouble]).toString shouldBe s"""{"value":-0.123}"""
     }
-
 
     "Boolean serialize true" in {
       val str: JBoolean = JBoolean(true)

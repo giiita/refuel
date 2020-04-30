@@ -16,9 +16,10 @@ trait IterableCodecTranslator extends AnyRefCodecs {
   protected def array[T: ClassTag](implicit codec: Codec[T]): Codec[Array[T]] = codec
 
   protected def option[T](implicit codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] {
-    override def deserialize(bf: JsonVal): Option[T] = Try {
-      codec.deserialize(bf)
-    }.toOption
+    override def deserialize(bf: JsonVal): Option[T] =
+      Try {
+        codec.deserialize(bf)
+      }.toOption
 
     override def serialize(t: Option[T]): JsonVal = codec.serialize(t)
   }

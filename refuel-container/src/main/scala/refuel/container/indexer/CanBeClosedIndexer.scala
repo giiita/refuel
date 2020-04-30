@@ -3,7 +3,7 @@ package refuel.container.indexer
 import refuel.container.Container
 import refuel.injector.scope.{AcceptedFromInstanceSymbol, AcceptedFromTypeSymbol, IndexedSymbol}
 
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.{classTag, ClassTag}
 
 /**
   * Indexer into container.
@@ -15,6 +15,7 @@ import scala.reflect.{ClassTag, classTag}
   * @tparam T Symbol type
   */
 class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+
   /**
     * Create a new object in the injection container.
     *

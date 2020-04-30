@@ -25,16 +25,13 @@ private[refuel] object DefaultContainer {
   }
 }
 
-private[refuel] class DefaultContainer private(val lights: Vector[Container] = Vector.empty)
-  extends AtomicUpdater[DefaultContainer, ContainerPool]
+private[refuel] class DefaultContainer private (val lights: Vector[Container] = Vector.empty)
+    extends AtomicUpdater[DefaultContainer, ContainerPool]
     with Container
     with Tag[Types.Localized] {
 
   val updater: AtomicReferenceFieldUpdater[DefaultContainer, ContainerPool] = {
-    AtomicReferenceFieldUpdater.newUpdater(
-      classOf[DefaultContainer],
-      classOf[ContainerPool],
-      "_buffer")
+    AtomicReferenceFieldUpdater.newUpdater(classOf[DefaultContainer], classOf[ContainerPool], "_buffer")
   }
 
   override def snapshot(w: ContainerPool): ContainerPool = w.snapshot()
@@ -42,28 +39,28 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
   @volatile private[refuel] var _buffer: ContainerPool = TrieMap.empty
 
   /**
-   * Cache in the injection container.
-   *
-   * @param value injection object
-   * @tparam T injection type
-   * @return
-   */
+    * Cache in the injection container.
+    *
+    * @param value injection object
+    * @tparam T injection type
+    * @return
+    */
   private[refuel] final def cache[T](value: IndexedSymbol[T]): IndexedSymbol[T] = {
     val key = ContainerIndexedKey(value.tag)
     _buffer.readOnlySnapshot().get(key) match {
-      case None => _buffer.+=(key -> new mutable.HashSet().+=(value))
+      case None    => _buffer.+=(key -> new mutable.HashSet().+=(value))
       case Some(x) => _buffer.update(key, x.+=(value))
     }
     value
   }
 
   /**
-   * May return an injectable object.
-   *
-   * @param requestFrom object that called inject
-   * @tparam T return object type
-   * @return
-   */
+    * May return an injectable object.
+    *
+    * @param requestFrom object that called inject
+    * @tparam T return object type
+    * @return
+    */
   def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
     _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
       case None => None
@@ -77,21 +74,21 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
   }
 
   /**
-   * May return an injectable object.
-   *
-   * @param requestFrom object that called inject
-   * @tparam T return object type
-   * @return
-   */
+    * May return an injectable object.
+    *
+    * @param requestFrom object that called inject
+    * @tparam T return object type
+    * @return
+    */
   def find[T: WeakTypeTag, A: TypedAcceptContext](requestFrom: A): Option[T] = {
     find[T, A](implicitly[WeakTypeTag[T]].tpe, requestFrom)
   }
 
   /**
-   * May return an injectable object.
-   *
-   * @return
-   */
+    * May return an injectable object.
+    *
+    * @return
+    */
   private[refuel] def findEffect: Set[EffectLike] = {
     _buffer.readOnlySnapshot().get(ContainerIndexedKey(implicitly[WeakTypeTag[Effect]].tpe)) match {
       case None => Set.empty
@@ -104,26 +101,29 @@ private[refuel] class DefaultContainer private(val lights: Vector[Container] = V
   }
 
   /**
-   * Generate an indexer.
-   *
-   * @param x        Injectable object.
-   * @param priority priority
-   * @tparam T injection type
-   * @return
-   */
+    * Generate an indexer.
+    *
+    * @param x        Injectable object.
+    * @param priority priority
+    * @tparam T injection type
+    * @return
+    */
   def createIndexer[T: WeakTypeTag](x: T, priority: InjectionPriority, lights: Vector[Container]): Indexer[T] = {
     new CanBeClosedIndexer(createScope[T](x, priority), lights :+ this)
   }
 
   /**
-   * Generate open scope.
-   *
-   * @param x        Injectable object.
-   * @param priority priority
-   * @tparam T injection type
-   * @return
-   */
-  private[refuel] override def createScope[T: universe.WeakTypeTag](x: T, priority: InjectionPriority): IndexedSymbol[T] = {
+    * Generate open scope.
+    *
+    * @param x        Injectable object.
+    * @param priority priority
+    * @tparam T injection type
+    * @return
+    */
+  private[refuel] override def createScope[T: universe.WeakTypeTag](
+      x: T,
+      priority: InjectionPriority
+  ): IndexedSymbol[T] = {
     CanBeRestrictedSymbol[T](x, priority, weakTypeTag[T].tpe, this)
   }
 

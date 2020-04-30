@@ -17,7 +17,6 @@ import scala.util.Try
 
 object ModuleSymbolInjectionTest {
 
-
   object TEST1 {
 
     trait TestIF_1 {
@@ -238,7 +237,6 @@ object ModuleSymbolInjectionTest {
 
   }
 
-
   object TEST110 {
 
     trait A110 {
@@ -434,10 +432,14 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
       object LOCAL_TestIF_104 extends TestIF_104
 
       Try {
-        narrow[TestIF_104](LOCAL_TestIF_104).accept(TEST101.TestIFImpl_101_AUTO).accept[ModuleSymbolInjectionTest].indexing()
+        narrow[TestIF_104](LOCAL_TestIF_104)
+          .accept(TEST101.TestIFImpl_101_AUTO)
+          .accept[ModuleSymbolInjectionTest]
+          .indexing()
       } match {
         case scala.util.Success(_) => fail()
-        case scala.util.Failure(exception) => exception.getMessage shouldBe "If you have already authorized any instance, you can not authorize new types."
+        case scala.util.Failure(exception) =>
+          exception.getMessage shouldBe "If you have already authorized any instance, you can not authorize new types."
       }
     }
     "Meny acception instance" in {
@@ -487,7 +489,7 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
         inject[A110]._provide
       } match {
         case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _ => fail()
+        case _                                                    => fail()
       }
     }
   }
@@ -528,7 +530,7 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
       overwrite[Wrap_303[TestIF_303_B]](r_B)
 
       import scala.reflect.runtime.universe._
-      def get[T <: TestIF : WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
+      def get[T <: TestIF: WeakTypeTag]: Lazy[Wrap_303[T]] = inject[Wrap_303[T]]
 
       get[TestIF_303_A]._provide shouldBe r_A
       get[TestIF_303_B]._provide shouldBe r_B
@@ -536,7 +538,6 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
 
     "type erase with Seq" in {
       import TEST304._
-
 
       type Alias[T] = Seq[T]
 
@@ -555,8 +556,8 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
       overwrite[Alias[TestIF_304_A]](r_A)
       overwrite[Alias[TestIF_304_B]](r_B)
 
-      inject[Alias[TestIF_304_A]@RecognizedDynamicInjection]._provide shouldBe r_A
-      inject[Alias[TestIF_304_B]@RecognizedDynamicInjection]._provide shouldBe r_B
+      inject[Alias[TestIF_304_A] @RecognizedDynamicInjection]._provide shouldBe r_A
+      inject[Alias[TestIF_304_B] @RecognizedDynamicInjection]._provide shouldBe r_B
     }
   }
 }

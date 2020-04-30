@@ -15,7 +15,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-
   def lazyInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: Tree): Expr[Lazy[T]] = {
     val injectionRf = c.Expr[T](
       q"""
@@ -38,16 +37,17 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
       new Lazy[T] {
         private[this] val mediation: CntMediateOnce[T] = CntMediateOnce.empty
 
-        def _provide: T = try {
-          mediation.getOrElse(ctnExpr.splice, {
-            val r = injectionRf.splice
-            mediation += ctnExpr.splice -> r
-            r
-          })
-        } catch {
-          case e: Throwable =>
-            throw new DIAutoInitializationException(s"Failed to initialize ${typName.splice}.", e)
-        }
+        def _provide: T =
+          try {
+            mediation.getOrElse(ctnExpr.splice, {
+              val r = injectionRf.splice
+              mediation += ctnExpr.splice -> r
+              r
+            })
+          } catch {
+            case e: Throwable =>
+              throw new DIAutoInitializationException(s"Failed to initialize ${typName.splice}.", e)
+          }
       }
     }
   }
@@ -59,15 +59,17 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
 
     val mayBeInjection = reify {
-      c.Expr[Container](ctn).splice.find[T, Accessor[_]](
-        c.Expr[Accessor[_]](access).splice
-      )
+      c.Expr[Container](ctn)
+        .splice
+        .find[T, Accessor[_]](
+          c.Expr[Accessor[_]](access).splice
+        )
     }
 
     AutoDIExtractor.searchInjectionCands[c.type, T](c) match {
       case x: ConfirmedCands[c.type] =>
         val (priority, ranked) = x.rankingEvaluation
-        val rankingEvaluation = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
+        val rankingEvaluation  = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
         reify {
           mayBeInjection.splice getOrElse {
             c.Expr[Container](ctn).splice.createIndexer[T](rankingEvaluation.splice, priority.splice).indexing().value
@@ -83,7 +85,8 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
               case (p, f) =>
                 val x = f.map(_.apply(p).tag)
                 throw new InjectDefinitionException(
-                  s"Invalid dependency definition of ${ttagExpr.splice}. There must be one automatic injection of inject[T] per priority. But found [${x.mkString(", ")}]"
+                  s"Invalid dependency definition of ${ttagExpr.splice}. There must be one automatic injection of inject[T] per priority. But found [${x
+                    .mkString(", ")}]"
                 )
             }
           }
@@ -97,11 +100,9 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
         .splice
         .collect[T](c.Expr[Class[T]](c.reifyRuntimeClass(weakTypeOf[T])).splice)
         .apply(c.Expr[Container](cnt).splice) getOrElse {
-        throw new InjectDefinitionException(s"Cannot found ${
-          c.Expr {
-            c.reifyRuntimeClass(weakTypeOf[T])
-          }.splice
-        } implementations.")
+        throw new InjectDefinitionException(s"Cannot found ${c.Expr {
+          c.reifyRuntimeClass(weakTypeOf[T])
+        }.splice} implementations.")
       }
     }
   }

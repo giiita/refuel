@@ -14,7 +14,7 @@ object Http {
       Try {
         HTTP.request(Method.GET, new Request(uri)).status match {
           case 200 => Logger.getLogger("").log(Level.INFO, "HTTP server standby.")
-          case s   =>
+          case s =>
             Logger.getLogger("").log(Level.INFO, s"$uri [ $s ] HTTP server stand not yet...")
             circleCall
         }

@@ -13,7 +13,7 @@ case class JsString(literal: String) extends JsVariable {
   def pour(b: StringBuffer): Unit = {
     b.append('"')
     var processIndex = 0
-    val maxIndex = literal.length - 1
+    val maxIndex     = literal.length - 1
 
     @tailrec
     def detect(i: Int): Unit = {

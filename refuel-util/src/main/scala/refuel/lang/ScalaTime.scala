@@ -8,11 +8,12 @@ import refuel.injector.Injector
 import refuel.lang.period.{EpochDateTime, FromTo}
 
 object ScalaTime extends Injector {
+
   /**
     * If not setting auto injectable RuntimeTz,
     * use default RuntimeTZ.
     */
-  private[this] val TZ = inject[RuntimeTZ@RecognizedDynamicInjection]
+  private[this] val TZ = inject[RuntimeTZ @RecognizedDynamicInjection]
 
   /**
     * Get a current time.
@@ -27,6 +28,10 @@ object ScalaTime extends Injector {
   def now: ZonedDateTime = ZonedDateTime.now()
 
   implicit class StringBs(value: String) {
+    def epochtime: ZonedDateTime = {
+      value.toLong.datetime
+    }
+
     /**
       * Convert from arbitrary date string to ZonedDateTime.
       * Supported type is,
@@ -45,15 +50,24 @@ object ScalaTime extends Injector {
       * @return
       */
     def datetime: ZonedDateTime = {
-      ScalaTimeSupport.DATE_TIME_PATTERN_SET.find(x => value.matches(x.regex)).fold{
-        throw new IllegalArgumentException(s"Unexpected datetime format. $value")
-      } { x =>
-        ZonedDateTime.of(LocalDateTime.parse(x.normalize(value), ScalaTimeSupport.convertWith), TZ.ZONE_ID)
-      }
+      ScalaTimeSupport.DATE_TIME_PATTERN_SET
+        .find(x => value.matches(x.regex))
+        .fold {
+          throw new IllegalArgumentException(
+            s"Unexpected datetime format. $value"
+          )
+        } { x =>
+          ZonedDateTime.of(
+            LocalDateTime
+              .parse(x.normalize(value), ScalaTimeSupport.convertWith),
+            TZ.ZONE_ID
+          )
+        }
     }
   }
 
   implicit class LocalDateTimeBs(value: LocalDateTime) {
+
     /**
       * Convert to epoch second.
       *
@@ -79,8 +93,9 @@ object ScalaTime extends Injector {
       * @tparam T Period type.
       * @return
       */
-    def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
-                               (contruct: (EpochDateTime, EpochDateTime) => T): T = {
+    def periodWith[T <: FromTo](
+        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
+    )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
       value.toZonedDateTime.periodWith(anotherTimeApplyment)(contruct)
     }
 
@@ -96,7 +111,8 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def minTohour: LocalDateTime = value.toZonedDateTime.minTohour.toLocalDateTime
+    def minTohour: LocalDateTime =
+      value.toZonedDateTime.minTohour.toLocalDateTime
 
     /**
       * LocalDateTime to this day, 23:59:59.99999999
@@ -110,7 +126,8 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def maxTohour: LocalDateTime = value.toZonedDateTime.maxTohour.toLocalDateTime
+    def maxTohour: LocalDateTime =
+      value.toZonedDateTime.maxTohour.toLocalDateTime
 
     /**
       * ZonedDateTime convert to string with default date formatter.
@@ -154,11 +171,12 @@ object ScalaTime extends Injector {
       * @tparam T Period type.
       * @return
       */
-    def periodWith[T <: FromTo](anotherTimeApplyment: ZonedDateTime => ZonedDateTime)
-                               (contruct: (EpochDateTime, EpochDateTime) => T): T = {
+    def periodWith[T <: FromTo](
+        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
+    )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
       anotherTimeApplyment(value) match {
         case x if x.isAfter(value) => contruct(value.epoch, x.epoch)
-        case x => contruct(x.epoch, value.epoch)
+        case x                     => contruct(x.epoch, value.epoch)
       }
     }
 
@@ -168,7 +186,8 @@ object ScalaTime extends Injector {
       * @param format customized format: default "yyyy/MM/dd HH:mm:ss"
       * @return
       */
-    def formatTo(format: String = TZ.DEFAULT_FORMAT): String = DateTimeFormatter.ofPattern(format).format(value)
+    def formatTo(format: String = TZ.DEFAULT_FORMAT): String =
+      DateTimeFormatter.ofPattern(format).format(value)
 
     /**
       * ZonedDateTime to this day, 00:00:00.0
@@ -182,7 +201,8 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def minTohour: ZonedDateTime = value.`with`(LocalTime.MIN.withHour(value.getHour))
+    def minTohour: ZonedDateTime =
+      value.`with`(LocalTime.MIN.withHour(value.getHour))
 
     /**
       * ZonedDateTime to this day, 23:59:59.99999999
@@ -196,7 +216,8 @@ object ScalaTime extends Injector {
       *
       * @return
       */
-    def maxTohour: ZonedDateTime = value.`with`(LocalTime.MAX.withHour(value.getHour))
+    def maxTohour: ZonedDateTime =
+      value.`with`(LocalTime.MAX.withHour(value.getHour))
 
     /**
       * ZonedDateTime to unixtime
@@ -207,25 +228,29 @@ object ScalaTime extends Injector {
   }
 
   implicit class UnixTimeBs(value: Long) {
-    /**
-     * Unixtime to ZonedDateTime.
-     *
-     * @return
-     */
-    def datetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), TZ.ZONE_ID)
 
     /**
-     * Unixtime to ZonedDateTime.
-     *
-     * @return
-     */
-    def milliToDatetime: ZonedDateTime = ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), TZ.ZONE_ID)
+      * Unixtime to ZonedDateTime.
+      *
+      * @return
+      */
+    def datetime: ZonedDateTime =
+      ZonedDateTime.ofInstant(Instant.ofEpochSecond(value), TZ.ZONE_ID)
+
+    /**
+      * Unixtime to ZonedDateTime.
+      *
+      * @return
+      */
+    def milliToDatetime: ZonedDateTime =
+      ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), TZ.ZONE_ID)
   }
 
 }
 
 object ScalaTimeSupport {
-  val convertWith: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/M/d H:m:s")
+  val convertWith: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy/M/d H:m:s")
 
   val DATE_TIME_PATTERN_SET: Seq[DateFormattedPattern] = Seq(
     PatternWithinSymbol,
@@ -241,27 +266,30 @@ object ScalaTimeSupport {
   }
 
   private case object PatternWithinSymbol extends DateFormattedPattern {
-    val regex: String = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2}):([\\d]{1,2}):([\\d]{1,2})$$"
+    val regex: String =
+      s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2}):([\\d]{1,2}):([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:$5:$6")
   }
 
   private case object PatternWithoutSymbol extends DateFormattedPattern {
-    val regex: String = "^([\\d]{4})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})$"
+    val regex: String =
+      "^([\\d]{4})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:$5:$6")
   }
 
   private case object PatternOnlyDateWithinSymbol extends DateFormattedPattern {
-    val regex: String = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})$$"
+    val regex: String               = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 
   private case object PatternOnlyDateWithoutSymbol extends DateFormattedPattern {
-    val regex: String = "^([\\d]{4})([\\d]{2})([\\d]{2})$"
+    val regex: String               = "^([\\d]{4})([\\d]{2})([\\d]{2})$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 
   private case object PatternUpToHourWithinSymbol extends DateFormattedPattern {
-    val regex: String = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2})$$"
+    val regex: String =
+      s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:00:00")
   }
 

@@ -31,7 +31,7 @@ object CaseClassCodecTest {
 
     override def equals(obj: Any): Boolean = obj match {
       case x: BBB => bbbId == x.bbbId && aaa == x.aaa
-      case _ => false
+      case _      => false
     }
   }
 
@@ -41,13 +41,11 @@ object CaseClassCodecTest {
 
   case class EEE(eeeId: Long, ddd: DDD)
 
-  case class Id(value: Long) extends AnyVal
+  case class Id(value: Long)     extends AnyVal
   case class Name(value: String) extends AnyVal
 }
 
-class CaseClassCodecTest
-  extends AsyncWordSpec with Matchers with Diagrams
-    with JsonTransform with CodecDef {
+class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
   implicit val aLocalCodec: Codec[A] = CaseClassCodec.from[A]
   implicit val bLocalCodec: Codec[B] = CaseClassCodec.from[B]
@@ -82,7 +80,7 @@ class CaseClassCodecTest
     }
     "single member codec type" in {
       s"""{"c": {"b": {"a": {"value": "hoge"}}}}""".as(CaseClassCodec.from[D]) match {
-        case Left(e) => fail(e)
+        case Left(e)  => fail(e)
         case Right(x) => x shouldBe D(C(B(A("hoge"))))
       }
     }

@@ -32,10 +32,41 @@ object TestJson {
   case class JTuple16(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
   case class JTuple17(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
   case class JTuple18(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
-  case class JTuple19(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
-  case class JTuple20(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
-  case class JTuple21(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
-  case class JTuple22(value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int))
+  case class JTuple19(
+      value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+  )
+  case class JTuple20(
+      value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+  )
+  case class JTuple21(
+      value: (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+  )
+  case class JTuple22(
+      value: (
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int,
+          Int
+      )
+  )
 
   class HasNotApply(value: JLong)
 }

@@ -4,7 +4,7 @@
 
 ```
 libraryDependencies ++= Seq(
-  "com.phylage"       %% "refuel-http" % "1.1.1",
+  "com.phylage"       %% "refuel-http" % "1.1.2,
   "com.typesafe.akka" %% "akka-stream" % "2.6.4",
   "com.typesafe.akka" %% "akka-http"   % "10.1.11"
 )
@@ -16,7 +16,7 @@ refuel-http infers ActorSystem from DI container.
 To use it, you need to index.
 
 ```scala
-object Main extends Injector {
+object bench.Main extends Injector {
   def main(args: Array[String]): Unit = {
     implicit val system: ActorSystem = ActorSystem().index()
   }

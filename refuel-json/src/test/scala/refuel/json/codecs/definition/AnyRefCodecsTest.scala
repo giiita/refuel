@@ -21,7 +21,6 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       }
     }
 
-
     "Option Long deserialize ^ Some" in {
       s"""{"value":3}""".as[JOptLong](CaseClassCodec.from[JOptLong]) shouldBe Right {
         JOptLong(Some(3L))
@@ -33,15 +32,14 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       }
     }
 
-
     "Option float deserialize ^ Some" in {
       s"""{"value":0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right {
-        JOptFloat(Some(0.123F))
+        JOptFloat(Some(0.123f))
       }
     }
     "Option float deserialize ^ Some minus" in {
       s"""{"value":-0.123}""".as[JOptFloat](CaseClassCodec.from[JOptFloat]) shouldBe Right {
-        JOptFloat(Some(-0.123F))
+        JOptFloat(Some(-0.123f))
       }
     }
     "Option float deserialize ^ None" in {
@@ -50,15 +48,14 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       }
     }
 
-
     "Option double deserialize ^ Some" in {
       s"""{"value":0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right {
-        JOptDouble(Some(0.123D))
+        JOptDouble(Some(0.123d))
       }
     }
     "Option double deserialize ^ Some minus" in {
       s"""{"value":-0.123}""".as[JOptDouble](CaseClassCodec.from[JOptDouble]) shouldBe Right {
-        JOptDouble(Some(-0.123D))
+        JOptDouble(Some(-0.123d))
       }
     }
     "Option double deserialize ^ None" in {
@@ -66,7 +63,6 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
         JOptDouble(None)
       }
     }
-
 
     "Option String deserialize" in {
       s"""{"value":"body"}""".as[JOptString](CaseClassCodec.from[JOptString]) shouldBe Right {
@@ -83,7 +79,6 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
         JOptString(Some("bo\\\\\\\"d'y"))
       }
     }
-
 
     "Option Boolean deserialize true" in {
       s"""{"value":true}""".as(CaseClassCodec.from[JOptBoolean]) shouldBe Right {
@@ -107,7 +102,6 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       str.toJString(CaseClassCodec.from[JOptInt]).toString shouldBe s"""{}"""
     }
 
-
     "Option Long serialize ^ Some" in {
       val str: JOptLong = JOptLong(Some(3L))
       str.toJString(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{"value":3}"""
@@ -117,13 +111,12 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       str.toJString(CaseClassCodec.from[JOptLong]).toString shouldBe s"""{}"""
     }
 
-
     "Option float serialize ^ Some" in {
-      val str: JOptFloat = JOptFloat(Some(0.123F))
+      val str: JOptFloat = JOptFloat(Some(0.123f))
       str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":0.123}"""
     }
     "Option float serialize ^ Some minus" in {
-      val str: JOptFloat = JOptFloat(Some(-0.123F))
+      val str: JOptFloat = JOptFloat(Some(-0.123f))
       str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{"value":-0.123}"""
     }
     "Option float serialize ^ None" in {
@@ -131,20 +124,18 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       str.toJString(CaseClassCodec.from[JOptFloat]).toString shouldBe s"""{}"""
     }
 
-
     "Option double serialize ^ Some" in {
-      val str: JOptDouble = JOptDouble(Some(0.123D))
+      val str: JOptDouble = JOptDouble(Some(0.123d))
       str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":0.123}"""
     }
     "Option double serialize ^ Some minus" in {
-      val str: JOptDouble = JOptDouble(Some(-0.123D))
+      val str: JOptDouble = JOptDouble(Some(-0.123d))
       str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{"value":-0.123}"""
     }
     "Option double serialize ^ None" in {
       val str: JOptDouble = JOptDouble(None)
       str.toJString(CaseClassCodec.from[JOptDouble]).toString shouldBe s"""{}"""
     }
-
 
     "Option String serialize" in {
       val str: JOptString = JOptString(Some("body"))
@@ -158,7 +149,6 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       val str: JOptString = JOptString(Some("bo\\\"d'y"))
       str.toJString(CaseClassCodec.from[JOptString]) shouldBe "{\"value\":\"bo\\\\\\\"d'y\"}"
     }
-
 
     "Option Boolean serialize true" in {
       val str: JOptBoolean = JOptBoolean(Some(true))
