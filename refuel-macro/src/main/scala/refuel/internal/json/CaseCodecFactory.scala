@@ -185,7 +185,12 @@ class CaseCodecFactory(val c: blackbox.Context)
             c.enclosingPosition,
             s"No unapply or unapplySeq function found for ${weakTypeOf[T]}"
           )
-        case Some(s) => s.asMethod
+        case Some(s) => scala.util.Try(s.asMethod).getOrElse {
+          c.abort(
+            c.enclosingPosition,
+            s"Overloaded constructors cannot automatically generate Codecs. ${weakTypeOf[T].typeSymbol}"
+          )
+        }
       }
     }
 

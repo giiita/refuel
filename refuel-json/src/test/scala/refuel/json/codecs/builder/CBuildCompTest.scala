@@ -240,10 +240,10 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
          |""".stripMargin
 
     val codec: Codec[(String, String, String, Option[String])] = {
-      ("root" / "test1").apply[String] ++
-        ("root" / "test2")[String] ++
-        ("root" / "test3")[String] ++
-        option(("root" / "test8")[String])
+      ("root" @@ "test1").apply[String] ++
+        ("root" @@ "test2")[String] ++
+        ("root" @@ "test3")[String] ++
+        option(("root" @@ "test8")[String])
     }.apply((a,b,c,d) => (a,b,c,d))(x => Some(x))
 
     "deserialize verification of complex codec build" in {

@@ -1,8 +1,8 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val buildTargetVersion = Seq("2.12.10", "2.13.1")
-scalaVersion in ThisBuild := "2.13.1"
+lazy val buildTargetVersion = Seq("2.12.11")
+scalaVersion in ThisBuild := "2.13.2"
 
 lazy val assemblySettings = Seq(
   sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
@@ -21,7 +21,9 @@ lazy val assemblySettings = Seq(
   ),
   releaseCrossBuild := true,
   crossScalaVersions := buildTargetVersion,
-  licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
+  licenses += ("Apache-2.0", url(
+    "https://www.apache.org/licenses/LICENSE-2.0.html"
+  )),
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,
@@ -29,35 +31,38 @@ lazy val assemblySettings = Seq(
     runTest,
     tagRelease,
     releaseStepCommandAndRemaining("+publishSigned"),
-    ReleaseStep(action = Command.process("sonatypeBundleRelease", _), enableCrossBuild = true)
+    ReleaseStep(
+      action = Command.process("sonatypeBundleRelease", _),
+      enableCrossBuild = true
+    )
   )
 )
 
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
-    case "2.13.1" => f
-    case _ => Nil
+    case "2.13.2" => f
+    case _        => Nil
   }
 }
 
 def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
-    case "2.13.1" => Nil
-    case _ => f
+    case "2.13.2" => Nil
+    case _        => f
   }
 }
 
 lazy val commonDependencySettings = Seq(
-
   libraryDependencies ++= {
-    Seq(
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test
-    )
+    Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
   },
-  libraryDependencies ++= scl213(Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")).value
+  libraryDependencies ++= scl213(
+    Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+  ).value
 )
 
-lazy val root = project.in(file("."))
+lazy val root = project
+  .in(file("."))
   .aggregate(
     `macro`,
     container,
@@ -67,20 +72,23 @@ lazy val root = project.in(file("."))
     root_interfaces,
     interfaces_impl,
     call_interfaces
-  ).settings(
-  publishLocal in ThisProject := {},
-  publishArtifact in ThisProject := false,
-  crossScalaVersions := buildTargetVersion,
-  resourceDirectories in Compile += {
-    (ThisProject / baseDirectory).value / "project" / "resources"
-  }
-)
+  )
+  .settings(
+    publishLocal in ThisProject := {},
+    publishArtifact in ThisProject := false,
+    crossScalaVersions := buildTargetVersion,
+    resourceDirectories in Compile += {
+      (ThisProject / baseDirectory).value / "project" / "resources"
+    }
+  )
 
 lazy val `macro` = (project in file("refuel-macro"))
   .settings(assemblySettings, commonDependencySettings)
   .settings(
     name := "refuel-macro",
     description := "Lightweight DI container for Scala.",
+    resourceDirectory in Jmh := (resourceDirectory in Compile).value,
+    javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8"),
     libraryDependencies ++= {
       Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -112,10 +120,8 @@ lazy val container = (project in file("refuel-container"))
 lazy val util = (project in file("refuel-util"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(container)
-  .settings(
-    name := "refuel-util",
-    parallelExecution in Test := true
-  ).enablePlugins(JavaAppPackaging)
+  .settings(name := "refuel-util", parallelExecution in Test := true)
+  .enablePlugins(JavaAppPackaging)
 
 lazy val json = (project in file("refuel-json"))
   .settings(assemblySettings, commonDependencySettings)
@@ -125,7 +131,8 @@ lazy val json = (project in file("refuel-json"))
     description := "Various classes serializer / deserializer",
     resourceDirectory in Jmh := (resourceDirectory in Compile).value,
     javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
-  ).enablePlugins(JavaAppPackaging, JmhPlugin)
+  )
+  .enablePlugins(JavaAppPackaging, JmhPlugin)
 
 lazy val cipher = (project in file("refuel-cipher"))
   .dependsOn(json)
@@ -134,7 +141,8 @@ lazy val cipher = (project in file("refuel-cipher"))
     name := "refuel-cipher",
     description := "Cipher module for Scala.",
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value
-  ).enablePlugins(JavaAppPackaging)
+  )
+  .enablePlugins(JavaAppPackaging)
 
 lazy val http = (project in file("refuel-http"))
   .dependsOn(json)
@@ -160,45 +168,48 @@ lazy val http = (project in file("refuel-http"))
         Process("sh sh/shutdown-testing-http-server.sh").run
       }
     )
-  ).enablePlugins(JavaAppPackaging)
+  )
+  .enablePlugins(JavaAppPackaging)
 
 lazy val `test` = (project in file("refuel-test"))
   .dependsOn(json)
   .settings(commonDependencySettings)
-  .settings(
-    name := "refuel-test",
-    description := "DI testing framework."
-  ).enablePlugins(JavaAppPackaging)
+  .settings(name := "refuel-test", description := "DI testing framework.")
+  .enablePlugins(JavaAppPackaging)
 
-lazy val root_interfaces = (project in file("test-across-module/root_interfaces"))
-  .dependsOn(http)
-  .settings(commonDependencySettings)
-  .settings(
-    publishArtifact in ThisProject := false,
-    releaseProcess in ThisProject := Nil,
-    publish in ThisProject := {},
-    publishLocal in ThisProject := {},
-    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
-  ).enablePlugins(JmhPlugin)
+lazy val root_interfaces =
+  (project in file("test-across-module/root_interfaces"))
+    .dependsOn(http)
+    .settings(commonDependencySettings)
+    .settings(
+      publishArtifact in ThisProject := false,
+      releaseProcess in ThisProject := Nil,
+      publish in ThisProject := {},
+      publishLocal in ThisProject := {},
+      publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
+    )
+    .enablePlugins(JmhPlugin)
 
-lazy val interfaces_impl = (project in file("test-across-module/interfaces_impl"))
-  .dependsOn(root_interfaces)
-  .settings(commonDependencySettings)
-  .settings(
-    publishArtifact in ThisProject := false,
-    releaseProcess in ThisProject := Nil,
-    publish in ThisProject := {},
-    publishLocal in ThisProject := {},
-    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
-  )
+lazy val interfaces_impl =
+  (project in file("test-across-module/interfaces_impl"))
+    .dependsOn(root_interfaces)
+    .settings(commonDependencySettings)
+    .settings(
+      publishArtifact in ThisProject := false,
+      releaseProcess in ThisProject := Nil,
+      publish in ThisProject := {},
+      publishLocal in ThisProject := {},
+      publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
+    )
 
-lazy val call_interfaces = (project in file("test-across-module/call_interfaces"))
-  .dependsOn(interfaces_impl)
-  .settings(commonDependencySettings)
-  .settings(
-    publishArtifact in ThisProject := false,
-    releaseProcess in ThisProject := Nil,
-    publish in ThisProject := {},
-    publishLocal in ThisProject := {},
-    publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
-  )
+lazy val call_interfaces =
+  (project in file("test-across-module/call_interfaces"))
+    .dependsOn(interfaces_impl)
+    .settings(commonDependencySettings)
+    .settings(
+      publishArtifact in ThisProject := false,
+      releaseProcess in ThisProject := Nil,
+      publish in ThisProject := {},
+      publishLocal in ThisProject := {},
+      publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
+    )

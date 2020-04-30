@@ -30,6 +30,12 @@ object InjectionPriority {
   case object Primary extends InjectionPriority(Int.MinValue)
 
   /**
+   * It will be the highest priority automatic injection.
+   * No manual override of dependencies.
+   */
+  case object Secondary extends InjectionPriority(Int.MinValue + 1)
+
+  /**
    * Used in normal declarations.
    * Even if [[refuel.domination.Inject]] annotation is not added, it will be ranked as Default.
    * With custom injection priority you can override this.

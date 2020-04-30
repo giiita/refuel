@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.1.1"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.1.2"
 ````
 
 ## Features
@@ -184,7 +184,7 @@ object InterfaceImpl extends Interface with AutoInject {
   val value: String = "I am InterfaceImpl"
 }
 
-object Main extends App with Injector {
+object bench.Main extends App with Injector {
   // It will be fail.
   // It should be able to compile itself. However, the compilation fails because DOMAIN is failing to compile.
   println(inject[UseInterface].exec)
@@ -200,7 +200,7 @@ class UseInterface(interface: Interface) extends Injector {
   def exec: String = interface.value
 }
 
-object Main extends App with Injector {
+object bench.Main extends App with Injector {
   println(inject[UseInterface].exec)
 }
 ```

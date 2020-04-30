@@ -1,6 +1,7 @@
 package refuel.http.io
 
 import akka.http.scaladsl.model.ContentType.NonBinary
+import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
 import refuel.json.JsonTransform
@@ -23,6 +24,32 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   def body[X: Write](value: X, withCharset: NonBinary = `application/json`): HttpRunner[T] = {
     new HttpRunner[T](
       request.withEntity(withCharset, value.toJString),
+      task
+    )
+  }
+
+  /**
+   * Set request parameters.
+   *
+   * @param ps parameters.
+   * @return
+   */
+  def params(ps: (String, String)*): HttpRunner[T] = {
+    new HttpRunner[T](
+      request.withUri(request.uri.withQuery(Query(ps: _*))),
+      task
+    )
+  }
+
+  /**
+   * Request builds supported by Akka http are available.
+   *
+   * @param fn request builder
+   * @return
+   */
+  def requestMap(fn: HttpRequest => HttpRequest): HttpRunner[T] = {
+    new HttpRunner[T](
+      fn(request),
       task
     )
   }

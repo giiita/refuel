@@ -14,9 +14,4 @@ trait Injector extends MetaMediation[Container] {
       c.createIndexer[X](t, p).indexing().value
     }
   }
-
-}
-
-object Injector {
-
 }

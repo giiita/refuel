@@ -8,5 +8,5 @@ object Types {
 
   sealed trait Localized
 
-  private[refuel] type LocalizedContainer = Container @@ Types.Localized
+  type LocalizedContainer = Container @@ Types.Localized
 }

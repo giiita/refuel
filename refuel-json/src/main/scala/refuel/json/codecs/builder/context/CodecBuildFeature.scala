@@ -15,7 +15,7 @@ trait CodecBuildFeature extends IterableCodecTranslator
 
   /**
    * Set the key literal to add.
-   * Calling [[NatureKeyRef.->]] from String implicitly converts it to a literal object.
+   * Calling [[NatureKeyRef.->>]] from String implicitly converts it to a literal object.
    *
    * @param v initial json key literal
    * @return

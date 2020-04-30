@@ -9,7 +9,7 @@ import refuel.json.codecs.builder.context.CodecBuildFeature
  *
  * - Serialize(constructor)
  * - Deserialize(constructor)
- * - Format(constructor)
+ * - Format(constructor)(constructor)
  *
  * - CaseClassCodec.from[T]
  * - ConstCodec.from(jsonkeyName...)(apply)(unapply)
