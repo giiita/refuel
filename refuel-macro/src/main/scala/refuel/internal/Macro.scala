@@ -4,7 +4,6 @@ import refuel.provider.Lazy
 
 import scala.reflect.macros.blackbox
 
-
 class Macro(val c: blackbox.Context) {
 
   def lazyInject[T: c.WeakTypeTag](ctn: c.Tree, ip: c.Tree, access: c.Tree): c.Expr[Lazy[T]] = {

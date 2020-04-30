@@ -22,21 +22,24 @@ object Config {
   }
 
   val blackList: List[SkippedPackage] = Try {
-    ConfigFactory.load(getClass.getClassLoader, "di.conf")
-      .getStringList("unscanning.package")
-      .asScala.toList.map(_.asAddition) ++ List(
-      "com.oracle",
-      "com.apple",
-      "com.sun",
-      "oracle",
-      "apple",
-      "scala",
-      "javafx",
-      "javax",
-      "sun",
-      "java",
-      "jdk",
-      "<empty>"
-    ).map(_.asDefault)
-  } getOrElse List.empty
+      ConfigFactory
+        .load(getClass.getClassLoader, "di.conf")
+        .getStringList("unscanning.package")
+        .asScala
+        .toList
+        .map(_.asAddition) ++ List(
+        "com.oracle",
+        "com.apple",
+        "com.sun",
+        "oracle",
+        "apple",
+        "scala",
+        "javafx",
+        "javax",
+        "sun",
+        "java",
+        "jdk",
+        "<empty>"
+      ).map(_.asDefault)
+    } getOrElse List.empty
 }

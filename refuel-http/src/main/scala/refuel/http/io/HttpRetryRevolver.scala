@@ -6,7 +6,6 @@ import com.typesafe.scalalogging.Logger
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 case class HttpRetryRevolver(maxRetry: Int) extends Injector {
 
   private val logger: Logger = Logger(classOf[HttpRetryRevolver])

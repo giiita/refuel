@@ -12,4 +12,4 @@ final case class CannotAccessJsonKey(msg: String) extends DeserializeFailed(msg,
 
 final case class CodecBuildException(msg: String) extends Exception(msg)
 
-final case class UnsupportedOperation(msg: String ) extends DeserializeFailed(msg, null)
+final case class UnsupportedOperation(msg: String) extends DeserializeFailed(msg, null)

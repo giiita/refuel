@@ -20,8 +20,6 @@ package object internal {
   }
 
   implicit case object ClassTypeAcceptContext extends TypedAcceptContext[Class[_]] {
-    override def accepted: IndexedSymbol[_] => Class[_] => Boolean = { x => y =>
-      x.isOpen || x.acceptedClass(y)
-    }
+    override def accepted: IndexedSymbol[_] => Class[_] => Boolean = { x => y => x.isOpen || x.acceptedClass(y) }
   }
 }

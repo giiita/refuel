@@ -1,6 +1,7 @@
 package refuel.lang.period
 
 trait TimeAxis {
+
   /**
     * Time unit down
     *

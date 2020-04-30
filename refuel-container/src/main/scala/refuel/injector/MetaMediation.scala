@@ -35,7 +35,7 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     */
   @deprecated("Try (t).index() instead.")
   def overwrite[T: WeakTypeTag](x: T, priority: InjectionPriority = Overwrite)(
-    implicit ctn: C
+      implicit ctn: C
   ): Unit = ctn.createIndexer(x, priority, Vector.empty).indexing()
 
   /**
@@ -71,8 +71,8 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     * @return
     */
   protected def narrow[T: WeakTypeTag](
-    x: T,
-    priority: InjectionPriority = Primary
+      x: T,
+      priority: InjectionPriority = Primary
   )(implicit ctn: C): Indexer[T] = ctn.createIndexer(x, priority)
 
   /**
@@ -85,8 +85,6 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     * @tparam T Injection type
     * @return
     */
-  protected def inject[T](implicit ctn: C,
-                          ip: InjectionPool,
-                          access: Accessor[_]): Lazy[T] =
+  protected def inject[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] =
     macro Macro.lazyInject[T]
 }

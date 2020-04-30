@@ -94,7 +94,7 @@ object ScalaTime extends Injector {
       * @return
       */
     def periodWith[T <: FromTo](
-      anotherTimeApplyment: ZonedDateTime => ZonedDateTime
+        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
     )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
       value.toZonedDateTime.periodWith(anotherTimeApplyment)(contruct)
     }
@@ -172,7 +172,7 @@ object ScalaTime extends Injector {
       * @return
       */
     def periodWith[T <: FromTo](
-      anotherTimeApplyment: ZonedDateTime => ZonedDateTime
+        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
     )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
       anotherTimeApplyment(value) match {
         case x if x.isAfter(value) => contruct(value.epoch, x.epoch)
@@ -278,13 +278,12 @@ object ScalaTimeSupport {
   }
 
   private case object PatternOnlyDateWithinSymbol extends DateFormattedPattern {
-    val regex: String = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})$$"
+    val regex: String               = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 
-  private case object PatternOnlyDateWithoutSymbol
-      extends DateFormattedPattern {
-    val regex: String = "^([\\d]{4})([\\d]{2})([\\d]{2})$"
+  private case object PatternOnlyDateWithoutSymbol extends DateFormattedPattern {
+    val regex: String               = "^([\\d]{4})([\\d]{2})([\\d]{2})$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 

@@ -13,10 +13,13 @@ import scala.io.Source
 class Bench extends JsonTransform with CodecDef {
   implicit val _codec: Codec[Root] = "root".parsed(seq(CaseClassCodec.from[Hoge])).apply(Root.apply)(Root.unapply)
 
-  val source = Source.fromFile(
-    new File("/Users/takagi/src/refuel/refuel-json/src/test/resources/test.json"),
-    "UTF-8"
-  ).getLines().mkString
+  val source = Source
+    .fromFile(
+      new File("/Users/takagi/src/refuel/refuel-json/src/test/resources/test.json"),
+      "UTF-8"
+    )
+    .getLines()
+    .mkString
 
   val length = source.length()
 
@@ -37,7 +40,6 @@ class Bench extends JsonTransform with CodecDef {
 //  implicit val codec8 = Json.writes[Root]
 
   val jt = new JsonTransformRouter(source)
-
 
 //  val p = Json.parse(source).validate[Root]
 //

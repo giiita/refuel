@@ -16,20 +16,22 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
 
   def animalDeserializer: Read[Animal] = Deserialize { json =>
     json.named("name") match {
-      case JsString("cat") => Cat("cat", json.named("beard").to[Int])
+      case JsString("cat")   => Cat("cat", json.named("beard").to[Int])
       case JsString("shark") => Shark("shark", json.named("filet").to[Int])
     }
   }
 
   def animalSerializer: Write[Animal] = Serialize {
-    case Cat(a, b) => Json.obj(
-      "name" -> a,
-      "beard" -> b
-    )
-    case Shark(a, b) => Json.obj(
-      "name" -> a,
-      "filet" -> b
-    )
+    case Cat(a, b) =>
+      Json.obj(
+        "name"  -> a,
+        "beard" -> b
+      )
+    case Shark(a, b) =>
+      Json.obj(
+        "name"  -> a,
+        "filet" -> b
+      )
   }
 
   implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)

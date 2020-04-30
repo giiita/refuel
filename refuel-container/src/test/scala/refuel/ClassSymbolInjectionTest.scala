@@ -9,7 +9,6 @@ import refuel.domination.InjectionPriority.Primary
 import refuel.injector.{AutoInject, Injector}
 import refuel.internal.di.Effect
 
-
 object ClassSymbolInjectionTest {
 
   object TEST_A {
@@ -244,7 +243,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
     }
     "Reserved type injection" in {
       overwrite(Seq(11))
-      inject[Seq[Int]@RecognizedDynamicInjection]._provide shouldBe Seq(11)
+      inject[Seq[Int] @RecognizedDynamicInjection]._provide shouldBe Seq(11)
     }
     "higher kind injection" in {
       import refuel.ClassSymbolInjectionTest.TEST_B._
@@ -281,8 +280,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
     "If primary constructor has parameters, and bounds are specified, switched inject result." in {
       import refuel.ClassSymbolInjectionTest.TEST_L._
 
-      val inner = new LInner {
-      }
+      val inner = new LInner {}
       narrow[LInner](inner).accept(this).indexing()
       inject[L]._provide.value shouldBe inner
     }
@@ -300,9 +298,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       val pre = inject[H]._provide
       pre shouldBe inject[H]._provide
 
-      shade { implicit c =>
-        pre should not be inject[H]._provide
-      }
+      shade { implicit c => pre should not be inject[H]._provide }
 
       pre shouldBe inject[H]._provide
     }

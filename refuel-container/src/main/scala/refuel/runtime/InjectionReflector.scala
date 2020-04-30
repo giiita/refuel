@@ -17,7 +17,9 @@ trait InjectionReflector {
     * @tparam T injection type
     * @return
     */
-  def reflectClass[T: universe.WeakTypeTag](clazz: Class[_], ip: InjectionPool)(c: Container)(x: universe.ClassSymbol): InjectionPriority => IndexedSymbol[T]
+  def reflectClass[T: universe.WeakTypeTag](clazz: Class[_], ip: InjectionPool)(c: Container)(
+      x: universe.ClassSymbol
+  ): InjectionPriority => IndexedSymbol[T]
 
   /**
     * Create injection applyment.
@@ -25,7 +27,9 @@ trait InjectionReflector {
     * @tparam T injection type
     * @return
     */
-  def reflectModule[T: universe.WeakTypeTag](c: Container)(x: universe.ModuleSymbol): InjectionPriority => IndexedSymbol[T]
+  def reflectModule[T: universe.WeakTypeTag](c: Container)(
+      x: universe.ModuleSymbol
+  ): InjectionPriority => IndexedSymbol[T]
 
   /**
     * Reflect to a runtime class.

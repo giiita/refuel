@@ -8,6 +8,7 @@ import refuel.json.{Codec, JsonVal, WriteOnly}
   * @tparam T Writable json type by this codec.
   */
 trait Write[T] extends CodecRaiseable[T] { me =>
+
   /**
     * Serialize Json to T format.
     * Failure should continue and propagate up.

@@ -20,30 +20,30 @@ trait AtomicUpdater[U, W] { self: U =>
   @tailrec
   protected final def atomicUpdate(f: W => W): W = {
     val ref = getRef
-    val nw = f(snapshot(ref))
+    val nw  = f(snapshot(ref))
     if (compareAndSet(ref, nw)) nw else atomicUpdate(f)
   }
 
   /**
-   * Provides a way to create a snapshot if necessary.
-   * Usually not processed.
-   *
-   * In that case, response is a reference, so if you change it,
-   * it may affect the value that other threads reference.
-   * To prevent this, use [[snapshot]] or [[compareAndSet]] to override snapshot and update.
-   *
-   * {{{
-   *   override def snapshot(w: W): W = w.snapshot()
-   *
-   *   val old = getRef
-   *   val newRef = get
-   *   newRef.update(x -> y)
-   *   compareAndSet(old, newRef)
-   * }}}
-   *
-   * @param w value type
-   * @return
-   */
+    * Provides a way to create a snapshot if necessary.
+    * Usually not processed.
+    *
+    * In that case, response is a reference, so if you change it,
+    * it may affect the value that other threads reference.
+    * To prevent this, use [[snapshot]] or [[compareAndSet]] to override snapshot and update.
+    *
+    * {{{
+    *   override def snapshot(w: W): W = w.snapshot()
+    *
+    *   val old = getRef
+    *   val newRef = get
+    *   newRef.update(x -> y)
+    *   compareAndSet(old, newRef)
+    * }}}
+    *
+    * @param w value type
+    * @return
+    */
   protected def snapshot(w: W): W = throw new UnExceptedOperateException("Snapshot method is not defined.")
 
   /**
@@ -57,10 +57,10 @@ trait AtomicUpdater[U, W] { self: U =>
   protected def compareAndSet(o: W, n: W): Boolean = updater.compareAndSet(this, o, n)
 
   /**
-   * Returns a new reference that is the result of the snapshot.
-   *
-   * @return
-   */
+    * Returns a new reference that is the result of the snapshot.
+    *
+    * @return
+    */
   protected def get: W = snapshot(getRef)
 
   /**

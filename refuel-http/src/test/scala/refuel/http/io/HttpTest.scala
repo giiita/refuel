@@ -12,16 +12,11 @@ object HttpTest extends Injector {
 
   object TestEntity {
 
-    case class JokeBody(id: Int,
-                        joke: String,
-                        categories: Seq[String])
+    case class JokeBody(id: Int, joke: String, categories: Seq[String])
 
     case class Jokes(status: String, value: JokeBody)
 
-
-    case class InnerJokeBody(id: Int,
-                             joke: String,
-                             categories: Seq[String])
+    case class InnerJokeBody(id: Int, joke: String, categories: Seq[String])
 
     case class InnerJokes(value: InnerJokeBody)
 
@@ -48,9 +43,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     "deserializing" in {
       http[GET]("http://localhost:3289/endpoint")
         .as[Jokes](CaseClassCodec.from)
-        .map { x =>
-          x.value.joke
-        }
+        .map { x => x.value.joke }
         .run
         .map { result =>
           println(s"Get joke is [ $result ]")
@@ -59,9 +52,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     }
     "undeserializing" in {
       http[GET]("http://localhost:3289/endpoint")
-        .map { x =>
-          s"Got it [ $x ]"
-        }
+        .map { x => s"Got it [ $x ]" }
         .run
         .map { result =>
           println(result)
@@ -69,9 +60,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "asString" in {
-      http[GET]("http://localhost:3289/endpoint")
-        .asString
-        .run
+      http[GET]("http://localhost:3289/endpoint").asString.run
         .map { result =>
           println(result)
           result.length > 0 shouldBe true
@@ -80,27 +69,22 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     "UnknownHostException" in {
       println("RUN 5")
 
-      http[GET]("http://aaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc")
-        .asString
-        .run
+      http[GET]("http://aaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
           case _: akka.stream.StreamTcpException => succeed
-          case e => fail(e)
+          case e                                 => fail(e)
         }
     }
     "ConnectException" in {
 
       println("RUN 6")
-      http[GET]("http://localhost/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc")
-        .asString
-        .run
+      http[GET]("http://localhost/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
           case _: akka.stream.StreamTcpException => succeed
-          case e => fail(e)
+          case e                                 => fail(e)
         }
     }
   }
 }
-

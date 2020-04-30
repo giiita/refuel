@@ -21,10 +21,10 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
       case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
 
       "2018/10/01 11:05:11".datetime.periodWith(_.minusDays(2).minToday)(LocalPeriod) shouldBe
-        LocalPeriod(
-          "2018/9/29 00:00:00".datetime.epoch,
-          "2018/10/01 11:05:11".datetime.toEpochSecond
-        )
+      LocalPeriod(
+        "2018/9/29 00:00:00".datetime.epoch,
+        "2018/10/01 11:05:11".datetime.toEpochSecond
+      )
     }
 
     "periodWith - after case" in new Context {
@@ -32,10 +32,10 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
       case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
 
       "2018/10/01".datetime.periodWith(_.plusDays(2).maxToday)(LocalPeriod) shouldBe
-        LocalPeriod(
-          "2018/10/01".datetime.epoch,
-          ZonedDateTime.of(2018, 10, 3, 23, 59, 59, 999999999, tz.ZONE_ID).epoch
-        )
+      LocalPeriod(
+        "2018/10/01".datetime.epoch,
+        ZonedDateTime.of(2018, 10, 3, 23, 59, 59, 999999999, tz.ZONE_ID).epoch
+      )
     }
 
     "parse yyyy/MM/dd HH:mm:ss" in new Context {
@@ -76,7 +76,7 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
         "2017826".datetime
       } match {
         case Failure(e: IllegalArgumentException) => e.getMessage shouldBe "Unexpected datetime format. 2017826"
-        case _ => fail()
+        case _                                    => fail()
       }
     }
   }
@@ -106,29 +106,40 @@ class ScalaTimeTest extends WordSpec with Matchers with Injector {
     }
 
     "epoch" in new Context {
-      "2017/08/26 11:33:54".datetime.epoch shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond
+      "2017/08/26 11:33:54".datetime.epoch shouldBe ZonedDateTime
+        .of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
+        .toEpochSecond
     }
   }
 
   "UnixTimeBs" should {
     "as" in new Context {
-      ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond.datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
+      ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID).toEpochSecond.datetime shouldBe ZonedDateTime.of(
+        2017,
+        8,
+        26,
+        11,
+        33,
+        54,
+        0,
+        tz.ZONE_ID
+      )
     }
   }
 
   "LocalDateTimeBs" should {
     "epoch" in new Context {
-      LocalDateTime.of(2017, 8, 26, 11, 33, 54)
-        .epoch shouldBe ZonedDateTime
-        .of(2017, 8, 26, 11, 33, 54, 0, ZoneId.of("Asia/Tokyo")).toEpochSecond
+      LocalDateTime.of(2017, 8, 26, 11, 33, 54).epoch shouldBe ZonedDateTime
+        .of(2017, 8, 26, 11, 33, 54, 0, ZoneId.of("Asia/Tokyo"))
+        .toEpochSecond
     }
     "format" in new Context {
-      LocalDateTime.of(2017, 8, 26, 11, 33, 54)
+      LocalDateTime
+        .of(2017, 8, 26, 11, 33, 54)
         .format() shouldBe "2017/8/26 11:33:54"
     }
     "toZonedDateTime" in new Context {
-      LocalDateTime.of(2017, 8, 26, 11, 33, 54)
-        .toZonedDateTime shouldBe ZonedDateTime
+      LocalDateTime.of(2017, 8, 26, 11, 33, 54).toZonedDateTime shouldBe ZonedDateTime
         .of(2017, 8, 26, 11, 33, 54, 0, ZoneId.of("Asia/Tokyo"))
     }
   }

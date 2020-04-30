@@ -11,6 +11,7 @@ import scala.reflect.ClassTag
   *
   */
 trait AnyRefCodecsExport extends AnyRefCodecs {
+
   /**
     * [[Seq]] codec generator.
     *
@@ -58,7 +59,8 @@ trait AnyRefCodecsExport extends AnyRefCodecs {
     * @tparam V Inner key param type.
     * @return
     */
-  implicit final def MapCodecImpl[K: Codec, V: Codec]: Codec[Map[K, V]] = MapCodec(implicitly[Codec[K]] -> implicitly[Codec[V]])
+  implicit final def MapCodecImpl[K: Codec, V: Codec]: Codec[Map[K, V]] =
+    MapCodec(implicitly[Codec[K]] -> implicitly[Codec[V]])
 
   /**
     * [[Option]] codec generator.

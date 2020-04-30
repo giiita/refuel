@@ -2,7 +2,7 @@ package refuel.json.entry
 
 import refuel.json.JsonVal
 
-case class JsArray private(bf: Seq[JsonVal]) extends JsVariable {
+case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
   override def toString: String = {
     val x = new StringBuffer()
     pour(x)

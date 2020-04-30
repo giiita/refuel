@@ -9,33 +9,33 @@ lazy val assemblySettings = Seq(
   publishTo in ThisProject := sonatypePublishToBundle.value,
   organization := "com.phylage",
   scalacOptions in Test ++= Seq(
-    "-deprecation",
-    "-unchecked",
-    "-feature",
-    "-Xlint",
-    "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen",
-    "-Ywarn-value-discard",
-    "-language:higherKinds",
-    "-language:implicitConversions"
-  ),
+      "-deprecation",
+      "-unchecked",
+      "-feature",
+      "-Xlint",
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-value-discard",
+      "-language:higherKinds",
+      "-language:implicitConversions"
+    ),
   releaseCrossBuild := true,
   crossScalaVersions := buildTargetVersion,
   licenses += ("Apache-2.0", url(
-    "https://www.apache.org/licenses/LICENSE-2.0.html"
-  )),
+      "https://www.apache.org/licenses/LICENSE-2.0.html"
+    )),
   releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    tagRelease,
-    releaseStepCommandAndRemaining("+publishSigned"),
-    ReleaseStep(
-      action = Command.process("sonatypeBundleRelease", _),
-      enableCrossBuild = true
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      tagRelease,
+      releaseStepCommandAndRemaining("+publishSigned"),
+      ReleaseStep(
+        action = Command.process("sonatypeBundleRelease", _),
+        enableCrossBuild = true
+      )
     )
-  )
 )
 
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
@@ -57,8 +57,8 @@ lazy val commonDependencySettings = Seq(
     Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
   },
   libraryDependencies ++= scl213(
-    Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
-  ).value
+      Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+    ).value
 )
 
 lazy val root = project
@@ -92,7 +92,7 @@ lazy val `macro` = (project in file("refuel-macro"))
     libraryDependencies ++= {
       Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "com.typesafe" % "config" % "1.3.4"
+        "com.typesafe"   % "config"        % "1.3.4"
       )
     },
     scalacOptions += "-language:experimental.macros"
@@ -106,14 +106,14 @@ lazy val container = (project in file("refuel-container"))
     description := "Lightweight DI container for Scala.",
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
-    ),
+        "org.scala-lang"             % "scala-reflect"  % scalaVersion.value,
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
+      ),
     scalacOptions in Global ++= Seq(
 //            "-Ydebug",
 //             "-Ymacro-debug-verbose",
-      "-language:experimental.macros"
-    ),
+        "-language:experimental.macros"
+      ),
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   )
 
@@ -151,23 +151,23 @@ lazy val http = (project in file("refuel-http"))
     name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-stream" % "2.6.4" % Provided,
-      "com.typesafe.akka" %% "akka-http" % "10.1.11" % Provided
-    ),
+        "com.typesafe.akka" %% "akka-stream" % "2.6.4"   % Provided,
+        "com.typesafe.akka" %% "akka-http"   % "10.1.11" % Provided
+      ),
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
     testOptions in Test ++= Seq(
-      Tests.Setup { _ =>
-        import scala.sys.process._
+        Tests.Setup { _ =>
+          import scala.sys.process._
 
-        Process("sh sh/setup-testing-http-server.sh").run
+          Process("sh sh/setup-testing-http-server.sh").run
 
-        Http.connect("http://localhost:3289/endpoint")
-      },
-      Tests.Cleanup { _ =>
-        import scala.sys.process._
-        Process("sh sh/shutdown-testing-http-server.sh").run
-      }
-    )
+          Http.connect("http://localhost:3289/endpoint")
+        },
+        Tests.Cleanup { _ =>
+          import scala.sys.process._
+          Process("sh sh/shutdown-testing-http-server.sh").run
+        }
+      )
   )
   .enablePlugins(JavaAppPackaging)
 

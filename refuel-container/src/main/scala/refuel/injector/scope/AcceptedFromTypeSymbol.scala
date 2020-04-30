@@ -14,7 +14,14 @@ import scala.reflect.runtime.universe._
   * @param acceptedFrom accepted type list
   * @tparam T Injection object type
   */
-private[refuel] case class AcceptedFromTypeSymbol[T](value: T, priority: InjectionPriority, x: Type, acceptedFrom: Vector[Class[_]], c: Container) extends IndexedTagSymbol[T](x) {
+private[refuel] case class AcceptedFromTypeSymbol[T](
+    value: T,
+    priority: InjectionPriority,
+    x: Type,
+    acceptedFrom: Vector[Class[_]],
+    c: Container
+) extends IndexedTagSymbol[T](x) {
+
   /**
     * When permitting access from any class, it returns true if the class of the request source matches.
     *

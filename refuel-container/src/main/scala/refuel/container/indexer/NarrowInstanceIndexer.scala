@@ -14,7 +14,9 @@ import scala.reflect.ClassTag
   * @param cnt   containers
   * @tparam T Symbol type
   */
-class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceSymbol[T], cnt: Vector[Container]) extends AbstractIndexer[T] {
+class NarrowInstanceIndexer[T](scope: AcceptedFromInstanceSymbol[T], cnt: Vector[Container])
+    extends AbstractIndexer[T] {
+
   /**
     * Index a new symbol in the injection container.
     *

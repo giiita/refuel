@@ -23,7 +23,6 @@ object PrimaryConstructorInjectionTest {
 
     class Implicit1
 
-
     class Implicit2
 
     object Implicits {
@@ -67,8 +66,7 @@ object PrimaryConstructorInjectionTest {
 class PrimaryConstructorInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   "primary constructor injection" should {
     "No found implicit param at implicit scope" in {
-      assertDoesNotCompile(
-        """
+      assertDoesNotCompile("""
            import refuel.PrimaryConstructorInjectionTest.TEST1._
            inject[D1]._provide should not be(null)
          """)
@@ -76,13 +74,13 @@ class PrimaryConstructorInjectionTest extends AsyncWordSpec with Matchers with D
     "Not injected implicit parameters." in {
       import refuel.PrimaryConstructorInjectionTest.TEST1._
       import refuel.PrimaryConstructorInjectionTest.TEST1.Implicits._
-      inject[Wrap.D1]._provide should not be(null)
+      inject[Wrap.D1]._provide should not be (null)
     }
     "Cannot injected implicit parameters at Runtime." in {
       import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1._
       import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1.Implicits._
       assertThrows[DIAutoInitializationException](
-        inject[Wrap.D1@RecognizedDynamicInjection]._provide should not be(null)
+        inject[Wrap.D1 @RecognizedDynamicInjection]._provide should not be (null)
       )
     }
     "Can injected implicit parameters at Runtime when shade and indexing" in {
@@ -91,13 +89,13 @@ class PrimaryConstructorInjectionTest extends AsyncWordSpec with Matchers with D
       shade { implicit c =>
         _i1.index[Implicit1]()
         _i2.index[Implicit2]()
-        inject[Wrap.D1@RecognizedDynamicInjection]._provide should not be(null)
+        inject[Wrap.D1 @RecognizedDynamicInjection]._provide should not be (null)
       }
     }
     "Runtime multiple param set injection" in {
       import refuel.PrimaryConstructorInjectionTest.RUNTIME_PC_INJECT._
-      val xxx = inject[ROOT@RecognizedDynamicInjection]._provide.get
-      inject[ROOT@RecognizedDynamicInjection]._provide should not be(null)
+      val xxx = inject[ROOT @RecognizedDynamicInjection]._provide.get
+      inject[ROOT @RecognizedDynamicInjection]._provide should not be (null)
     }
   }
 }

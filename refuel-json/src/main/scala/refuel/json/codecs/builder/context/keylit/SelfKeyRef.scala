@@ -10,7 +10,7 @@ import refuel.json.codecs.builder.context.keylit.parser.KeyLitParser
   *
   * Build practices.
   * {{{
-  *   ("root" / "next" / "terminal")
+  *   ("root" @@ "next" @@ "terminal")
   * }}}
   */
 case object SelfKeyRef extends JsonKeyRef with KeyLitParser {

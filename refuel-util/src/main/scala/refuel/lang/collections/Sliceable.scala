@@ -38,9 +38,7 @@ object Sliceable {
       * @return
       */
     def sliceApply[R](size: Int)(applyment: Iterable[T] => R): Iterator[R] = {
-      value.sliding(size).map { x =>
-        applyment(x.toSeq.asInstanceOf[Seq[T]])
-      }
+      value.sliding(size).map { x => applyment(x.toSeq.asInstanceOf[Seq[T]]) }
     }
   }
 

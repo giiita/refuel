@@ -6,7 +6,7 @@ import refuel.injector.{AutoInject, Injector}
 object RootIF extends Injector {
 
   trait Runner {
-    def run: String = inject[Conf@RecognizedDynamicInjection].value
+    def run: String = inject[Conf @RecognizedDynamicInjection].value
   }
 
   object Runner extends Runner with AutoInject

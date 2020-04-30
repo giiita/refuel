@@ -11,14 +11,14 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with
 
   import scala.language.implicitConversions
 
-  implicit lazy val JTuple2Codec: Codec[JTuple2] = CaseClassCodec.from[JTuple2]
-  implicit lazy val JTuple3Codec: Codec[JTuple3] = CaseClassCodec.from[JTuple3]
-  implicit lazy val JTuple4Codec: Codec[JTuple4] = CaseClassCodec.from[JTuple4]
-  implicit lazy val JTuple5Codec: Codec[JTuple5] = CaseClassCodec.from[JTuple5]
-  implicit lazy val JTuple6Codec: Codec[JTuple6] = CaseClassCodec.from[JTuple6]
-  implicit lazy val JTuple7Codec: Codec[JTuple7] = CaseClassCodec.from[JTuple7]
-  implicit lazy val JTuple8Codec: Codec[JTuple8] = CaseClassCodec.from[JTuple8]
-  implicit lazy val JTuple9Codec: Codec[JTuple9] = CaseClassCodec.from[JTuple9]
+  implicit lazy val JTuple2Codec: Codec[JTuple2]   = CaseClassCodec.from[JTuple2]
+  implicit lazy val JTuple3Codec: Codec[JTuple3]   = CaseClassCodec.from[JTuple3]
+  implicit lazy val JTuple4Codec: Codec[JTuple4]   = CaseClassCodec.from[JTuple4]
+  implicit lazy val JTuple5Codec: Codec[JTuple5]   = CaseClassCodec.from[JTuple5]
+  implicit lazy val JTuple6Codec: Codec[JTuple6]   = CaseClassCodec.from[JTuple6]
+  implicit lazy val JTuple7Codec: Codec[JTuple7]   = CaseClassCodec.from[JTuple7]
+  implicit lazy val JTuple8Codec: Codec[JTuple8]   = CaseClassCodec.from[JTuple8]
+  implicit lazy val JTuple9Codec: Codec[JTuple9]   = CaseClassCodec.from[JTuple9]
   implicit lazy val JTuple10Codec: Codec[JTuple10] = CaseClassCodec.from[JTuple10]
   implicit lazy val JTuple11Codec: Codec[JTuple11] = CaseClassCodec.from[JTuple11]
   implicit lazy val JTuple12Codec: Codec[JTuple12] = CaseClassCodec.from[JTuple12]
@@ -35,191 +35,107 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with
 
   "json deserialize" should {
     "Tuple2 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 2).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple2Codec) shouldBe Right {
+      s"""{"value":{${(1 to 2).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple2Codec) shouldBe Right {
         TestJson.JTuple2((1, 2))
       }
     }
     "Tuple3 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 3).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple3Codec) shouldBe Right {
+      s"""{"value":{${(1 to 3).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple3Codec) shouldBe Right {
         TestJson.JTuple3((1, 2, 3))
       }
     }
     "Tuple4 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 4).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple4Codec) shouldBe Right {
+      s"""{"value":{${(1 to 4).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple4Codec) shouldBe Right {
         TestJson.JTuple4((1, 2, 3, 4))
       }
     }
     "Tuple5 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 5).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple5Codec) shouldBe Right {
+      s"""{"value":{${(1 to 5).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple5Codec) shouldBe Right {
         TestJson.JTuple5((1, 2, 3, 4, 5))
       }
     }
     "Tuple6 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 6).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple6Codec) shouldBe Right {
+      s"""{"value":{${(1 to 6).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple6Codec) shouldBe Right {
         TestJson.JTuple6((1, 2, 3, 4, 5, 6))
       }
     }
     "Tuple7 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 7).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple7Codec) shouldBe Right {
+      s"""{"value":{${(1 to 7).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple7Codec) shouldBe Right {
         TestJson.JTuple7((1, 2, 3, 4, 5, 6, 7))
       }
     }
     "Tuple8 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 8).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple8Codec) shouldBe Right {
+      s"""{"value":{${(1 to 8).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple8Codec) shouldBe Right {
         TestJson.JTuple8((1, 2, 3, 4, 5, 6, 7, 8))
       }
     }
     "Tuple9 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 9).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple9Codec) shouldBe Right {
+      s"""{"value":{${(1 to 9).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple9Codec) shouldBe Right {
         TestJson.JTuple9((1, 2, 3, 4, 5, 6, 7, 8, 9))
       }
     }
     "Tuple10 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 10).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple10Codec) shouldBe Right {
+      s"""{"value":{${(1 to 10).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple10Codec) shouldBe Right {
         TestJson.JTuple10((1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
       }
     }
     "Tuple11 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 11).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple11Codec) shouldBe Right {
+      s"""{"value":{${(1 to 11).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple11Codec) shouldBe Right {
         TestJson.JTuple11((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
       }
     }
     "Tuple12 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 12).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple12Codec) shouldBe Right {
+      s"""{"value":{${(1 to 12).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple12Codec) shouldBe Right {
         TestJson.JTuple12((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
       }
     }
     "Tuple13 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 13).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple13Codec) shouldBe Right {
+      s"""{"value":{${(1 to 13).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple13Codec) shouldBe Right {
         TestJson.JTuple13((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13))
       }
     }
     "Tuple14 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 14).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple14Codec) shouldBe Right {
+      s"""{"value":{${(1 to 14).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple14Codec) shouldBe Right {
         TestJson.JTuple14((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
       }
     }
     "Tuple15 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 15).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple15Codec) shouldBe Right {
+      s"""{"value":{${(1 to 15).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple15Codec) shouldBe Right {
         TestJson.JTuple15((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
       }
     }
     "Tuple16 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 16).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple16Codec) shouldBe Right {
+      s"""{"value":{${(1 to 16).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple16Codec) shouldBe Right {
         TestJson.JTuple16((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16))
       }
     }
     "Tuple17 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 17).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple17Codec) shouldBe Right {
+      s"""{"value":{${(1 to 17).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple17Codec) shouldBe Right {
         TestJson.JTuple17((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
       }
     }
     "Tuple18 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 18).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple18Codec) shouldBe Right {
+      s"""{"value":{${(1 to 18).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple18Codec) shouldBe Right {
         TestJson.JTuple18((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18))
       }
     }
     "Tuple19 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 19).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple19Codec) shouldBe Right {
+      s"""{"value":{${(1 to 19).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple19Codec) shouldBe Right {
         TestJson.JTuple19((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19))
       }
     }
     "Tuple20 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 20).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple20Codec) shouldBe Right {
+      s"""{"value":{${(1 to 20).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple20Codec) shouldBe Right {
         TestJson.JTuple20((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20))
       }
     }
     "Tuple21 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 21).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple21Codec) shouldBe Right {
+      s"""{"value":{${(1 to 21).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple21Codec) shouldBe Right {
         TestJson.JTuple21((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21))
       }
     }
     "Tuple22 wrapper deserialize" in {
-      s"""{"value":{${
-        (1 to 22).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}}""".as(JTuple22Codec) shouldBe Right {
+      s"""{"value":{${(1 to 22).map { x => s""""_$x":$x""" }.mkString(",")}}}""".as(JTuple22Codec) shouldBe Right {
         TestJson.JTuple22((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
       }
     }
@@ -230,182 +146,123 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with
       }
     }
     "Tuple3 deserialize" in {
-      s"""{${
-        (1 to 3).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 3).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[(Int, Int, Int)] shouldBe Right {
         (1, 2, 3)
       }
     }
     "Tuple4 deserialize" in {
-      s"""{${
-        (1 to 4).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 4).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[(Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4)
       }
     }
     "Tuple5 deserialize" in {
-      s"""{${
-        (1 to 5).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 5).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[(Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5)
       }
     }
     "Tuple6 deserialize" in {
-      s"""{${
-        (1 to 6).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 6).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6)
       }
     }
     "Tuple7 deserialize" in {
-      s"""{${
-        (1 to 7).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 7).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7)
       }
     }
     "Tuple8 deserialize" in {
-      s"""{${
-        (1 to 8).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 8).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8)
       }
     }
     "Tuple9 deserialize" in {
-      s"""{${
-        (1 to 9).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 9).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9)
       }
     }
     "Tuple10 deserialize" in {
-      s"""{${
-        (1 to 10).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 10).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
       }
     }
     "Tuple11 deserialize" in {
-      s"""{${
-        (1 to 11).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 11).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
       }
     }
     "Tuple12 deserialize" in {
-      s"""{${
-        (1 to 12).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 12).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
       }
     }
     "Tuple13 deserialize" in {
-      s"""{${
-        (1 to 13).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 13).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
       }
     }
     "Tuple14 deserialize" in {
-      s"""{${
-        (1 to 14).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 14).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
       }
     }
     "Tuple15 deserialize" in {
-      s"""{${
-        (1 to 15).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 15).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
       }
     }
     "Tuple16 deserialize" in {
-      s"""{${
-        (1 to 16).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 16).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
       }
     }
     "Tuple17 deserialize" in {
-      s"""{${
-        (1 to 17).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 17).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
       }
     }
     "Tuple18 deserialize" in {
-      s"""{${
-        (1 to 18).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 18).map { x => s""""_$x":$x""" }.mkString(",")}}"""
+        .as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
       }
     }
     "Tuple19 deserialize" in {
-      s"""{${
-        (1 to 19).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 19).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[
+        (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+      ] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
       }
     }
     "Tuple20 deserialize" in {
-      s"""{${
-        (1 to 20).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 20).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[
+        (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+      ] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
       }
     }
     "Tuple21 deserialize" in {
-      s"""{${
-        (1 to 21).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 21).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[
+        (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+      ] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
       }
     }
     "Tuple22 deserialize" in {
-      s"""{${
-        (1 to 22).map { x =>
-          s""""_$x":$x"""
-        }.mkString(",")
-      }}""".as[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)] shouldBe Right {
+      s"""{${(1 to 22).map { x => s""""_$x":$x""" }.mkString(",")}}""".as[
+        (Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)
+      ] shouldBe Right {
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)
       }
     }
@@ -503,17 +360,26 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams with
       }
     }
     "Tuple20 wrapper serialize" in {
-      TestJson.JTuple20((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)).toJson.toString shouldBe {
+      TestJson
+        .JTuple20((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20))
+        .toJson
+        .toString shouldBe {
         s"""{value -> [${(1 to 20).mkString(",")}]}"""
       }
     }
     "Tuple21 wrapper serialize" in {
-      TestJson.JTuple21((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)).toJson.toString shouldBe {
+      TestJson
+        .JTuple21((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21))
+        .toJson
+        .toString shouldBe {
         s"""{value -> [${(1 to 21).mkString(",")}]}"""
       }
     }
     "Tuple22 wrapper serialize" in {
-      TestJson.JTuple22((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22)).toJson.toString shouldBe {
+      TestJson
+        .JTuple22((1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22))
+        .toJson
+        .toString shouldBe {
         s"""{value -> [${(1 to 22).mkString(",")}]}"""
       }
     }

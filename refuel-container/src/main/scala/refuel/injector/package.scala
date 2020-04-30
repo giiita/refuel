@@ -5,7 +5,7 @@ import refuel.container._
 package object injector {
 
   private[refuel] implicit object ContainerLifeCycleImpl extends ContainerLifeCycle {
-    lazy val ctn: Container = DefaultContainer()
+    lazy val ctn: Container         = DefaultContainer()
     override val ijp: InjectionPool = RuntimeInjectionPool
   }
 

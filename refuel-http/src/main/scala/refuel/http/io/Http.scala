@@ -16,18 +16,17 @@ import scala.concurrent.duration._
 object Http extends Injector with JsonTransform {
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
 
-  private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting@RecognizedDynamicInjection]
+  private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting @RecognizedDynamicInjection]
 
   implicit class UrlParameters(value: Map[String, Any]) {
+
     /**
-     * Convert to get request string.
-     *
-     * @return "x=y&a=b&1=2"
-     */
+      * Convert to get request string.
+      *
+      * @return "x=y&a=b&1=2"
+      */
     def asUrl: String = {
-      value.toSeq.map { x =>
-        URL_PARAM_FORMAT.format(x._1, x._2.toString)
-      }.mkString("&")
+      value.toSeq.map { x => URL_PARAM_FORMAT.format(x._1, x._2.toString) }.mkString("&")
     }
   }
 
@@ -36,11 +35,11 @@ object Http extends Injector with JsonTransform {
     implicit val sys: ActorSystem = setting.actorSystem
 
     /**
-     * Regist a type of returning deserialized json texts.
-     *
-     * @tparam X Deserialized type.
-     * @return
-     */
+      * Regist a type of returning deserialized json texts.
+      *
+      * @tparam X Deserialized type.
+      * @return
+      */
     def as[X: Read]: HttpRunner[X] = {
       asString.flatMap { x =>
         println(x)
@@ -49,55 +48,56 @@ object Http extends Injector with JsonTransform {
     }
 
     /**
-     * Regist a type of returning deserialized json texts.
-     * There is a 3 second timeout to load all streams into memory.
-     *
-     * The current development progress does not support Streaming call.
-     *
-     * @return
-     */
+      * Regist a type of returning deserialized json texts.
+      * There is a 3 second timeout to load all streams into memory.
+      *
+      * The current development progress does not support Streaming call.
+      *
+      * @return
+      */
     def asString: HttpRunner[String] = {
-      value.flatMap(_.entity.toStrict(3.seconds))
-        .flatMap(setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(sys.dispatcher))
+      value
+        .flatMap(_.entity.toStrict(3.seconds))
+        .flatMap(
+          setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(sys.dispatcher)
+        )
     }
   }
 
   /**
-   * Create a http request task.
-   * {{{
-   *   import refuel.http.io.Http._
-   *
-   *   val requets = Map(
-   *     "id" -> 1,
-   *     "name" -> "Jack"
-   *   )
-   *
-   *   val result: FutureSearch.Response =
-   *     http[GET](s"http://localhost:80/?${requets.asUrl}")
-   *     .header("auth", "abcde")
-   *     .deserializing[ResponseType]
-   *     .map(_.value)
-   *     .flatMap(FutureSearch.byValue)
-   *     .run
-   * }}}
-   *
-   * @param urlString Request url
-   * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
-   * @return
-   */
-  def http[T <: HttpMethod.Method : MethodType](urlString: String): HttpRunner[HttpResponse] = {
+    * Create a http request task.
+    * {{{
+    *   import refuel.http.io.Http._
+    *
+    *   val requets = Map(
+    *     "id" -> 1,
+    *     "name" -> "Jack"
+    *   )
+    *
+    *   val result: FutureSearch.Response =
+    *     http[GET](s"http://localhost:80/?${requets.asUrl}")
+    *     .header("auth", "abcde")
+    *     .deserializing[ResponseType]
+    *     .map(_.value)
+    *     .flatMap(FutureSearch.byValue)
+    *     .run
+    * }}}
+    *
+    * @param urlString Request url
+    * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
+    * @return
+    */
+  def http[T <: HttpMethod.Method: MethodType](urlString: String): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(Uri(urlString))
       ),
       new HttpResultTask[HttpResponse] {
-        def execute(request: HttpRequest): Future[HttpResponse] = HttpRetryRevolver(setting.retryThreshold).revolving() {
-          akka.http.scaladsl.Http()(setting.actorSystem).singleRequest(request)
-        }
+        def execute(request: HttpRequest): Future[HttpResponse] =
+          HttpRetryRevolver(setting.retryThreshold).revolving() {
+            akka.http.scaladsl.Http()(setting.actorSystem).singleRequest(request)
+          }
       }
     )
   }
 }
-
-
-

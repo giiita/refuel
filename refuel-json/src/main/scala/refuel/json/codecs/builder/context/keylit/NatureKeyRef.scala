@@ -10,7 +10,7 @@ import refuel.json.{Json, JsonVal}
   *
   * Build practices.
   * {{{
-  *   ("root" / "next" / "terminal")
+  *   ("root" @@ "next" @@ "terminal")
   * }}}
   *
   * @param refs json key literal set

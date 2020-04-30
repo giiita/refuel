@@ -43,7 +43,6 @@ package object period {
 
   case object HOUR extends TimeAxis {
 
-
     /**
       * Time incrementer
       *

@@ -36,17 +36,19 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
 
   "single codec combine test" should {
 
-    val CodecA = ConstCodec.from("1/3", "2/3", "3/3")(A.apply)(A.unapply)
+    val CodecA  = ConstCodec.from("1/3", "2/3", "3/3")(A.apply)(A.unapply)
     val CodecAA = CaseClassCodec.from[AA]
 
-    implicit val CodecC: Codec[C] = "root".parsed(
-      {
-        "1/4".parsed(CodecA) ++
+    implicit val CodecC: Codec[C] = "root"
+      .parsed(
+        {
+          "1/4".parsed(CodecA) ++
           "2/4".parsed(CodecA) ++
           "3/4".parsed(option(CodecAA)) ++
           "4/4".parsed(option(CodecAA))
         }.apply(B.apply)(B.unapply)
-    ).apply(C.apply)(C.unapply)
+      )
+      .apply(C.apply)(C.unapply)
 
     val casedValue = C(
       B(
@@ -56,7 +58,6 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
         Some(AA("test6"))
       )
     )
-
 
     "deserialize verification of complex codec build" in {
       rawJson.as[C] shouldBe Right(casedValue)
@@ -76,29 +77,33 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     }
 
     def buildLiteralCodecDep2A(pattern: Int): Codec[Depth2LineA] = pattern match {
-      case 1 => "1/4".parsed(
-        {
-          buildLiteralCodecDep3A(1) ++
+      case 1 =>
+        "1/4".parsed(
+          {
+            buildLiteralCodecDep3A(1) ++
             buildLiteralCodecDep3A(2) ++
             option(buildLiteralCodecDep3A(3))
-        }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
-      )
-      case 2 => "2/4".parsed(
-        {
-          buildLiteralCodecDep3A(1) ++
+          }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
+        )
+      case 2 =>
+        "2/4".parsed(
+          {
+            buildLiteralCodecDep3A(1) ++
             buildLiteralCodecDep3A(2) ++
             option(buildLiteralCodecDep3A(3))
-        }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
-      )
+          }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
+        )
     }
 
     def buildLiteralCodecDep2B(pattern: Int): Codec[Depth2LineB] = pattern match {
-      case 1 => "3/4".parsed(
-        CaseClassCodec.from[Depth3LineA]
-      )(Depth2LineB.apply)(Depth2LineB.unapply)
-      case 2 => "4/4".parsed(
-        CaseClassCodec.from[Depth3LineA]
-      )(Depth2LineB.apply)(Depth2LineB.unapply)
+      case 1 =>
+        "3/4".parsed(
+          CaseClassCodec.from[Depth3LineA]
+        )(Depth2LineB.apply)(Depth2LineB.unapply)
+      case 2 =>
+        "4/4".parsed(
+          CaseClassCodec.from[Depth3LineA]
+        )(Depth2LineB.apply)(Depth2LineB.unapply)
     }
 
     implicit val rootCodec: Codec[Depth1] = "root".parsed(
@@ -151,15 +156,15 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
   }
 
   "multi codec combine of root test" should {
-    val CodecA = ConstCodec.from("1/3", "2/3", "3/3")(A.apply)(A.unapply)
+    val CodecA  = ConstCodec.from("1/3", "2/3", "3/3")(A.apply)(A.unapply)
     val CodecAA = CaseClassCodec.from[AA]
 
     val CodecB = {
       "1/4".parsed(CodecA) ++
-        "2/4".parsed(CodecA) ++
-        "3/4".parsed(option(CodecAA)) ++
-        "4/4".parsed(option(CodecAA))
-      }.apply(B.apply)(B.unapply)
+      "2/4".parsed(CodecA) ++
+      "3/4".parsed(option(CodecAA)) ++
+      "4/4".parsed(option(CodecAA))
+    }.apply(B.apply)(B.unapply)
 
     "deserialize verification of complex codec build" in {
       innerJson.as(CodecB) shouldBe Right(
@@ -201,7 +206,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     val codec = "root".parsed(
       {
         ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply) ++
-          option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
+        option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
       }.apply(String4_2.apply)(String4_2.unapply)
     )
 
@@ -241,19 +246,19 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
 
     val codec: Codec[(String, String, String, Option[String])] = {
       ("root" @@ "test1").apply[String] ++
-        ("root" @@ "test2")[String] ++
-        ("root" @@ "test3")[String] ++
-        option(("root" @@ "test8")[String])
-    }.apply((a,b,c,d) => (a,b,c,d))(x => Some(x))
+      ("root" @@ "test2")[String] ++
+      ("root" @@ "test3")[String] ++
+      option(("root" @@ "test8")[String])
+    }.apply((a, b, c, d) => (a, b, c, d))(x => Some(x))
 
     "deserialize verification of complex codec build" in {
       unpartitioningJson.as(codec) shouldBe Right(
-        ("test1#","test2#","test3#",None)
+        ("test1#", "test2#", "test3#", None)
       )
     }
 
     "serialize verification of complex codec build" in {
-      val x = ("test1#","test2#","test3#",None): (String, String, String, Option[String])
+      val x   = ("test1#", "test2#", "test3#", None): (String, String, String, Option[String])
       val xxx = x.toJString(codec)
       x.toJString(codec).as(codec) shouldBe Right(x)
     }

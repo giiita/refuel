@@ -55,6 +55,3 @@ private[refuel] case class JsStackObjects(bf: JsonVal) extends JsStack[(JsString
     this
   }
 }
-
-
-

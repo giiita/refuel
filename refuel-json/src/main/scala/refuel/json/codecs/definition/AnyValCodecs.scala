@@ -11,10 +11,10 @@ import scala.util.{Failure, Success, Try}
 private[codecs] trait AnyValCodecs {
 
   /**
-   * The base of scala base api codec.
-   *
-   * @tparam T Target type param.
-   */
+    * The base of scala base api codec.
+    *
+    * @tparam T Target type param.
+    */
   private[this] trait AnyValCodec[T] extends Codec[T] {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed
 
@@ -26,7 +26,7 @@ private[codecs] trait AnyValCodecs {
       Try {
         bf match {
           case JsNull => throw UnsupportedOperation("Null value cannot deserialize to String.")
-          case _ => parse(bf)
+          case _      => parse(bf)
         }
       } match {
         case Success(x) => x
@@ -78,9 +78,9 @@ private[codecs] trait AnyValCodecs {
     }
 
     def parse(bf: JsonVal): Boolean = bf.toString.toLowerCase match {
-      case "1" | "true" => true
+      case "1" | "true"  => true
       case "0" | "false" => false
-      case _ => throw fail(bf, UnsupportedOperation("Only 1/0 or true/false can be boolean decoded"))
+      case _             => throw fail(bf, UnsupportedOperation("Only 1/0 or true/false can be boolean decoded"))
     }
   }
 
@@ -95,7 +95,7 @@ private[codecs] trait AnyValCodecs {
     def parse(bf: JsonVal): Char = bf match {
       case JsAnyVal(x) => Integer.parseInt(x, 16).toChar
       case JsString(x) => x.head
-      case _ => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
+      case _           => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
     }
   }
 
@@ -124,7 +124,7 @@ private[codecs] trait AnyValCodecs {
       bf match {
         case x: JsAnyVal => LongCdc.deserialize(x).datetime
         case JsString(x) => x.datetime
-        case _ => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
+        case _           => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
       }
     }
   }
