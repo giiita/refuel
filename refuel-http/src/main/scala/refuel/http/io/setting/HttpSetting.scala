@@ -1,6 +1,5 @@
 package refuel.http.io.setting
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpEntity, HttpProtocols, HttpRequest}
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
@@ -29,8 +28,7 @@ import refuel.injector.AutoInject
 class HttpSetting(
     val retryThreshold: Int = 1,
     val requestBuilder: HttpRequest => HttpRequest = HttpSetting.DEFAULT,
-    val responseBuilder: HttpEntity.Strict => HttpEntity.Strict = x => x,
-    val actorSystem: ActorSystem
+    val responseBuilder: HttpEntity.Strict => HttpEntity.Strict = x => x
 )
 
 object HttpSetting {
@@ -42,8 +40,6 @@ object HttpSetting {
   }
 
   @Inject(Finally)
-  class RecoveredHttpSetting(override val actorSystem: ActorSystem)
-      extends HttpSetting(actorSystem = actorSystem)
-      with AutoInject
+  class RecoveredHttpSetting() extends HttpSetting() with AutoInject
 
 }

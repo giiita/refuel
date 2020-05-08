@@ -26,7 +26,7 @@ object HttpTest extends Injector {
 
 class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector with CodecDef {
 
-  ActorSystem().index()
+  implicit val as: ActorSystem = ActorSystem().index()
 
   "Http io test" should {
 
