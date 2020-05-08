@@ -12,8 +12,12 @@ import refuel.provider.Lazy
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 object Http extends Injector with JsonTransform {
+
+  implicit def toUri(uri: String): Uri = Uri(uri)
+
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
 
   private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting @RecognizedDynamicInjection]
@@ -32,8 +36,6 @@ object Http extends Injector with JsonTransform {
 
   implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
-    implicit val sys: ActorSystem = setting.actorSystem
-
     /**
       * Regist a type of returning deserialized json texts.
       *
@@ -41,10 +43,7 @@ object Http extends Injector with JsonTransform {
       * @return
       */
     def as[X: Read]: HttpRunner[X] = {
-      asString.flatMap { x =>
-        println(x)
-        x.as[X].fold(Future.failed, Future(_)(Http.setting.actorSystem.dispatcher))
-      }
+      asString.flatMapAs { as => x => x.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }
     }
 
     /**
@@ -57,9 +56,9 @@ object Http extends Injector with JsonTransform {
       */
     def asString: HttpRunner[String] = {
       value
-        .flatMap(_.entity.toStrict(3.seconds))
-        .flatMap(
-          setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(sys.dispatcher)
+        .flatMapAs(implicit as => _.entity.toStrict(3.seconds))
+        .flatMapAs(implicit as =>
+          setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
         )
     }
   }
@@ -75,7 +74,7 @@ object Http extends Injector with JsonTransform {
     *   )
     *
     *   val result: FutureSearch.Response =
-    *     http[GET](s"http://localhost:80/?${requets.asUrl}")
+    *     http[GET](s"http://localhost:80/?${requets.asUrl}".withQuery(Map("param" -> "value")))
     *     .header("auth", "abcde")
     *     .deserializing[ResponseType]
     *     .map(_.value)
@@ -83,19 +82,19 @@ object Http extends Injector with JsonTransform {
     *     .run
     * }}}
     *
-    * @param urlString Request url
+    * @param uri Request url
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method: MethodType](urlString: String): HttpRunner[HttpResponse] = {
+  def http[T <: HttpMethod.Method: MethodType](uri: Uri): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
-        HttpRequest(implicitly[MethodType[T]].method).withUri(Uri(urlString))
+        HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
       ),
       new HttpResultTask[HttpResponse] {
-        def execute(request: HttpRequest): Future[HttpResponse] =
+        def execute(request: HttpRequest)(implicit as: ActorSystem): Future[HttpResponse] =
           HttpRetryRevolver(setting.retryThreshold).revolving() {
-            akka.http.scaladsl.Http()(setting.actorSystem).singleRequest(request)
+            akka.http.scaladsl.Http().singleRequest(request)
           }
       }
     )

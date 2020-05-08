@@ -6,8 +6,7 @@ abstract class ExtensibleIndexWhere(rs: Array[Char]) {
 
   protected var pos: Int
 
-  protected final val length   = rs.length
-  protected final val maxIndex = length - 1
+  protected final val length = rs.length
 
   protected def beEOF: Unit
 

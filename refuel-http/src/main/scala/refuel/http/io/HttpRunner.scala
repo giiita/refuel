@@ -1,5 +1,6 @@
 package refuel.http.io
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
@@ -87,7 +88,7 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {
-      def execute(request: HttpRequest): Future[R] = run.map(func)(Http.setting.actorSystem.dispatcher)
+      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.map(func)(as.dispatcher)
     }
   )
 
@@ -96,7 +97,7 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
     *
     * @return
     */
-  def run: Future[T] = task.execute(request)
+  def run(implicit as: ActorSystem): Future[T] = task.execute(request)
 
   /**
     * To flatten synthesize.
@@ -108,9 +109,16 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
   def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
     request,
     new HttpResultTask[R] {
-      def execute(request: HttpRequest): Future[R] = run.flatMap(func)(Http.setting.actorSystem.dispatcher)
+      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.flatMap(func)(as.dispatcher)
     }
   )
 
   private[http] def entity = request
+
+  def flatMapAs[R](func: ActorSystem => T => Future[R]) = new HttpRunner[R](
+    request,
+    new HttpResultTask[R] {
+      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.flatMap(func(as))(as.dispatcher)
+    }
+  )
 }
