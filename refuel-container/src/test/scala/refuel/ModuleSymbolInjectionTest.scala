@@ -8,7 +8,7 @@ import refuel.Types.@@
 import refuel.container.anno.{Effective, RecognizedDynamicInjection}
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.{Default, Finally, Overwrite}
-import refuel.exception.DIAutoInitializationException
+import refuel.exception.{DIAutoInitializationException, InjectDefinitionException}
 import refuel.injector.{AutoInject, Injector}
 import refuel.internal.di.Effect
 import refuel.provider.{Lazy, Tag}
@@ -485,11 +485,8 @@ class ModuleSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagram
     "Effect is desabled all" in {
       import TEST110._
 
-      Try {
+      assertThrows[InjectDefinitionException] {
         inject[A110]._provide
-      } match {
-        case scala.util.Failure(_: DIAutoInitializationException) => succeed
-        case _                                                    => fail()
       }
     }
   }

@@ -13,7 +13,9 @@ import refuel.injector.AutoInject
   *   object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject[HttpRequestSetting]
   * }}}
   *
-  * @param retryThreshold  Retry threshold. When 2 is set, up to one failure is allowed.
+  * @param retryThreshold  Retry threshold; if 2 is set, a maximum of two attempts will be made.
+  *                        Akka's standard try count is the number of attempts for HTTP communication,
+  *                        but this setting detects the failure of the entire HttpTask and tries again.
   * @param requestBuilder  Http request builder.
   *                        Default set,
   *                        protocol: `Http/1.1`

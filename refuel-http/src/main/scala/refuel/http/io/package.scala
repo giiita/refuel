@@ -1,7 +1,11 @@
 package refuel.http
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpMethods
 import refuel.http.io.HttpMethod._
+import refuel.http.io.task.{CombineTask, HttpTask}
+
+import scala.concurrent.Future
 
 package object io {
 
@@ -16,4 +20,10 @@ package object io {
   implicit case object PUT     extends MethodType[PUT](HttpMethods.PUT)
   implicit case object POST    extends MethodType[POST](HttpMethods.POST)
   implicit case object DELETE  extends MethodType[DELETE](HttpMethods.DELETE)
+
+  implicit def map[T, R](f: ActorSystem => T => Future[R]): T => HttpTask[R] =
+    res =>
+      new CombineTask[R] {
+        override def run(implicit as: ActorSystem): Future[R] = f(as)(res)
+      }
 }

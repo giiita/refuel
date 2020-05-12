@@ -8,11 +8,6 @@ import scala.collection.concurrent.TrieMap
 
 package object internal {
 
-  object CntMediateOnce {
-    def empty[T]: CntMediateOnce[T] = TrieMap.empty
-  }
-  type CntMediateOnce[T] = TrieMap[Container, T]
-
   implicit case object AccessorTypeAcceptContext extends TypedAcceptContext[Accessor[_]] {
     override def accepted: IndexedSymbol[_] => Accessor[_] => Boolean = { x => y =>
       x.isOpen || x.acceptedClass(y.t.getClass) || x.acceptedInstance(y.t)

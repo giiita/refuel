@@ -5,12 +5,15 @@ import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
+import refuel.http.io.task.execution.HttpResultExecution
+import refuel.http.io.task.{CombineTask, HttpTask}
 import refuel.json.JsonTransform
 import refuel.json.codecs.Write
 
 import scala.concurrent.Future
 
-sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extends JsonTransform {
+sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) extends JsonTransform with HttpTask[T] {
+  me =>
 
   import akka.http.scaladsl.model.MediaTypes._
 
@@ -85,12 +88,9 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
     * @tparam R Synthesize return type.
     * @return
     */
-  def map[R](func: T => R): HttpRunner[R] = new HttpRunner[R](
-    request,
-    new HttpResultTask[R] {
-      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.map(func)(as.dispatcher)
-    }
-  )
+  def map[R](func: T => R): HttpTask[R] = new CombineTask[R] {
+    override def run(implicit as: ActorSystem): Future[R] = me.run.map(func)(as.dispatcher)
+  }
 
   /**
     * Execute future functions.
@@ -106,19 +106,9 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultTask[T]) extend
     * @tparam R Synthesize return type.
     * @return
     */
-  def flatMap[R](func: T => Future[R]): HttpRunner[R] = new HttpRunner[R](
-    request,
-    new HttpResultTask[R] {
-      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.flatMap(func)(as.dispatcher)
+  def flatMap[R](func: T => HttpTask[R]): HttpTask[R] = {
+    new CombineTask[R] {
+      override def run(implicit as: ActorSystem): Future[R] = me.run.flatMap(func(_).run)(as.dispatcher)
     }
-  )
-
-  private[http] def entity = request
-
-  def flatMapAs[R](func: ActorSystem => T => Future[R]) = new HttpRunner[R](
-    request,
-    new HttpResultTask[R] {
-      def execute(request: HttpRequest)(implicit as: ActorSystem): Future[R] = run.flatMap(func(as))(as.dispatcher)
-    }
-  )
+  }
 }
