@@ -22,6 +22,25 @@ class SymbolExprGenerator[C <: blackbox.Context](c: C) {
         }
       }
       .partition(_._2.nonEmpty) match {
+      case (_, non) if non.size == 2 =>
+        val mayBeComp = non.find(_._1.isModule).map(_._1)
+        val mayBeClss = non.find(_._1.isClass).map(_._1)
+
+        {
+          for {
+            comp <- mayBeComp
+            clss <- mayBeClss
+            if clss.companion.typeSignature.=:=(comp.typeSignature)
+          } yield {
+            c.echo(c.enclosingPosition, s"${clss.fullName} will be used.")
+            pureGenerateExpr[T](clss)
+          }
+        }.getOrElse(
+          c.abort(
+            c.enclosingPosition,
+            s"Invalid dependency definition. There must be one automatic injection of inject[T] per priority. But found [${non.map(_._1).mkString(", ")}]"
+          )
+        )
       case (_, non) if non.size > 1 =>
         // effected: ???, non effected > 1
         c.abort(
@@ -30,7 +49,7 @@ class SymbolExprGenerator[C <: blackbox.Context](c: C) {
         )
       case (annotated, non) if annotated.isEmpty =>
         if (non.size == 1) {
-          c.echo(c.enclosingPosition, s"${non.head._1.fullName} will be decided.")
+          c.echo(c.enclosingPosition, s"${non.head._1.fullName} will be used.")
           // effected: 0, non effected: 1
           pureGenerateExpr[T](non.head._1)
         } else {

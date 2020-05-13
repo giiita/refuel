@@ -1,7 +1,7 @@
 package refuel.internal
 
 import refuel.container.Container
-import refuel.exception.{DIAutoInitializationException, InjectDefinitionException}
+import refuel.exception.InjectDefinitionException
 import refuel.injector.InjectionPool
 import refuel.injector.InjectionPool.LazyConstruction
 import refuel.internal.di.{ConfirmedCands, ExcludingRuntime, SymbolExprGenerator}
@@ -35,19 +35,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
     reify[Lazy[T]] {
       new Lazy[T] {
-        private[this] val mediation: CntMediateOnce[T] = CntMediateOnce.empty
-
-        def _provide: T =
-          try {
-            mediation.getOrElse(ctnExpr.splice, {
-              val r = injectionRf.splice
-              mediation += ctnExpr.splice -> r
-              r
-            })
-          } catch {
-            case e: Throwable =>
-              throw new DIAutoInitializationException(s"Failed to initialize ${typName.splice}.", e)
-          }
+        def _provide: T = injectionRf.splice
       }
     }
   }

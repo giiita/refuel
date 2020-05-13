@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 import refuel.json.entry.{JsAnyVal, JsNull, JsString}
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
 import refuel.json.{Codec, JsonVal}
+import refuel.lang.ScalaTime
 
 import scala.util.{Failure, Success, Try}
 
@@ -110,9 +111,8 @@ private[codecs] trait AnyValCodecs {
     def parse(bf: JsonVal): String = bf.toString
   }
 
-  implicit final val ZonedDateTimeCdc: Codec[ZonedDateTime] = new Codec[ZonedDateTime] {
-
-    import refuel.lang.ScalaTime._
+  implicit def ZonedDateTimeCdc(implicit st: ScalaTime): Codec[ZonedDateTime] = new Codec[ZonedDateTime] {
+    import st._
 
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
       UnexpectedDeserializeType(s"Cannot deserialize to ZonedDateTime -> $bf", e)

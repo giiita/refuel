@@ -76,13 +76,6 @@ class PrimaryConstructorInjectionTest extends AsyncWordSpec with Matchers with D
       import refuel.PrimaryConstructorInjectionTest.TEST1.Implicits._
       inject[Wrap.D1]._provide should not be (null)
     }
-    "Cannot injected implicit parameters at Runtime." in {
-      import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1._
-      import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1.Implicits._
-      assertThrows[DIAutoInitializationException](
-        inject[Wrap.D1 @RecognizedDynamicInjection]._provide should not be (null)
-      )
-    }
     "Can injected implicit parameters at Runtime when shade and indexing" in {
       import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1._
       import refuel.PrimaryConstructorInjectionTest.SAME_AS_TEST1.Implicits._

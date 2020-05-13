@@ -27,6 +27,10 @@ import java.lang.annotation.Target;
  *   // However, if it is a RecognizedDynamicInjection, it will work.
  *   inject[Seq[Int]@RecognizedDynamicInjection]
  * }}}
+ *
+ * Runtime injection can be very slow to load the first time due to the need to scan the classpath.
+ * This can be avoided in many cases by using a constructor injection.
+ * If you need support, please ask the commiter.
  */
 @Retention(java.lang.annotation.RetentionPolicy.SOURCE)
 @Target({ElementType.TYPE})

@@ -3,24 +3,35 @@ package refuel.http.io
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
-import refuel.container.anno.RecognizedDynamicInjection
 import refuel.http.io.setting.HttpSetting
-import refuel.injector.Injector
+import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
+import refuel.http.io.task.HttpTask
+import refuel.http.io.task.execution.HttpResultExecution
+import refuel.injector.{AutoInject, Injector}
 import refuel.json.JsonTransform
 import refuel.json.codecs.Read
-import refuel.provider.Lazy
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 
-object Http extends Injector with JsonTransform {
+@deprecated("Instead, use dependency injection")
+object Http extends Http(new RecoveredHttpSetting)
+
+/** {{{
+  * class MyRepository(http: Http) extends AutoInject {
+  *   import http._
+  *
+  *   http[GET]("http://???")
+  *     .asString.run
+  * }
+  * }}}
+  */
+class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
 
   implicit def toUri(uri: String): Uri = Uri(uri)
 
   private lazy final val URL_PARAM_FORMAT = "%s=%s"
-
-  private[http] val setting: Lazy[HttpSetting] = inject[HttpSetting @RecognizedDynamicInjection]
 
   implicit class UrlParameters(value: Map[String, Any]) {
 
@@ -42,8 +53,12 @@ object Http extends Injector with JsonTransform {
       * @tparam X Deserialized type.
       * @return
       */
-    def as[X: Read]: HttpRunner[X] = {
-      asString.flatMapAs { as => x => x.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }
+    def as[X: Read]: HttpTask[X] = {
+      asString
+        .flatMap({ implicit as => res => res.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }: ActorSystem => String => Future[
+            X
+          ]
+        )
     }
 
     /**
@@ -54,25 +69,20 @@ object Http extends Injector with JsonTransform {
       *
       * @return
       */
-    def asString: HttpRunner[String] = {
-      value
-        .flatMapAs(implicit as => _.entity.toStrict(3.seconds))
-        .flatMapAs(implicit as =>
-          setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-        )
+    def asString: HttpTask[String] = {
+      value.flatMap({ implicit as => res =>
+        res.entity
+          .toStrict(3.seconds)
+          .flatMap(
+            setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+          )(as.dispatcher)
+      }: ActorSystem => HttpResponse => Future[String])
     }
   }
 
   /**
     * Create a http request task.
     * {{{
-    *   import refuel.http.io.Http._
-    *
-    *   val requets = Map(
-    *     "id" -> 1,
-    *     "name" -> "Jack"
-    *   )
-    *
     *   val result: FutureSearch.Response =
     *     http[GET](s"http://localhost:80/?${requets.asUrl}".withQuery(Map("param" -> "value")))
     *     .header("auth", "abcde")
@@ -91,7 +101,7 @@ object Http extends Injector with JsonTransform {
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
       ),
-      new HttpResultTask[HttpResponse] {
+      new HttpResultExecution[HttpResponse] {
         def execute(request: HttpRequest)(implicit as: ActorSystem): Future[HttpResponse] =
           HttpRetryRevolver(setting.retryThreshold).revolving() {
             akka.http.scaladsl.Http().singleRequest(request)

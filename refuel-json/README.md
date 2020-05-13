@@ -1,7 +1,7 @@
 # refuel-json
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-json" % "1.1.3"
+libraryDependencies += "com.phylage" %% "refuel-json" % "1.2.0"
 ```
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.

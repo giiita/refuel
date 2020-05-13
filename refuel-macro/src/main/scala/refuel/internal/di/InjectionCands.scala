@@ -18,9 +18,11 @@ sealed abstract class InjectionCands[C <: blackbox.Context](val c: C)(val cands:
         val ip = sm.annotations
           .find(_.tree.tpe =:= InjectionPriorityConfigType)
           .flatMap(_.tree.children.tail.headOption)
-          .fold[c.Expr[InjectionPriority]](c.universe.reify(Default)) {
+          .fold[c.Expr[InjectionPriority]](
+            c.Expr[InjectionPriority](c.parse("refuel.domination.InjectionPriority.Default"))
+          ) {
             case x if x.symbol.isModule =>
-              c.Expr[InjectionPriority](c.parse(x.symbol.asModule.fullName))
+              c.Expr[InjectionPriority](c.parse(x.symbol.fullName))
             case _ =>
               c.abort(
                 c.enclosingPosition,
