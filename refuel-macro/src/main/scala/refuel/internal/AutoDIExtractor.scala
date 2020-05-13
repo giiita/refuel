@@ -85,9 +85,6 @@ class AutoDIExtractor[C <: blackbox.Context](val c: C) {
   }
 
   def run(): AutoInjectableSymbols[c.type] = {
-    println(
-      "========================================================================================================================="
-    )
     recursivePackageExplore(
       Vector(nealyPackage(c.weakTypeOf[Container].typeSymbol))
     )
