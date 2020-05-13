@@ -5,6 +5,7 @@ import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
 import refuel.injector.{AutoInject, Injector}
 
+@deprecated("Instead, use dependency injection")
 object ScalaTime extends ScalaTime(RuntimeTZ)
 
 /** Use DI as a starting point.
@@ -30,7 +31,7 @@ class ScalaTime(TZ: RuntimeTZ) extends Injector with AutoInject {
     *
     * @return
     */
-  def now: ZonedDateTime = ZonedDateTime.now()
+  def now: ZonedDateTime = ZonedDateTime.now(TZ.ZONE_ID)
 
   implicit class StringBs(value: String) {
     def epochtime: ZonedDateTime = {
