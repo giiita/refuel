@@ -7,20 +7,24 @@ import scala.reflect.macros.blackbox
 
 sealed abstract class InjectionCands[C <: blackbox.Context](val c: C)(val cands: Vector[C#Symbol]) {
 
+  import c.universe._
+
   /* Injection priority config type tag */
   private[this] lazy val InjectionPriorityConfigType = c.weakTypeOf[Inject]
 
   private[this] type DepWithPriority = (C#Expr[InjectionPriority], C#Symbol)
 
-  def rankingEvaluation: (c.Expr[InjectionPriority], Seq[C#Symbol]) = {
+  def rankingEvaluation: (C#Expr[InjectionPriority], Seq[C#Symbol]) = {
     cands
       .map { sm =>
         val ip = sm.annotations
           .find(_.tree.tpe =:= InjectionPriorityConfigType)
-          .flatMap(_.tree.children.tail.headOption)
-          .fold[c.Expr[InjectionPriority]](c.universe.reify(Default)) {
+          .flatMap(_.tree.children.tail.headOption.map(_.asInstanceOf[c.Tree]))
+          .fold[c.Expr[InjectionPriority]](
+            c.Expr[InjectionPriority](c.parse("refuel.domination.InjectionPriority.Default"))
+          ) {
             case x if x.symbol.isModule =>
-              c.Expr[InjectionPriority](c.parse(x.symbol.asModule.fullName))
+              c.Expr[InjectionPriority](c.parse(x.symbol.fullName))
             case _ =>
               c.abort(
                 c.enclosingPosition,

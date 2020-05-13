@@ -3,8 +3,7 @@ package refuel.lang
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
-import refuel.injector.Injector
-import refuel.lang.period.{EpochDateTime, FromTo}
+import refuel.injector.{AutoInject, Injector}
 
 object ScalaTime extends ScalaTime(RuntimeTZ)
 
@@ -19,7 +18,7 @@ object ScalaTime extends ScalaTime(RuntimeTZ)
   * By default, the system default TimeZone is used.
   * I would override it as needed and refer to it by mixing in the AutoInject.
   */
-class ScalaTime(TZ: RuntimeTZ) extends Injector {
+class ScalaTime(TZ: RuntimeTZ) extends Injector with AutoInject {
 
   /**
     * Get a current time.
@@ -82,30 +81,6 @@ class ScalaTime(TZ: RuntimeTZ) extends Injector {
     def epoch: Long = value.toEpochSecond(TZ.ZONE_OFFSET)
 
     /**
-      * Create period object based on this date.
-      *
-      * {{{
-      *   import refuel.lang.ScalaTime._
-      *
-      *   "2019-08-05 10:00:00".datetime.periodWith(_.plusDays(6).maxToday)(DeliveryPeriod)
-      *   == DeliveryPeriod("2019-08-05 10:00:00".datetime.epoch, "2019-08-11 23:59:59".datetime.epoch)
-      *
-      *   "2019-08-05 10:00:00".datetime.periodWith(_.minusDays(6).minToday)(DeliveryPeriod)
-      *   == DeliveryPeriod("2019-07-31 00:00:00".datetime.epoch, "2019-08-05 10:00:00".datetime.epoch)
-      * }}}
-      *
-      * @param anotherTimeApplyment How long to create a period from this date.
-      * @param contruct             FromTo subtype constructor.
-      * @tparam T Period type.
-      * @return
-      */
-    def periodWith[T <: FromTo](
-        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
-    )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
-      value.toZonedDateTime.periodWith(anotherTimeApplyment)(contruct)
-    }
-
-    /**
       * LocalDateTime to this day, 00:00:00.0
       *
       * @return
@@ -158,33 +133,6 @@ class ScalaTime(TZ: RuntimeTZ) extends Injector {
       * @return
       */
     def format(): String = value.format(TZ.format)
-
-    /**
-      * Create period object based on this date.
-      *
-      * {{{
-      *   import refuel.lang.ScalaTime._
-      *
-      *   "2019-08-05 10:00:00".datetime.periodWith(_.plusDays(6).maxToday)(DeliveryPeriod)
-      *   == DeliveryPeriod("2019-08-05 10:00:00".datetime.epoch, "2019-08-11 23:59:59".datetime.epoch)
-      *
-      *   "2019-08-05 10:00:00".datetime.periodWith(_.minusDays(6).minToday)(DeliveryPeriod)
-      *   == DeliveryPeriod("2019-07-31 00:00:00".datetime.epoch, "2019-08-05 10:00:00".datetime.epoch)
-      * }}}
-      *
-      * @param anotherTimeApplyment How long to create a period from this date.
-      * @param contruct             FromTo subtype constructor.
-      * @tparam T Period type.
-      * @return
-      */
-    def periodWith[T <: FromTo](
-        anotherTimeApplyment: ZonedDateTime => ZonedDateTime
-    )(contruct: (EpochDateTime, EpochDateTime) => T): T = {
-      anotherTimeApplyment(value) match {
-        case x if x.isAfter(value) => contruct(value.epoch, x.epoch)
-        case x                     => contruct(x.epoch, value.epoch)
-      }
-    }
 
     /**
       * ZonedDateTime convert to string.

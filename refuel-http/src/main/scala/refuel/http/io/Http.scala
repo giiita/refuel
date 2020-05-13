@@ -7,7 +7,7 @@ import refuel.http.io.setting.HttpSetting
 import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
 import refuel.http.io.task.HttpTask
 import refuel.http.io.task.execution.HttpResultExecution
-import refuel.injector.Injector
+import refuel.injector.{AutoInject, Injector}
 import refuel.json.JsonTransform
 import refuel.json.codecs.Read
 
@@ -15,9 +15,9 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 
-object Http extends HttpClient(new RecoveredHttpSetting)
+object Http extends Http(new RecoveredHttpSetting)
 
-class HttpClient(val setting: HttpSetting) extends Injector with JsonTransform {
+class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
 
   implicit def toUri(uri: String): Uri = Uri(uri)
 

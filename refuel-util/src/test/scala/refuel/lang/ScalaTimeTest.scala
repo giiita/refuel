@@ -4,39 +4,19 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 
 import refuel.injector.Injector
 import refuel.lang.ScalaTime._
-import refuel.lang.period.{EpochDateTime, FromTo}
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
 import scala.util.{Failure, Try}
 
-class ScalaTimeTest extends WordSpec with Matchers with Injector {
+class ScalaTimeTest extends AnyWordSpec with Matchers with Injector {
 
   trait Context {
-    val tz = inject[RuntimeTZ]
+    val st: ScalaTime = inject[ScalaTime]
+    val tz            = inject[RuntimeTZ]
   }
 
   "ZonedDateTimeBs" should {
-    "periodWith - before case" in new Context {
-
-      case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
-
-      "2018/10/01 11:05:11".datetime.periodWith(_.minusDays(2).minToday)(LocalPeriod) shouldBe
-      LocalPeriod(
-        "2018/9/29 00:00:00".datetime.epoch,
-        "2018/10/01 11:05:11".datetime.toEpochSecond
-      )
-    }
-
-    "periodWith - after case" in new Context {
-
-      case class LocalPeriod(from: EpochDateTime, to: EpochDateTime) extends FromTo
-
-      "2018/10/01".datetime.periodWith(_.plusDays(2).maxToday)(LocalPeriod) shouldBe
-      LocalPeriod(
-        "2018/10/01".datetime.epoch,
-        ZonedDateTime.of(2018, 10, 3, 23, 59, 59, 999999999, tz.ZONE_ID).epoch
-      )
-    }
 
     "parse yyyy/MM/dd HH:mm:ss" in new Context {
       "2017/08/26 11:33:54".datetime shouldBe ZonedDateTime.of(2017, 8, 26, 11, 33, 54, 0, tz.ZONE_ID)
