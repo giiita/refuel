@@ -33,6 +33,20 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) e
   }
 
   /**
+    * Set a request body.
+    * You can set up a standard request that is supported by Akka HTTP.
+    *
+    * @param f Request setting function.
+    * @return
+    */
+  def mapRequest(f: HttpRequest => HttpRequest): HttpRunner[T] = {
+    new HttpRunner[T](
+      f(request),
+      task
+    )
+  }
+
+  /**
     * Set request parameters.
     *
     * @param ps parameters.

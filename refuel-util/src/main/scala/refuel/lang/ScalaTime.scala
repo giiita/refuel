@@ -3,6 +3,8 @@ package refuel.lang
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
 
+import refuel.domination.Inject
+import refuel.domination.InjectionPriority.Finally
 import refuel.injector.{AutoInject, Injector}
 
 @deprecated("Instead, use dependency injection")
@@ -19,6 +21,7 @@ object ScalaTime extends ScalaTime(RuntimeTZ)
   * By default, the system default TimeZone is used.
   * I would override it as needed and refer to it by mixing in the AutoInject.
   */
+@Inject(Finally)
 class ScalaTime(TZ: RuntimeTZ) extends Injector with AutoInject {
 
   /**

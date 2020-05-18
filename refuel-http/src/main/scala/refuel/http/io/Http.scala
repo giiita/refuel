@@ -3,6 +3,8 @@ package refuel.http.io
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
+import refuel.domination.Inject
+import refuel.domination.InjectionPriority.Finally
 import refuel.http.io.setting.HttpSetting
 import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
 import refuel.http.io.task.HttpTask
@@ -27,6 +29,7 @@ object Http extends Http(new RecoveredHttpSetting)
   * }
   * }}}
   */
+@Inject(Finally)
 class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
 
   implicit def toUri(uri: String): Uri = Uri(uri)
