@@ -117,7 +117,9 @@ lazy val container = (project in file("refuel-container"))
 lazy val util = (project in file("refuel-util"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(container)
-  .settings(name := "refuel-util", parallelExecution in Test := true)
+  .settings(
+    name := "refuel-util"
+  )
   .enablePlugins(JavaAppPackaging)
 
 lazy val json = (project in file("refuel-json"))

@@ -2,16 +2,16 @@ package refuel.lang
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 
-import refuel.injector.Injector
-import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import refuel.injector.Injector
 
 import scala.util.{Failure, Try}
 
 class ScalaTimeTest extends AnyWordSpec with Matchers with Injector {
 
+  val tz: RuntimeTZ = inject[RuntimeTZ]
   val st: ScalaTime = inject[ScalaTime]
-  val tz            = inject[RuntimeTZ]
 
   import st._
 

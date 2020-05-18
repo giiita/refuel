@@ -18,6 +18,7 @@ import scala.concurrent.duration._
 import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
+@Inject(Finally)
 object Http extends Http(new RecoveredHttpSetting)
 
 /** {{{

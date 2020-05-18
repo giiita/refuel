@@ -8,6 +8,7 @@ import refuel.domination.InjectionPriority.Finally
 import refuel.injector.{AutoInject, Injector}
 
 @deprecated("Instead, use dependency injection")
+@Inject(Finally)
 object ScalaTime extends ScalaTime(RuntimeTZ)
 
 /** Use DI as a starting point.
@@ -23,6 +24,8 @@ object ScalaTime extends ScalaTime(RuntimeTZ)
   */
 @Inject(Finally)
 class ScalaTime(TZ: RuntimeTZ) extends Injector with AutoInject {
+
+  println(TZ.ZONE_ID)
 
   /**
     * Get a current time.
