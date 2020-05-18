@@ -27,12 +27,6 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
        """
     )
 
-    val typName = c.Expr {
-      c.reifyRuntimeClass(weakTypeOf[T])
-    }
-
-    val ctnExpr = c.Expr[Container](ctn)
-
     reify[Lazy[T]] {
       new Lazy[T] {
         def _provide: T = injectionRf.splice

@@ -32,7 +32,7 @@ class SymbolExprGenerator[C <: blackbox.Context](c: C) {
             clss <- mayBeClss
             if clss.companion.typeSignature.=:=(comp.typeSignature)
           } yield {
-            c.echo(c.enclosingPosition, s"${clss.fullName} will be used.")
+            c.echo(c.enclosingPosition, s"${clss.fullName}(class symbol) will be used.")
             pureGenerateExpr[T](clss)
           }
         }.getOrElse(

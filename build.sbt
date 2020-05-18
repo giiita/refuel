@@ -1,8 +1,6 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-scalaVersion in ThisBuild := "2.13.2"
-
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.11", "2.13.2")
 
@@ -119,7 +117,9 @@ lazy val container = (project in file("refuel-container"))
 lazy val util = (project in file("refuel-util"))
   .settings(assemblySettings, commonDependencySettings)
   .dependsOn(container)
-  .settings(name := "refuel-util", parallelExecution in Test := true)
+  .settings(
+    name := "refuel-util"
+  )
   .enablePlugins(JavaAppPackaging)
 
 lazy val json = (project in file("refuel-json"))
