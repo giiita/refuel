@@ -1,8 +1,6 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-scalaVersion in ThisBuild := "2.13.2"
-
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.11", "2.13.2")
 
