@@ -57,12 +57,9 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       * @tparam X Deserialized type.
       * @return
       */
-    def as[X: Read]: HttpTask[X] = {
-      asString
-        .flatMap({ implicit as => res => res.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }: ActorSystem => String => Future[
-            X
-          ]
-        )
+    def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
+      asString(timeout)
+        .flatMap({ implicit as => res => res.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }: ActorSystem => String => Future[X])
     }
 
     /**
@@ -73,13 +70,14 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       *
       * @return
       */
-    def asString: HttpTask[String] = {
-      value.flatMap({ implicit as => res =>
-        res.entity
-          .toStrict(3.seconds)
-          .flatMap(
-            setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-          )(as.dispatcher)
+    def asString(implicit timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
+      value.flatMap({ implicit as =>
+        res =>
+          res.entity
+            .toStrict(timeout)
+            .flatMap(
+              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+            )(as.dispatcher)
       }: ActorSystem => HttpResponse => Future[String])
     }
   }
@@ -100,7 +98,7 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method: MethodType](uri: Uri): HttpRunner[HttpResponse] = {
+  def http[T <: HttpMethod.Method : MethodType](uri: Uri): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
