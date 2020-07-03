@@ -1,7 +1,6 @@
 package refuel.http.io.task
 
 import akka.actor.ActorSystem
-import refuel.http.io.HttpRunner
 
 import scala.concurrent.Future
 
@@ -31,4 +30,8 @@ trait HttpTask[T] { me =>
     * @return
     */
   def run(implicit as: ActorSystem): Future[T]
+
+  def recover[R >: T](f: PartialFunction[Throwable, R]): HttpTask[R]
+  def recoverWith[R >: T](f: PartialFunction[Throwable, HttpTask[R]]): HttpTask[R]
+  def recoverF[R >: T](f: PartialFunction[Throwable, Future[R]]): HttpTask[R]
 }

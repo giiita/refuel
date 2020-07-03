@@ -19,7 +19,7 @@ private[json] abstract class CBuildComp[A: Codec] {
     ConstCodec.from(k)(apl)(upl)
   }
 
-  def ++[Z](that: CBuildComp[Z]): CBuildComp2[A, Z] = {
+  def ~[Z](that: CBuildComp[Z]): CBuildComp2[A, Z] = {
     implicit val newc: Codec[Z] = that._c
     new CBuildComp2(this, that)
   }
@@ -32,7 +32,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp3[A, B, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp3[A, B, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp3(a, b, that)
     }
@@ -43,7 +43,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp4[A, B, C, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp4[A, B, C, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp4(a, b, c, that)
     }
@@ -59,7 +59,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp5[A, B, C, D, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp5[A, B, C, D, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp5(a, b, c, d, that)
     }
@@ -76,7 +76,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp6[A, B, C, D, E, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp6[A, B, C, D, E, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp6(a, b, c, d, e, that)
     }
@@ -94,7 +94,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp7[A, B, C, D, E, F, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp7[A, B, C, D, E, F, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp7(a, b, c, d, e, f, that)
     }
@@ -113,7 +113,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp8[A, B, C, D, E, F, G, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp8[A, B, C, D, E, F, G, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp8(a, b, c, d, e, f, g, that)
     }
@@ -133,7 +133,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp9[A, B, C, D, E, F, G, H, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp9[A, B, C, D, E, F, G, H, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp9(a, b, c, d, e, f, g, h, that)
     }
@@ -154,7 +154,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp10[A, B, C, D, E, F, G, H, I, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp10[A, B, C, D, E, F, G, H, I, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp10(a, b, c, d, e, f, g, h, i, that)
     }
@@ -178,7 +178,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp11[A, B, C, D, E, F, G, H, I, J, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp11[A, B, C, D, E, F, G, H, I, J, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp11(a, b, c, d, e, f, g, h, i, j, that)
     }
@@ -215,7 +215,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp12[A, B, C, D, E, F, G, H, I, J, K, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp12[A, B, C, D, E, F, G, H, I, J, K, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp12(a, b, c, d, e, f, g, h, i, j, k, that)
     }
@@ -254,7 +254,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp13[A, B, C, D, E, F, G, H, I, J, K, L, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp13[A, B, C, D, E, F, G, H, I, J, K, L, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp13(a, b, c, d, e, f, g, h, i, j, k, l, that)
     }
@@ -295,7 +295,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k, m.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp14[A, B, C, D, E, F, G, H, I, J, K, L, M, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp14[A, B, C, D, E, F, G, H, I, J, K, L, M, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp14(a, b, c, d, e, f, g, h, i, j, k, l, m, that)
     }
@@ -338,7 +338,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k, m.k, n.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp15(a, b, c, d, e, f, g, h, i, j, k, l, m, n, that)
     }
@@ -383,7 +383,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k, m.k, n.k, o.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp16(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, that)
     }
@@ -430,7 +430,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k, m.k, n.k, o.k, p.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp17(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, that)
     }
@@ -479,7 +479,7 @@ object CBuildComp {
       ConstCodec.from(a.k, b.k, c.k, d.k, e.k, f.k, g.k, h.k, i.k, j.k, k.k, l.k, m.k, n.k, o.k, p.k, q.k)(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp18(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, that)
     }
@@ -532,7 +532,7 @@ object CBuildComp {
       )
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp19(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, that)
     }
@@ -587,7 +587,7 @@ object CBuildComp {
       )(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp20(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, that)
     }
@@ -663,7 +663,7 @@ object CBuildComp {
       )(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp21(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, that)
     }
@@ -742,7 +742,7 @@ object CBuildComp {
       )(apl)(upl)
     }
 
-    def ++[Z](that: CBuildComp[Z]): CBuildComp22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z] = {
+    def ~[Z](that: CBuildComp[Z]): CBuildComp22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, Z] = {
       implicit val newc: Codec[Z] = that._c
       new CBuildComp22(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, that)
     }
