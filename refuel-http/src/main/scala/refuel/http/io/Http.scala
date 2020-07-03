@@ -51,6 +51,12 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
 
   implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
+    def pickup: HttpTask[HttpResponse] = {
+      value.recover {
+        case HttpRequestFailed(_, e) => e
+      }
+    }
+
     /** Regist a type of returning deserialized json texts.
       *
       * @tparam X Deserialized type.
@@ -58,7 +64,9 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       */
     def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
       asString(timeout)
-        .flatMap({ implicit as => res => res.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }: ActorSystem => String => Future[
+        .flatMap({ implicit as => res =>
+            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
+          }: ActorSystem => String => Future[
             X
           ]
         )
@@ -80,17 +88,6 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
           )(as.dispatcher)
       }: ActorSystem => HttpResponse => Future[String])
     }
-
-    /** Checks the status code of the response and fails the future if it is an abnormal value.
-      *
-      * @return
-      */
-    def validStatus: HttpTask[HttpResponse] = {
-      value.flatMap({ implicit as => res =>
-        if (res.status.isSuccess()) Future(res)(as.dispatcher)
-        else Future.failed(new HttpRequestFailed[HttpResponse](res))
-      }: ActorSystem => HttpResponse => Future[HttpResponse])
-    }
   }
 
   /**
@@ -105,6 +102,9 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
     *     .run
     * }}}
     *
+    * All abnormal system statuses will be demoted to `HttpRequestFailed[HttpResponse]`.
+    * If the retry limit is exceeded and it continues to fail, HttpProcessingFailed[Throwable] will occur.
+    *
     * @param uri Request url
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
@@ -116,9 +116,14 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       ),
       new HttpResultExecution[HttpResponse] {
         def execute(request: HttpRequest)(implicit as: ActorSystem): Future[HttpResponse] =
-          HttpRetryRevolver(setting.retryThreshold).revolving() {
-            akka.http.scaladsl.Http().singleRequest(request)
-          }
+          HttpRetryRevolver(setting.retryThreshold)
+            .revolving() {
+              akka.http.scaladsl.Http().singleRequest(request)
+            }
+            .flatMap { res =>
+              if (res.status.isSuccess()) Future(res)(as.dispatcher)
+              else Future.failed(HttpRequestFailed(res.status, res))
+            }(as.dispatcher)
       }
     )
   }
