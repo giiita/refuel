@@ -125,4 +125,15 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) e
       override def run(implicit as: ActorSystem): Future[R] = me.run.flatMap(func(_).run)(as.dispatcher)
     }
   }
+
+  override def recover[R >: T](f: PartialFunction[Throwable, R]): HttpTask[R] = new CombineTask[R] {
+    override def run(implicit as: ActorSystem): Future[R] =
+      me.run.recoverWith[R](f.andThen(x => Future.apply(x)(as.dispatcher)))(as.dispatcher)
+  }
+  override def recoverWith[R >: T](f: PartialFunction[Throwable, HttpTask[R]]): HttpTask[R] = new CombineTask[R] {
+    override def run(implicit as: ActorSystem): Future[R] = me.run.recoverWith[R](f.andThen(_.run))(as.dispatcher)
+  }
+  override def recoverF[R >: T](f: PartialFunction[Throwable, Future[R]]): HttpTask[R] = new CombineTask[R] {
+    override def run(implicit as: ActorSystem): Future[R] = me.run.recoverWith[R](f)(as.dispatcher)
+  }
 }

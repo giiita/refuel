@@ -1,10 +1,11 @@
 package refuel.http.io
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import org.scalatest._
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
-import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, InnerJokes, Jokes}
+import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, Jokes}
 import refuel.injector.Injector
 import refuel.json.CodecDef
 
@@ -72,8 +73,8 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
       http[GET]("http://aaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
-          case _: akka.stream.StreamTcpException => succeed
-          case e                                 => fail(e)
+          case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
+          case e                                                       => fail(e)
         }
     }
     "ConnectException" in {
@@ -82,8 +83,55 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
       http[GET]("http://localhost/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
-          case _: akka.stream.StreamTcpException => succeed
-          case e                                 => fail(e)
+          case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
+          case e                                                       => fail(e)
+        }
+    }
+
+    "Pickup client error" in {
+      http[GET]("http://localhost:3289/notfound").pickup.run
+        .map {
+          case HttpResponse(StatusCodes.NotFound, _, _, _) => succeed
+          case _                                           => fail()
+        }
+        .recover {
+          case e => fail(e)
+        }
+    }
+
+    "recover" in {
+      http[GET]("http://localhost:3289/notfound")
+        .recover {
+          case _ => "recovered"
+        }
+        .run
+        .map(_ shouldBe "recovered")
+        .recover {
+          case _ => fail()
+        }
+    }
+
+    "recover with" in {
+      http[GET]("http://localhost:3289/notfound").asString
+        .recoverWith[String] {
+          case _ => http[GET]("http://localhost:3289/endpoint").asString
+        }
+        .run
+        .map(_ => succeed)
+        .recover {
+          case e => fail()
+        }
+    }
+
+    "recover Future" in {
+      http[GET]("http://localhost:3289/notfound").asString
+        .recoverF[String] {
+          case _ => http[GET]("http://localhost:3289/endpoint").asString.run
+        }
+        .run
+        .map(_ => succeed)
+        .recover {
+          case e => fail()
         }
     }
   }

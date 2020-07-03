@@ -42,9 +42,9 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     implicit val CodecC: Codec[C] = "root"
       .parsed(
         {
-          "1/4".parsed(CodecA) ++
-          "2/4".parsed(CodecA) ++
-          "3/4".parsed(option(CodecAA)) ++
+          "1/4".parsed(CodecA) ~
+          "2/4".parsed(CodecA) ~
+          "3/4".parsed(option(CodecAA)) ~
           "4/4".parsed(option(CodecAA))
         }.apply(B.apply)(B.unapply)
       )
@@ -77,19 +77,20 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     }
 
     def buildLiteralCodecDep2A(pattern: Int): Codec[Depth2LineA] = pattern match {
-      case 1 =>
+      case 1 => {
         "1/4".parsed(
           {
-            buildLiteralCodecDep3A(1) ++
-            buildLiteralCodecDep3A(2) ++
+            buildLiteralCodecDep3A(1) ~
+            buildLiteralCodecDep3A(2) ~
             option(buildLiteralCodecDep3A(3))
           }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
         )
+      }
       case 2 =>
         "2/4".parsed(
           {
-            buildLiteralCodecDep3A(1) ++
-            buildLiteralCodecDep3A(2) ++
+            buildLiteralCodecDep3A(1) ~
+            buildLiteralCodecDep3A(2) ~
             option(buildLiteralCodecDep3A(3))
           }.apply(Depth2LineA.apply)(Depth2LineA.unapply)
         )
@@ -107,9 +108,9 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     }
 
     implicit val rootCodec: Codec[Depth1] = "root".parsed(
-      (buildLiteralCodecDep2A(1) ++
-      buildLiteralCodecDep2A(2) ++
-      option(buildLiteralCodecDep2B(1)) ++
+      (buildLiteralCodecDep2A(1) ~
+      buildLiteralCodecDep2A(2) ~
+      option(buildLiteralCodecDep2B(1)) ~
       option(buildLiteralCodecDep2B(2))).apply(Depth1.apply)(Depth1.unapply)
     )
 
@@ -160,9 +161,9 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
     val CodecAA = CaseClassCodec.from[AA]
 
     val CodecB = {
-      "1/4".parsed(CodecA) ++
-      "2/4".parsed(CodecA) ++
-      "3/4".parsed(option(CodecAA)) ++
+      "1/4".parsed(CodecA) ~
+      "2/4".parsed(CodecA) ~
+      "3/4".parsed(option(CodecAA)) ~
       "4/4".parsed(option(CodecAA))
     }.apply(B.apply)(B.unapply)
 
@@ -205,7 +206,7 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
 
     val codec = "root".parsed(
       {
-        ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply) ++
+        ConstCodec.from("test1", "test2", "test5", "test6")(String4.apply)(String4.unapply) ~
         option(ConstCodec.from("test3", "test4", "test7", "test8")(String4.apply)(String4.unapply))
       }.apply(String4_2.apply)(String4_2.unapply)
     )
@@ -245,9 +246,9 @@ class CBuildCompTest extends AsyncWordSpec with Matchers with Diagrams with Json
          |""".stripMargin
 
     val codec: Codec[(String, String, String, Option[String])] = {
-      ("root" @@ "test1").apply[String] ++
-      ("root" @@ "test2")[String] ++
-      ("root" @@ "test3")[String] ++
+      ("root" @@ "test1").apply[String] ~
+      ("root" @@ "test2")[String] ~
+      ("root" @@ "test3")[String] ~
       option(("root" @@ "test8")[String])
     }.apply((a, b, c, d) => (a, b, c, d))(x => Some(x))
 

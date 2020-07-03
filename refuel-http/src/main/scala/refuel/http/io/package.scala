@@ -1,7 +1,7 @@
 package refuel.http
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.HttpMethods
+import akka.http.scaladsl.model.{HttpMethods, StatusCode}
 import refuel.http.io.HttpMethod._
 import refuel.http.io.task.{CombineTask, HttpTask}
 

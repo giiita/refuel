@@ -1,10 +1,10 @@
 package refuel.http.io
 
-import refuel.injector.Injector
 import com.typesafe.scalalogging.Logger
+import refuel.injector.Injector
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 case class HttpRetryRevolver(maxRetry: Int) extends Injector {
 
@@ -22,7 +22,7 @@ case class HttpRetryRevolver(maxRetry: Int) extends Injector {
     func.recoverWith {
       case x if retry >= maxRetry =>
         logger.error(s"Request retry failed.", x)
-        throw x
+        Future.failed(HttpProcessingFailed(x))
       case x =>
         logger.warn(s"Request retry failed. ${x.getMessage}")
         revolving(retry + 1)(func)

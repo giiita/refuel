@@ -51,19 +51,28 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
 
   implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
-    /**
-      * Regist a type of returning deserialized json texts.
+    def pickup: HttpTask[HttpResponse] = {
+      value.recover {
+        case HttpRequestFailed(_, e) => e
+      }
+    }
+
+    /** Regist a type of returning deserialized json texts.
       *
       * @tparam X Deserialized type.
       * @return
       */
     def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
       asString(timeout)
-        .flatMap({ implicit as => res => res.as[X].fold(Future.failed, Future(_)(as.dispatcher)) }: ActorSystem => String => Future[X])
+        .flatMap({ implicit as => res =>
+            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
+          }: ActorSystem => String => Future[
+            X
+          ]
+        )
     }
 
-    /**
-      * Regist a type of returning deserialized json texts.
+    /** Regist a type of returning deserialized json texts.
       * There is a 3 second timeout to load all streams into memory.
       *
       * The current development progress does not support Streaming call.
@@ -71,13 +80,12 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       * @return
       */
     def asString(implicit timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
-      value.flatMap({ implicit as =>
-        res =>
-          res.entity
-            .toStrict(timeout)
-            .flatMap(
-              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-            )(as.dispatcher)
+      value.flatMap({ implicit as => res =>
+        res.entity
+          .toStrict(timeout)
+          .flatMap(
+            setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+          )(as.dispatcher)
       }: ActorSystem => HttpResponse => Future[String])
     }
   }
@@ -94,20 +102,28 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
     *     .run
     * }}}
     *
+    * All abnormal system statuses will be demoted to `HttpRequestFailed[HttpResponse]`.
+    * If the retry limit is exceeded and it continues to fail, HttpProcessingFailed[Throwable] will occur.
+    *
     * @param uri Request url
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method : MethodType](uri: Uri): HttpRunner[HttpResponse] = {
+  def http[T <: HttpMethod.Method: MethodType](uri: Uri): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
       ),
       new HttpResultExecution[HttpResponse] {
         def execute(request: HttpRequest)(implicit as: ActorSystem): Future[HttpResponse] =
-          HttpRetryRevolver(setting.retryThreshold).revolving() {
-            akka.http.scaladsl.Http().singleRequest(request)
-          }
+          HttpRetryRevolver(setting.retryThreshold)
+            .revolving() {
+              akka.http.scaladsl.Http().singleRequest(request)
+            }
+            .flatMap { res =>
+              if (res.status.isSuccess()) Future(res)(as.dispatcher)
+              else Future.failed(HttpRequestFailed(res.status, res))
+            }(as.dispatcher)
       }
     )
   }
