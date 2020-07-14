@@ -9,7 +9,7 @@ import refuel.injector.scope.{IndexedSymbol, TypedAcceptContext}
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
-private[refuel] trait Container {
+trait Container {
 
   private[refuel] val lights: Vector[Container]
 

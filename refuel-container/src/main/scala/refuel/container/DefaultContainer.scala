@@ -65,10 +65,6 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
       case None => None
       case Some(r) =>
-        val xx = r
-          .filter(x => x.c == this && x.accepted(requestFrom))
-          .toSeq
-          .sortBy(_.priority)(InjectionPriority.Order)
         r.filter(x => x.c == this && x.accepted(requestFrom))
           .toSeq
           .sortBy(_.priority)(InjectionPriority.Order)
