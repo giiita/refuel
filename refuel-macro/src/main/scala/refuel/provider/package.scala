@@ -1,5 +1,7 @@
 package refuel
 
+import refuel.container.Container
+
 import scala.language.implicitConversions
 
 package object provider {
@@ -13,7 +15,11 @@ package object provider {
     * @tparam X Variable type
     * @return
     */
-  implicit def _implicitProviding[X](variable: Lazy[X]): X = {
+  implicit def _implicitProviding[X](variable: Lazy[X])(implicit ctn: Container): X = {
+    variable._provide
+  }
+
+  implicit def _implicitNestedProviding[X](variable: Lazy[Lazy[X]])(implicit ctn: Container): X = {
     variable._provide
   }
 }

@@ -17,6 +17,8 @@ import refuel.json.Codec
   * }}}
   */
 private[json] object ConstCodec {
+  def pure[A, Z](apl: A => Z)(upl: Z => Option[A]): Codec[Z] = macro ConstructCodecFactory.fromConst0[A, Z]
+
   def from[A, Z](n1: JsonKeyRef)(apl: A => Z)(upl: Z => Option[A]): Codec[Z] =
     macro ConstructCodecFactory.fromConst1[A, Z]
 

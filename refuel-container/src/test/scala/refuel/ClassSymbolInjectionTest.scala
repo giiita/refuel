@@ -5,9 +5,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.container.anno.{Effective, RecognizedDynamicInjection}
 import refuel.domination.Inject
-import refuel.domination.InjectionPriority.Primary
+import refuel.domination.InjectionPriority.{Overwrite, Primary}
 import refuel.injector.{AutoInject, Injector}
 import refuel.internal.di.Effect
+import refuel.provider.Lazy
 
 object ClassSymbolInjectionTest {
 
@@ -210,7 +211,7 @@ object ClassSymbolInjectionTest {
 
     trait K
 
-    case class KImpl(vvv: String) extends K with AutoInject
+    case class KImpl() extends K with AutoInject
 
   }
 
@@ -231,6 +232,15 @@ object ClassSymbolInjectionTest {
 
     case class M() extends AutoInject
 
+  }
+
+  object TEST_N {
+    trait Inner extends AutoInject {
+      val value = 1
+    }
+    object InnerImpl            extends Inner
+    case class N1(inner: Inner) extends AutoInject
+    class N2(val n1: Lazy[N1])  extends AutoInject
   }
 
 }
@@ -277,6 +287,12 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       assertDoesNotCompile("inject[K]._provide")
     }
 
+    "Lazy primary constructor injection" in {
+      import refuel.ClassSymbolInjectionTest.TEST_K._
+      val k: K = inject[Lazy[K]]
+      k shouldBe KImpl()
+    }
+
     "If primary constructor has parameters, and bounds are specified, switched inject result." in {
       import refuel.ClassSymbolInjectionTest.TEST_L._
 
@@ -289,6 +305,25 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       import refuel.ClassSymbolInjectionTest.TEST_M._
 
       inject[M]._provide shouldBe M()
+    }
+
+    "Internal lazy injection" in {
+      import refuel.ClassSymbolInjectionTest.TEST_N._
+
+      val n2: N2 = inject[N2]
+      n2.n1.inner.value shouldBe 1
+
+      shade { implicit ctn =>
+        N1(
+          new Inner {
+            override val value = 2
+          }
+        ).index(Overwrite)
+        n2.n1
+        n2.n1.inner.value shouldBe 2
+      }
+
+      n2.n1.inner.value shouldBe 1
     }
   }
 

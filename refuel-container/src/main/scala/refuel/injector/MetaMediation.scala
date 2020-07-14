@@ -80,11 +80,10 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     *
     * The type information is resolved at compile time, but the injection object is finalized at runtime.
     *
-    * @param ctn    Container
     * @param access Accessor (This refers to itself)
     * @tparam T Injection type
     * @return
     */
-  protected def inject[T](implicit ctn: C, ip: InjectionPool, access: Accessor[_]): Lazy[T] =
+  protected def inject[T](implicit ip: InjectionPool, access: Accessor[_]): Lazy[T] =
     macro Macro.lazyInject[T]
 }

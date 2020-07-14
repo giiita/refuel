@@ -1,6 +1,5 @@
 package refuel.json.codecs.builder.context
 
-import refuel.internal.json.CaseCodecFactory
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
   IterableCodecTranslator,
@@ -34,5 +33,5 @@ trait CodecBuildFeature
   protected implicit def __deserializeToConst[T](v: Codec[T]): JsonVal => T = v.deserialize
   protected implicit def __deserializeToConst[T](v: Read[T]): JsonVal => T  = v.deserialize
 
-  protected implicit def __jsonBuildCriteria[V](v: V)(implicit c: Codec[V]): JsonVal = c.serialize(v)
+  protected implicit def as[V](v: V)(implicit c: Write[V]): JsonVal = c.serialize(v)
 }

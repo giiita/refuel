@@ -1,5 +1,7 @@
 package refuel.provider
 
+import refuel.container.Container
+
 trait Lazy[X] {
 
   /**
@@ -7,5 +9,5 @@ trait Lazy[X] {
     *
     * @return
     */
-  def _provide: X
+  def _provide(implicit ctn: Container): X
 }

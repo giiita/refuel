@@ -6,6 +6,16 @@ import refuel.json.{Codec, JsonVal}
 
 object JoinableCodec {
 
+  class T0[A, Z](apl: A => Z)(upl: Z => Option[A])(implicit n1: Codec[A]) extends Codec[Z] {
+    override def serialize(t: Z): JsonVal = upl(t).fold[JsonVal](JsNull) { x => n1.serialize(x) }
+
+    override def deserialize(bf: JsonVal): Z = {
+      apl(
+        n1.deserialize(bf)
+      )
+    }
+  }
+
   class T1[A, Z](s1: JsonKeyRef)(apl: A => Z)(upl: Z => Option[A])(implicit n1: Codec[A]) extends Codec[Z] {
     override def serialize(t: Z): JsonVal = upl(t).fold[JsonVal](JsNull) { x =>
       JsObject.fromEntry(

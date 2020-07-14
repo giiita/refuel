@@ -14,6 +14,14 @@ class ConstructCodecFactory(override val c: blackbox.Context)
 
   private[this] final val Codecs = q"refuel.json.codecs"
 
+  def fromConst0[A: c.WeakTypeTag, Z](apl: c.Expr[A => Z])(upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
+    c.Expr[Codec[Z]] {
+      q"""
+        new $Codecs.JoinableCodec.T0($apl)($upl)(${recall(weakTypeOf[A])})
+       """
+    }
+  }
+
   def fromConst1[A: c.WeakTypeTag, Z](
       n1: c.Expr[JsonKeyRef]
   )(apl: c.Expr[A => Z])(upl: c.Expr[Z => Option[A]]): c.Expr[Codec[Z]] = {
