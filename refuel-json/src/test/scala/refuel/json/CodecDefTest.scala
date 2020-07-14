@@ -6,6 +6,8 @@ import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.codecs.{Read, Write}
 import refuel.json.entry.JsString
 
+import refuel.json.codecs.AutoDerive._
+
 class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
   sealed abstract class Animal(name: String)
@@ -34,7 +36,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
       )
   }
 
-  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)
+  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer.deserialize)(animalSerializer.serialize)
 
   "Parsed by dynamic codec" should {
     "cat" in {
