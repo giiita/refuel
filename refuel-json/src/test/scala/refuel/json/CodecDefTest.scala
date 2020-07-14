@@ -34,7 +34,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
       )
   }
 
-  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)
+  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer.deserialize)(animalSerializer.serialize)
 
   "Parsed by dynamic codec" should {
     "cat" in {

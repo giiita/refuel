@@ -15,12 +15,12 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
   import c.universe._
 
-  def lazyInit[T: c.WeakTypeTag](ctn: Tree, ip: Tree, access: Tree): Expr[Lazy[T]] = {
-    val injectionRf = c.Expr[T](
+  def lazyInit[T: c.WeakTypeTag](ip: Tree, access: Tree): Expr[Lazy[T]] = {
+    val injectionRf = c.Expr[Container => T](
       q"""
-         ${injection[T](ctn, ip, access)} match {
+         (ctn: refuel.container.Container) => ${injection[T](q"ctn", ip, access)} match {
            case x: refuel.injector.Injector =>
-             x._cntMutation = $ctn
+             x._cntMutation = ctn
              x
            case x => x
          }
@@ -29,7 +29,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
     reify[Lazy[T]] {
       new Lazy[T] {
-        def _provide: T = injectionRf.splice
+        def _provide(implicit ctn: Container): T = injectionRf.splice.apply(ctn)
       }
     }
   }
