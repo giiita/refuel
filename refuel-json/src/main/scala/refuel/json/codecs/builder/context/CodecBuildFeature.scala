@@ -1,6 +1,6 @@
 package refuel.json.codecs.builder.context
 
-import refuel.json.JsonVal
+import refuel.json.{Codec, JsonVal}
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
   IterableCodecTranslator,
@@ -27,5 +27,6 @@ trait CodecBuildFeature
     */
   protected implicit def __jsonKeyLiteralBuild(v: String): NatureKeyRef = NatureKeyRef(v)
 
-  protected def as[V](v: V)(implicit c: Write[V]): JsonVal = AutoDerive.__as(v)
+  protected implicit def inferedAs[V](v: V)(implicit c: Codec[V]): JsonVal = as(v)
+  protected def as[V](v: V)(implicit c: Write[V]): JsonVal                 = AutoDerive.__as(v)
 }
