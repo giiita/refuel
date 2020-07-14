@@ -15,7 +15,14 @@ class Macro(val c: blackbox.Context) {
     if (prType.<:<(weakTypeOf[Lazy[_]])) {
       reify[Lazy[T]] {
         new Lazy[T] {
-          def _provide(implicit ctn: Container): T = c.Expr[T](q"inject[${prType.dealias.typeArgs.head}]").splice
+          def _provide(implicit ctn: Container): T = c.Expr[T](q"""
+               inject[${prType.dealias.typeArgs.head}] match {
+                 case x: refuel.injector.Injector =>
+                   x._cntMutation = ctn
+                   x
+                 case x => x
+               }
+               """).splice
         }
       }
     } else {
