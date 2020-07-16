@@ -4,13 +4,64 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
+import akka.util.ByteString
+import refuel.http.io.setting.HttpSetting
 import refuel.http.io.task.execution.HttpResultExecution
 import refuel.http.io.task.{CombineTask, HttpTask}
 import refuel.json.JsonTransform
-import refuel.json.codecs.Write
+import refuel.json.codecs.{Read, Write}
 
 import scala.concurrent.Future
+
+object HttpRunner {
+
+  import scala.concurrent.duration._
+
+  implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) extends JsonTransform {
+
+    def pickup: HttpTask[HttpResponse] = {
+      value.recover {
+        case HttpRequestFailed(_, e) => e
+      }
+    }
+
+    /** Regist a type of returning deserialized json texts.
+      *
+      * @tparam X Deserialized type.
+      * @return
+      */
+    def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
+      asString
+        .flatMap({ implicit as =>
+          res =>
+            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
+        }: ActorSystem => String => Future[
+          X
+        ]
+        )
+    }
+
+    /** Regist a type of returning deserialized json texts.
+      * There is a 3 second timeout to load all streams into memory.
+      *
+      * The current development progress does not support Streaming call.
+      *
+      * @return
+      */
+    def asString(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
+      value.flatMap({ implicit as =>
+        res =>
+          res.entity
+            .toStrict(timeout)
+            .flatMap(
+              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+            )(as.dispatcher)
+      }: ActorSystem => HttpResponse => Future[String])
+    }
+  }
+
+}
 
 sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) extends JsonTransform with HttpTask[T] {
   me =>
@@ -130,9 +181,11 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) e
     override def run(implicit as: ActorSystem): Future[R] =
       me.run.recoverWith[R](f.andThen(x => Future.apply(x)(as.dispatcher)))(as.dispatcher)
   }
+
   override def recoverWith[R >: T](f: PartialFunction[Throwable, HttpTask[R]]): HttpTask[R] = new CombineTask[R] {
     override def run(implicit as: ActorSystem): Future[R] = me.run.recoverWith[R](f.andThen(_.run))(as.dispatcher)
   }
+
   override def recoverF[R >: T](f: PartialFunction[Throwable, Future[R]]): HttpTask[R] = new CombineTask[R] {
     override def run(implicit as: ActorSystem): Future[R] = me.run.recoverWith[R](f)(as.dispatcher)
   }

@@ -3,6 +3,7 @@ package refuel.http.io
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.util.ByteString
+import refuel.container.Container
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.http.io.setting.HttpSetting
@@ -12,6 +13,7 @@ import refuel.http.io.task.execution.HttpResultExecution
 import refuel.injector.{AutoInject, Injector}
 import refuel.json.JsonTransform
 import refuel.json.codecs.Read
+import refuel.provider.Lazy
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -19,8 +21,27 @@ import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
 @Inject(Finally)
-object Http extends Http(new RecoveredHttpSetting) {
+object Http extends Http(new Lazy[HttpSetting] {
+  override def _provide(implicit ctn: Container): HttpSetting = new RecoveredHttpSetting
+}) {
 
+}
+
+/** {{{
+  * class MyRepository(http: Http) extends AutoInject {
+  *   import http._
+  *
+  *   http[GET]("http://???")
+  *     .asString.run
+  * }
+  * }}}
+  */
+@Inject(Finally)
+class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform with AutoInject {
+
+  implicit def __setting: HttpSetting = setting
+
+  implicit def toUri(uri: String): Uri = Uri(uri)
 
   implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
@@ -37,8 +58,9 @@ object Http extends Http(new RecoveredHttpSetting) {
       */
     def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
       asString(timeout)
-        .flatMap({ implicit as => res =>
-          res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
+        .flatMap({ implicit as =>
+          res =>
+            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
         }: ActorSystem => String => Future[
           X
         ]
@@ -53,30 +75,16 @@ object Http extends Http(new RecoveredHttpSetting) {
       * @return
       */
     def asString(implicit timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
-      value.flatMap({ implicit as => res =>
-        res.entity
-          .toStrict(timeout)
-          .flatMap(
-            setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-          )(as.dispatcher)
+      value.flatMap({ implicit as =>
+        res =>
+          res.entity
+            .toStrict(timeout)
+            .flatMap(
+              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+            )(as.dispatcher)
       }: ActorSystem => HttpResponse => Future[String])
     }
   }
-}
-
-/** {{{
-  * class MyRepository(http: Http) extends AutoInject {
-  *   import http._
-  *
-  *   http[GET]("http://???")
-  *     .asString.run
-  * }
-  * }}}
-  */
-@Inject(Finally)
-class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
-
-  implicit def toUri(uri: String): Uri = Uri(uri)
 
   /**
     * Create a http request task.
@@ -97,7 +105,7 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method: MethodType](uri: Uri): HttpRunner[HttpResponse] = {
+  def http[T <: HttpMethod.Method : MethodType](uri: Uri): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
