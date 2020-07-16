@@ -26,6 +26,4 @@ trait CodecBuildFeature
     * @return
     */
   protected implicit def __jsonKeyLiteralBuild(v: String): NatureKeyRef = NatureKeyRef(v)
-
-  protected implicit def __inferedAsWrite[V, C <: Write[V]](v: V)(implicit c: C): JsonVal = AutoDerive.__as(v)
 }

@@ -1,6 +1,6 @@
 package refuel.json
 
-import refuel.json.codecs.Read
+import refuel.json.codecs.{Read, Write}
 
 trait JsonVal extends Serializable {
 
@@ -63,4 +63,8 @@ trait JsonVal extends Serializable {
     * @return
     */
   def isSquashable: Boolean = false
+}
+
+object JsonVal {
+  implicit def __inferedAsWrite[V](v: V)(implicit c: Write[V]): JsonVal = c.serialize(v)
 }

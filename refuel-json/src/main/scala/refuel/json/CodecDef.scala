@@ -12,6 +12,7 @@ import refuel.json.codecs.builder.context.CodecBuildFeature
   * - Format(constructor)(constructor)
   *
   * - CaseClassCodec.from[T]
+  * - ConstCodec.pure(apply)(unapply)
   * - ConstCodec.from(jsonkeyName...)(apply)(unapply)
   *
   * - tuple(codec)
@@ -23,5 +24,5 @@ import refuel.json.codecs.builder.context.CodecBuildFeature
   */
 trait CodecDef extends All with CodecBuildFeature {
   protected final val CaseClassCodec = refuel.json.codecs.factory.CaseClassCodec
-  protected final val ConstCodec     = refuel.json.codecs.factory.ConstCodec
+  protected final val ConstCodec = refuel.json.codecs.factory.ConstCodec
 }

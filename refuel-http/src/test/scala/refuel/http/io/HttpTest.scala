@@ -74,7 +74,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         .map(_ => fail("Can not succeed"))
         .recover {
           case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
-          case e                                                       => fail(e)
+          case e => fail(e)
         }
     }
     "ConnectException" in {
@@ -84,7 +84,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         .map(_ => fail("Can not succeed"))
         .recover {
           case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
-          case e                                                       => fail(e)
+          case e => fail(e)
         }
     }
 
@@ -92,7 +92,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
       http[GET]("http://localhost:3289/notfound").pickup.run
         .map {
           case HttpResponse(StatusCodes.NotFound, _, _, _) => succeed
-          case _                                           => fail()
+          case _ => fail()
         }
         .recover {
           case e => fail(e)

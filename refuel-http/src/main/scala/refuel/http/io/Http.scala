@@ -19,35 +19,8 @@ import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
 @Inject(Finally)
-object Http extends Http(new RecoveredHttpSetting)
+object Http extends Http(new RecoveredHttpSetting) {
 
-/** {{{
-  * class MyRepository(http: Http) extends AutoInject {
-  *   import http._
-  *
-  *   http[GET]("http://???")
-  *     .asString.run
-  * }
-  * }}}
-  */
-@Inject(Finally)
-class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
-
-  implicit def toUri(uri: String): Uri = Uri(uri)
-
-  private lazy final val URL_PARAM_FORMAT = "%s=%s"
-
-  implicit class UrlParameters(value: Map[String, Any]) {
-
-    /**
-      * Convert to get request string.
-      *
-      * @return "x=y&a=b&1=2"
-      */
-    def asUrl: String = {
-      value.toSeq.map { x => URL_PARAM_FORMAT.format(x._1, x._2.toString) }.mkString("&")
-    }
-  }
 
   implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
 
@@ -65,10 +38,10 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
     def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
       asString(timeout)
         .flatMap({ implicit as => res =>
-            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
-          }: ActorSystem => String => Future[
-            X
-          ]
+          res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
+        }: ActorSystem => String => Future[
+          X
+        ]
         )
     }
 
@@ -89,6 +62,21 @@ class Http(val setting: HttpSetting) extends Injector with JsonTransform with Au
       }: ActorSystem => HttpResponse => Future[String])
     }
   }
+}
+
+/** {{{
+  * class MyRepository(http: Http) extends AutoInject {
+  *   import http._
+  *
+  *   http[GET]("http://???")
+  *     .asString.run
+  * }
+  * }}}
+  */
+@Inject(Finally)
+class Http(val setting: HttpSetting) extends Injector with JsonTransform with AutoInject {
+
+  implicit def toUri(uri: String): Uri = Uri(uri)
 
   /**
     * Create a http request task.
