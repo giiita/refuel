@@ -7,7 +7,7 @@ import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
 import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, Jokes}
 import refuel.injector.Injector
-import refuel.json.CodecDef
+import refuel.json.{Codec, CodecDef}
 
 object HttpTest extends Injector {
 
@@ -32,8 +32,9 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
   "Http io test" should {
 
     "inner class can not deserialize" in {
+      implicit val codec: Codec[InnerJokeBody] = CaseClassCodec.from[InnerJokeBody]
       http[GET]("http://localhost:3289/endpoint")
-        .as[InnerJokeBody](CaseClassCodec.from)
+        .as[InnerJokeBody]
         .map(_.joke)
         .run
         .map(x => fail(x))
@@ -42,8 +43,9 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
         }
     }
     "deserializing" in {
+      implicit val codec: Codec[Jokes] = CaseClassCodec.from[Jokes]
       http[GET]("http://localhost:3289/endpoint")
-        .as[Jokes](CaseClassCodec.from)
+        .as[Jokes]
         .map { x => x.value.joke }
         .run
         .map { result =>

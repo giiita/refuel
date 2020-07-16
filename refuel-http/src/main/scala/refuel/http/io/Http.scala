@@ -43,49 +43,6 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
 
   implicit def toUri(uri: String): Uri = Uri(uri)
 
-  implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) {
-
-    def pickup: HttpTask[HttpResponse] = {
-      value.recover {
-        case HttpRequestFailed(_, e) => e
-      }
-    }
-
-    /** Regist a type of returning deserialized json texts.
-      *
-      * @tparam X Deserialized type.
-      * @return
-      */
-    def as[X: Read](implicit timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
-      asString(timeout)
-        .flatMap({ implicit as =>
-          res =>
-            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
-        }: ActorSystem => String => Future[
-          X
-        ]
-        )
-    }
-
-    /** Regist a type of returning deserialized json texts.
-      * There is a 3 second timeout to load all streams into memory.
-      *
-      * The current development progress does not support Streaming call.
-      *
-      * @return
-      */
-    def asString(implicit timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
-      value.flatMap({ implicit as =>
-        res =>
-          res.entity
-            .toStrict(timeout)
-            .flatMap(
-              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-            )(as.dispatcher)
-      }: ActorSystem => HttpResponse => Future[String])
-    }
-  }
-
   /**
     * Create a http request task.
     * {{{
