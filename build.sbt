@@ -2,7 +2,7 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq("2.12.11", "2.13.2")
+crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.3")
 
 lazy val assemblySettings = Seq(
   sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
