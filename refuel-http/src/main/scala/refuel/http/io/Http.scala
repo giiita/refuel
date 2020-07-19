@@ -2,30 +2,25 @@ package refuel.http.io
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
-import akka.util.ByteString
 import refuel.container.Container
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.http.io.setting.HttpSetting
 import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
-import refuel.http.io.task.HttpTask
 import refuel.http.io.task.execution.HttpResultExecution
 import refuel.injector.{AutoInject, Injector}
 import refuel.json.JsonTransform
-import refuel.json.codecs.Read
 import refuel.provider.Lazy
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
 @Inject(Finally)
-object Http extends Http(new Lazy[HttpSetting] {
-  override def _provide(implicit ctn: Container): HttpSetting = new RecoveredHttpSetting
-}) {
-
-}
+object Http
+    extends Http(new Lazy[HttpSetting] {
+      override def _provide(implicit ctn: Container): HttpSetting = new RecoveredHttpSetting
+    }) {}
 
 /** {{{
   * class MyRepository(http: Http) extends AutoInject {
@@ -62,7 +57,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
     * @tparam T Request method type. See [[refuel.http.io.HttpMethod]]
     * @return
     */
-  def http[T <: HttpMethod.Method : MethodType](uri: Uri): HttpRunner[HttpResponse] = {
+  def http[T <: HttpMethod.Method: MethodType](uri: Uri): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
       setting.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
@@ -75,7 +70,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
             }
             .flatMap { res =>
               if (res.status.isSuccess()) Future(res)(as.dispatcher)
-              else Future.failed(HttpRequestFailed(res.status, res))
+              else Future.failed(HttpErrorRaw(res))
             }(as.dispatcher)
       }
     )

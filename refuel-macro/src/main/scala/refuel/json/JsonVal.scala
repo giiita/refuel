@@ -4,6 +4,14 @@ import refuel.json.codecs.{Read, Write}
 
 trait JsonVal extends Serializable {
 
+  private[refuel] def pure: String = toString
+
+  override def toString: String = {
+    val buf = new StringBuffer()
+    pour(buf)
+    buf.toString
+  }
+
   /**
     * Detects hooked binding syntax of Json literal.
     * This detects syntax errors when joining Json objects.
@@ -66,5 +74,5 @@ trait JsonVal extends Serializable {
 }
 
 object JsonVal {
-  implicit def __inferedAsWrite[V](v: V)(implicit c: Write[V]): JsonVal = c.serialize(v)
+  implicit def __inferredAsWrite[V](v: V)(implicit c: Write[V]): JsonVal = c.serialize(v)
 }

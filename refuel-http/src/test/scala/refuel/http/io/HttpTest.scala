@@ -1,8 +1,10 @@
 package refuel.http.io
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import org.scalatest._
+import org.scalatest
+import org.scalatest.diagrams.Diagrams
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
 import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, Jokes}
@@ -25,7 +27,7 @@ object HttpTest extends Injector {
 
 }
 
-class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions with Injector with CodecDef {
+class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector with CodecDef {
 
   implicit val as: ActorSystem = ActorSystem().index()
 
@@ -33,7 +35,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
 
     "inner class can not deserialize" in {
       implicit val codec: Codec[InnerJokeBody] = CaseClassCodec.from[InnerJokeBody]
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3289/success")
         .as[InnerJokeBody]
         .map(_.joke)
         .run
@@ -44,60 +46,49 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     }
     "deserializing" in {
       implicit val codec: Codec[Jokes] = CaseClassCodec.from[Jokes]
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3289/success")
         .as[Jokes]
         .map { x => x.value.joke }
         .run
-        .map { result =>
-          println(s"Get joke is [ $result ]")
-          result.length > 0 shouldBe true
-        }
+        .map { result => result.length > 0 shouldBe true }
     }
     "undeserializing" in {
-      http[GET]("http://localhost:3289/endpoint")
+      http[GET]("http://localhost:3289/success")
         .map { x => s"Got it [ $x ]" }
         .run
-        .map { result =>
-          println(result)
-          result.length > 0 shouldBe true
+        .map { result => result.length > 0 shouldBe true }
+    }
+    "Failure deserialize" in {
+      implicit val codec: Codec[Jokes] = CaseClassCodec.from[Jokes]
+      http[GET]("http://localhost:3289/failed")
+        .transform[Jokes, Jokes]
+        .map[scalatest.Assertion](_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case HttpResponseError(e: Jokes, _) => {
+            e.status shouldBe "failed"
+            e.value.id shouldBe 90
+          }
         }
     }
     "asString" in {
-      http[GET]("http://localhost:3289/endpoint").asString.run
-        .map { result =>
-          println(result)
-          result.length > 0 shouldBe true
-        }
+      http[GET]("http://localhost:3289/success").asString.run
+        .map { result => result.length > 0 shouldBe true }
     }
     "UnknownHostException" in {
-      println("RUN 5")
-
       http[GET]("http://aaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
-          case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
-          case e => fail(e)
+          case _: akka.stream.StreamTcpException => succeed
+          case e                                 => fail(e)
         }
     }
     "ConnectException" in {
-
-      println("RUN 6")
       http[GET]("http://localhost/bbbbbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccccccccc").asString.run
         .map(_ => fail("Can not succeed"))
         .recover {
-          case HttpProcessingFailed(_: akka.stream.StreamTcpException) => succeed
-          case e => fail(e)
-        }
-    }
-
-    "Pickup client error" in {
-      http[GET]("http://localhost:3289/notfound").pickup.run
-        .map {
-          case HttpResponse(StatusCodes.NotFound, _, _, _) => succeed
-          case _ => fail()
-        }
-        .recover {
-          case e => fail(e)
+          case _: akka.stream.StreamTcpException => succeed
+          case e                                 => fail(e)
         }
     }
 
@@ -116,7 +107,7 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     "recover with" in {
       http[GET]("http://localhost:3289/notfound").asString
         .recoverWith[String] {
-          case _ => http[GET]("http://localhost:3289/endpoint").asString
+          case _ => http[GET]("http://localhost:3289/success").asString
         }
         .run
         .map(_ => succeed)
@@ -128,12 +119,12 @@ class HttpTest extends AsyncWordSpec with Matchers with DiagrammedAssertions wit
     "recover Future" in {
       http[GET]("http://localhost:3289/notfound").asString
         .recoverF[String] {
-          case _ => http[GET]("http://localhost:3289/endpoint").asString.run
+          case _ => http[GET]("http://localhost:3289/success").asString.run
         }
         .run
         .map(_ => succeed)
         .recover {
-          case e => fail()
+          case _ => fail()
         }
     }
   }

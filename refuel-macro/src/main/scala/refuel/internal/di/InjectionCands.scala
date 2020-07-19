@@ -13,31 +13,36 @@ sealed abstract class InjectionCands[C <: blackbox.Context](val c: C)(val cands:
   private[this] type DepWithPriority = (C#Expr[InjectionPriority], C#Symbol)
 
   def rankingEvaluation: (c.Expr[InjectionPriority], Seq[C#Symbol]) = {
-    cands
-      .map { sm =>
-        val ip = sm.annotations
-          .find(_.tree.tpe =:= InjectionPriorityConfigType)
-          .flatMap(_.tree.children.tail.headOption)
-          .fold[c.Expr[InjectionPriority]](
-            c.Expr[InjectionPriority](c.parse("refuel.domination.InjectionPriority.Default"))
-          ) {
-            case x if x.symbol.isModule =>
-              c.Expr[InjectionPriority](c.parse(x.symbol.fullName))
-            case _ =>
-              c.abort(
-                c.enclosingPosition,
-                s"The injection priority setting must be a static module. From [ ${sm.fullName} ]"
-              )
+    cands match {
+      case _c if _c.size == 1 => c.universe.reify[InjectionPriority](Default) -> _c
+      case _ =>
+        cands
+          .map { sm =>
+            val ip = sm.annotations
+              .find(_.tree.tpe =:= InjectionPriorityConfigType)
+              .flatMap(_.tree.children.tail.headOption)
+              .fold[c.Expr[InjectionPriority]](
+                c.Expr[InjectionPriority](c.parse("refuel.domination.InjectionPriority.Default"))
+              ) {
+                case x if x.symbol.isModule =>
+                  c.Expr[InjectionPriority](c.parse(x.symbol.fullName))
+                case _ =>
+                  c.abort(
+                    c.enclosingPosition,
+                    s"The injection priority setting must be a static module. From [ ${sm.fullName} ]"
+                  )
+              }
+            ip -> sm
           }
-        ip -> sm
-      }
-      .groupBy(x => c.eval(x._1))
-      .toSeq
-      .minBy(_._1)(InjectionPriority.Order)
-      ._2
-  }.toList match {
-    case x if x.isEmpty => c.universe.reify(Default) -> x.map(_._2)
-    case all @ x :: _   => x._1                      -> all.map(_._2)
+          .groupBy(x => c.eval(x._1))
+          .toSeq
+          .minBy(_._1)(InjectionPriority.Order)
+          ._2
+          .toList match {
+          case x if x.isEmpty => c.universe.reify(Default) -> x.map(_._2)
+          case all @ x :: _   => x._1                      -> all.map(_._2)
+        }
+    }
   }
 }
 

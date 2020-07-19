@@ -37,7 +37,7 @@ install_json_server() {
 
 run_jsonserver() {
   echo "STARTING JSON SERVER"
-  json-server --p 3289 --watch ${script}/mock-response.json &
+  node ${script}/server.js &
   sleep 5
 }
 

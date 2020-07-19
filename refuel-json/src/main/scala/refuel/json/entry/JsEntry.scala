@@ -11,6 +11,8 @@ import refuel.json.error.UnsupportedOperation
   */
 case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
 
+  override def toString: String = JsObject.fromEntry(this).toString
+
   private[refuel] def asTuple: (JsString, JsonVal) = key -> value
 
   /**
@@ -45,9 +47,11 @@ case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
     * Get a json value with a specific json key from the json object.
     * JsNull may change if that key doesn't exist.
     *
-    * @param key Target json key name
+    * @param _key Target json key name
     * @return
     */
-  override def named(key: String): JsonVal =
-    throw UnsupportedOperation("Operations other than composition are not allowed for incomplete Json entries.")
+  override def named(_key: String): JsonVal =
+    if (key.pure == _key) {
+      value
+    } else JsNull
 }

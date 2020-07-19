@@ -21,7 +21,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
     }
   }
 
-  def animalSerializer: Write[Animal] = Serialize {
+  implicit def animalSerializer: Write[Animal] = Serialize {
     case Cat(a, b) =>
       Json.obj(
         "name"  -> a,
@@ -32,6 +32,14 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
         "name"  -> a,
         "filet" -> b
       )
+  }
+
+  // Auto complete compile test
+  {
+    Json.obj(
+      "boo" -> (Cat("tama"): Animal)
+    )
+    Cat("tama").to(CaseClassCodec.from[Cat])
   }
 
   implicit def animalCodec: Codec[Animal] = Format(animalDeserializer.deserialize)(animalSerializer.serialize)
