@@ -2,8 +2,8 @@
 
 echo "Shutting down json server..."
 
-ps -ef | grep "json-server"
+ps -ef | grep "server.js"
 
-if test `ps -ef | grep "json-server" | wc -l` -ne 0; then
-  ps -ef | grep "json-server" | grep -v "grep" | awk '{print $2}' | xargs kill
+if test `ps -ef | grep "server.js" | wc -l` -ne 0; then
+  ps -ef | grep "server.js" | grep -v "grep" | awk '{print $2}' | xargs kill
 fi

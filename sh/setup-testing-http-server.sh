@@ -30,6 +30,7 @@ install_npm() {
 
 install_json_server() {
   if test `npm ls -g --depth=0 | grep json-server | wc -l` -eq 0; then
+    cd $script
     echo "JSON-SERVER installing"
     npm install json-server --save-dev
   fi
