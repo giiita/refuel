@@ -9,6 +9,11 @@ import refuel.json.{Codec, CodecDef, JsonTransform}
 
 class ConstCodecTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Construct based codec inspection" should {
+    "pure" in {
+      s""" "foo" """.stripMargin.as(
+        ConstCodec.pure(Const1.apply)(Const1.unapply)
+      ) shouldBe Right(Const1("foo"))
+    }
     "construnct codec with AnyVal" in {
       s"""{"value":100}""".as(
         ConstCodec.from[Long, JLong]("value")(JLong.apply)(JLong.unapply)

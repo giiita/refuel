@@ -18,11 +18,29 @@ object HttpRunner {
 
   import scala.concurrent.duration._
 
-  implicit class HttpResponseStream(value: HttpRunner[HttpResponse]) extends JsonTransform {
+  private[refuel] implicit def __asString(
+      res: HttpResponse
+  )(implicit as: ActorSystem, setting: HttpSetting, timeout: FiniteDuration = 30.seconds): Future[String] =
+    res.entity
+      .toStrict(timeout)
+      .flatMap(
+        setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+      )(as.dispatcher)
 
-    def pickup: HttpTask[HttpResponse] = {
-      value.recover {
-        case HttpRequestFailed(_, e) => e
+  implicit class HttpResponseStream(value: HttpTask[HttpResponse]) extends JsonTransform {
+
+    def transform[T: Read, E: Read](
+        implicit setting: HttpSetting,
+        timeout: FiniteDuration = 30.seconds
+    ): HttpTask[T] = {
+      as[T].recoverWith[T] {
+        case HttpErrorRaw(res) =>
+          new CombineTask[T] {
+            override def run(implicit as: ActorSystem): Future[T] =
+              __asString(res).flatMap { x =>
+                Future.failed[T](x.as[E].fold[Throwable](x => x, x => HttpResponseError(x, res)))
+              }(as.dispatcher)
+          }
       }
     }
 
@@ -33,12 +51,9 @@ object HttpRunner {
       */
     def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
       asString
-        .flatMap({ implicit as =>
-          res =>
-            res.as[X].fold(x => Future.failed(HttpProcessingFailed(x)), Future(_)(as.dispatcher))
-        }: ActorSystem => String => Future[
-          X
-        ]
+        .flatMap({ implicit as => res => res.as[X].fold(x => Future.failed(x), Future(_)(as.dispatcher)) }: ActorSystem => String => Future[
+            X
+          ]
         )
     }
 
@@ -50,14 +65,7 @@ object HttpRunner {
       * @return
       */
     def asString(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
-      value.flatMap({ implicit as =>
-        res =>
-          res.entity
-            .toStrict(timeout)
-            .flatMap(
-              setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-            )(as.dispatcher)
-      }: ActorSystem => HttpResponse => Future[String])
+      value.flatMap({ implicit as => __asString(_) }: ActorSystem => HttpResponse => Future[String])
     }
   }
 
@@ -155,6 +163,17 @@ sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) e
     */
   def map[R](func: T => R): HttpTask[R] = new CombineTask[R] {
     override def run(implicit as: ActorSystem): Future[R] = me.run.map(func)(as.dispatcher)
+  }
+
+  /**
+    * To synthesize.
+    *
+    * @param func Synthesis processing.
+    * @tparam R Synthesize return type.
+    * @return
+    */
+  def mapF[R](func: T => Future[R]): HttpTask[R] = new CombineTask[R] {
+    override def run(implicit as: ActorSystem): Future[R] = me.run.flatMap(func)(as.dispatcher)
   }
 
   /**

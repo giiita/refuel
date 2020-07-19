@@ -4,7 +4,7 @@ import refuel.json.JsonVal
 import refuel.json.error.IllegalJsonSyntaxTreeBuilding
 
 case class JsAnyVal private[entry] (literal: String) extends JsVariable {
-  override def toString: String = literal.trim
+  override def pure: String = literal
 
   override def pour(sb: StringBuffer): Unit = sb.append(literal.trim)
 

@@ -4,20 +4,6 @@ import refuel.json.JsonVal
 import refuel.json.error.{IllegalJsonSyntaxTreeBuilding, UnsupportedOperation}
 
 case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVariable {
-  override def toString: String = {
-    var unempty = false
-    val b       = new StringBuffer()
-    b.append('{')
-    bf.foreach { x =>
-      if (unempty) b.append(", ")
-      b.append(x._1)
-      b.append(" -> ")
-      b.append(x._2)
-      if (!unempty) unempty = true
-    }
-    b.append('}')
-    b.toString
-  }
 
   def pour(b: StringBuffer): Unit = {
     var unempty = false
@@ -46,7 +32,7 @@ case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVari
 
   override def named(key: String): JsonVal = {
     bf.collectFirst {
-      case (k, v) if k.toString == key => v
+      case (k, v) if k.pure == key => v
     } getOrElse JsNull
   }
 

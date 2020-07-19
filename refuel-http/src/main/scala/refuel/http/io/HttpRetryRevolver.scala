@@ -22,7 +22,7 @@ case class HttpRetryRevolver(maxRetry: Int) extends Injector {
     func.recoverWith {
       case x if retry >= maxRetry =>
         logger.error(s"Request retry failed.", x)
-        Future.failed(HttpProcessingFailed(x))
+        Future.failed(x)
       case x =>
         logger.warn(s"Request retry failed. ${x.getMessage}")
         revolving(retry + 1)(func)

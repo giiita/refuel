@@ -3,12 +3,6 @@ package refuel.json.entry
 import refuel.json.JsonVal
 
 case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
-  override def toString: String = {
-    val x = new StringBuffer()
-    pour(x)
-    x.toString
-  }
-
   override def pour(sb: StringBuffer): Unit = {
     var unempty = false
     sb.append('[')
@@ -23,6 +17,8 @@ case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
   def ++(js: JsonVal): JsonVal = {
     if (js == null) this else JsArray(bf :+ js)
   }
+
+  override def named(key: String): JsonVal = copy(bf.map(_.named(key)))
 
   override def prettyprint: String = s"[\n${bf.map(x => s"  $x").mkString(",\n")}\n]"
 }

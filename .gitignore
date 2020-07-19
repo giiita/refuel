@@ -2,3 +2,5 @@
 project/target
 project/project
 target
+node_modules
+package-lock.json

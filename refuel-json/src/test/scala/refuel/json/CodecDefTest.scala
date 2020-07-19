@@ -21,7 +21,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
     }
   }
 
-  def animalSerializer: Write[Animal] = Serialize {
+  implicit def animalSerializer: Write[Animal] = Serialize {
     case Cat(a, b) =>
       Json.obj(
         "name"  -> a,
@@ -34,9 +34,32 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
       )
   }
 
+  // Auto complete compile test
+  {
+    Json.obj(
+      "boo" -> (Cat("tama"): Animal)
+    )
+    Cat("tama").to(CaseClassCodec.from[Cat])
+  }
+
   implicit def animalCodec: Codec[Animal] = Format(animalDeserializer.deserialize)(animalSerializer.serialize)
 
   "Parsed by dynamic codec" should {
+    "JsArray dig" in {
+      val json = s"""{
+                    | "entries": [
+                    |    {
+                    |      "id": "aaa",
+                    |      "value": "foo"
+                    |    },
+                    |    {
+                    |      "id": "bbb",
+                    |      "value": "bar"
+                    |    }
+                    |  ]
+                    |}""".stripMargin.jsonTree
+      ("entries" @@ "id").dig(json).to[Seq[String]] shouldBe Seq("aaa", "bbb")
+    }
     "cat" in {
       val input = Cat("cat", 10)
       input.toJString(animalCodec).as[Animal] shouldBe Right(input)

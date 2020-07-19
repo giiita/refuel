@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 
 case class JsString(literal: String) extends JsVariable {
 
-  override def toString: String = literal
+  override def pure: String = literal
 
   def pour(b: StringBuffer): Unit = {
     b.append('"')
