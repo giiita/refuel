@@ -16,8 +16,8 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
 
   def animalDeserializer: Read[Animal] = Deserialize { json =>
     json.named("name") match {
-      case JsString("cat")   => Cat("cat", json.named("beard").to[Int])
-      case JsString("shark") => Shark("shark", json.named("filet").to[Int])
+      case JsString("cat")   => Cat("cat", json.named("beard").des[Int])
+      case JsString("shark") => Shark("shark", json.named("filet").des[Int])
     }
   }
 
@@ -39,7 +39,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
     Json.obj(
       "boo" -> (Cat("tama"): Animal)
     )
-    Cat("tama").to(CaseClassCodec.from[Cat])
+    Cat("tama").ser(CaseClassCodec.from[Cat])
   }
 
   implicit def animalCodec: Codec[Animal] = Format(animalDeserializer.deserialize)(animalSerializer.serialize)
@@ -58,7 +58,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
                     |    }
                     |  ]
                     |}""".stripMargin.jsonTree
-      ("entries" @@ "id").dig(json).to[Seq[String]] shouldBe Seq("aaa", "bbb")
+      ("entries" @@ "id").dig(json).des[Seq[String]] shouldBe Seq("aaa", "bbb")
     }
     "cat" in {
       val input = Cat("cat", 10)

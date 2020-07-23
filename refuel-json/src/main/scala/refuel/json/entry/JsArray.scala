@@ -15,7 +15,13 @@ case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
   }
 
   def ++(js: JsonVal): JsonVal = {
-    if (js == null) this else JsArray(bf :+ js)
+    if (js == null) this
+    else {
+      js match {
+        case JsArray(x) => JsArray(bf ++ x)
+        case _          => JsArray(bf :+ js)
+      }
+    }
   }
 
   override def named(key: String): JsonVal = copy(bf.map(_.named(key)))

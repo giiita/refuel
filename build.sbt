@@ -153,6 +153,8 @@ lazy val http = (project in file("refuel-http"))
         "com.typesafe.akka" %% "akka-stream" % "2.6.4"   % Provided,
         "com.typesafe.akka" %% "akka-http"   % "10.1.11" % Provided
       ),
+    fork in Test := true,
+    parallelExecution in Test := false,
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
     testOptions in Test ++= Seq(
         Tests.Setup { _ =>

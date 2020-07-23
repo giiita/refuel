@@ -1,7 +1,7 @@
 package refuel.json
 
 import refuel.json.codecs.All
-import refuel.json.codecs.builder.context.CodecBuildFeature
+import refuel.json.codecs.builder.context.{CodecBuildFeature, CodecDefinitionContext}
 
 /**
   * Every interface for defining codecs is defined.
@@ -24,5 +24,6 @@ import refuel.json.codecs.builder.context.CodecBuildFeature
   */
 trait CodecDef extends All with CodecBuildFeature {
   protected final val CaseClassCodec = refuel.json.codecs.factory.CaseClassCodec
-  protected final val ConstCodec = refuel.json.codecs.factory.ConstCodec
+  protected final val ConstCodec     = refuel.json.codecs.factory.ConstCodec
 }
+object CodecDef extends CodecDefinitionContext

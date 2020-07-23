@@ -76,7 +76,7 @@ trait JsonTransform {
   protected implicit class JDescribe(t: String) {
     def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] =
       Try {
-        jsonTree.to[E]
+        jsonTree.des[E]
       }.toEither.left.map(DeserializeFailPropagation("Internal structure analysis raised an exception.", _))
 
     def jsonTree: JsonVal = new JsonTransformRouter(t).jsonTree

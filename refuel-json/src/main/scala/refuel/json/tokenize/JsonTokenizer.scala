@@ -91,8 +91,8 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
       case _ =>
         val len = detectAnyVal(0)
         if (closingSyntaxCheckEnable) {
-          loop(rb ++ JsAnyVal(new String(chbuff, 0, len)))
-        } else JsAnyVal(new String(chbuff, 0, len))
+          loop(rb ++ JsAnyVal.apply[String](new String(chbuff, 0, len)))
+        } else JsAnyVal.apply[String](new String(chbuff, 0, len))
     }
   }
 }
