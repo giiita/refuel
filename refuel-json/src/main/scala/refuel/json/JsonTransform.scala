@@ -81,7 +81,4 @@ trait JsonTransform {
 
     def jsonTree: JsonVal = new JsonTransformRouter(t).jsonTree
   }
-
-  protected implicit final def autoReadRaiser[T](read: Read[T]): Codec[T]    = read.raise
-  protected implicit final def autoWriteRaiser[T](write: Write[T]): Codec[T] = write.raise
 }

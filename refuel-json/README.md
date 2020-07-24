@@ -1,7 +1,7 @@
 # refuel-json
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-json" % "1.3.3"
+libraryDependencies += "com.phylage" %% "refuel-json" % "1.3.4"
 ```
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.
@@ -79,10 +79,11 @@ trait A {
 
 
 // In this case, B_CODEC is used internally.
-s"""{"id": "abcde", "value_number": 123}""".as(ConstCodec.from("id", "value_number")((a, b) => new A {
-val id = a
-val value = b
-})(z => Some((z.id, z.value))))
+s"""{"id": "abcde", "value_number": 123}""".as(
+  ConstCodec.from("id", "value_number")((a, b) => new A {
+    val id = a
+    val value = b
+  })(z => Some((z.id, z.value))))
 ```
 
 Similarly, ConstCodec does not need to declare the inner class Codec.<br/>
@@ -201,4 +202,46 @@ trait AnimalCodec extends CodecDef {
   }
   implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)
 } 
+```
+
+In the case of deserlialize-only codecs, codecs can be synthesized by readMap.
+
+```scala
+Deserialize(_.named("name").des[String]).readMap {
+  case "cat" => Deserialize(_.named("beard").des[Int])
+  case "shark" => Deserialize(_.named("filet").des[Int])
+}
+```
+
+
+Reusing an existing codec and adding a specific json key.
+
+```scala
+val animalCodec: Codec[Animal] = ???
+
+val animalResponseWrites: Write[Animal] = WriteWith[Animal]("result")(animalCodec)
+
+// It will be
+// {
+//   "result": {
+//     ... (animalCodec serialization)
+//   }
+// }
+```
+
+Others are `ReadWith[T: Read]` and `BothWith[T: Codec]`.
+You can also specify a nested key.
+
+```scala
+WriteWith[Animal]("result" @@ "animal")(animalCodec)
+```
+
+```json
+{
+  "result": {
+    "animal": {
+      ...
+    }
+  }
+}
 ```

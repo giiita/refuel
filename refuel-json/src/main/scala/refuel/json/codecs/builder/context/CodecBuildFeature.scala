@@ -1,7 +1,6 @@
 package refuel.json.codecs.builder.context
 
 import refuel.json.JsonVal
-import refuel.json.codecs.Write
 import refuel.json.codecs.builder.DeserializeConcatenation
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
@@ -9,6 +8,7 @@ import refuel.json.codecs.builder.context.translation.{
   RootCodecTranslator,
   TupleCodecTranslator
 }
+import refuel.json.codecs.{Read, Write}
 
 import scala.language.implicitConversions
 
@@ -32,7 +32,9 @@ trait CodecBuildFeature
     * @tparam T Any type
     * @return
     */
-  protected implicit def __deserializeConcatenation[T](v: T): DeserializeConcatenation[T] =
+  implicit def __deserializeConcatenation[T](
+      v: Read[T]
+  ): DeserializeConcatenation[T] =
     new DeserializeConcatenation(v)
 
   implicit class __Value[V](value: V) {

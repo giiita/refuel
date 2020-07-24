@@ -25,7 +25,7 @@ private[codecs] trait AnyRefCodecs {
       j: (C[T], T) => C[T]
   )(tct: D[T])(implicit mapper: CodecTyper[D]): D[C[T]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
     mapper.build[C[T]](
@@ -82,7 +82,7 @@ private[codecs] trait AnyRefCodecs {
       _x: C[T]
   )(implicit mapper: CodecTyper[C]): C[Array[T]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
     mapper.build[Array[T]](
@@ -120,7 +120,7 @@ private[codecs] trait AnyRefCodecs {
       _x: (C[K], C[V])
   )(implicit mapper: CodecTyper[C]): C[Map[K, V]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
     mapper.build[Map[K, V]](

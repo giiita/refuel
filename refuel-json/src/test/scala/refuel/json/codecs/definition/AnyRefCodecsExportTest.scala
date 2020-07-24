@@ -14,12 +14,6 @@ class AnyRefCodecsExportTest extends AsyncWordSpec with Matchers with Diagrams w
       succeed
     }
 
-    "read auto inferred before serialize" in {
-      intercept[UnsupportedOperation] {
-        seq(implicitly[Read[Seq[String]]]).serialize(Nil)
-      }.getMessage shouldBe "I am deserialization only. Cannot serialize List()"
-    }
-
     "read auto inferred before deserialize" in {
       seq(implicitly[Read[Seq[String]]]).deserialize(
         Json.arr(
@@ -32,16 +26,6 @@ class AnyRefCodecsExportTest extends AsyncWordSpec with Matchers with Diagrams w
       seq(implicitly[Write[Seq[String]]]).serialize(Seq(Seq("foo", "bar"))) shouldBe Json.arr(
         Json.arr("foo", "bar")
       )
-    }
-
-    "write auto inferred before deserialize" in {
-      intercept[UnsupportedOperation] {
-        seq(implicitly[Write[Seq[String]]]).deserialize(
-          Json.arr(
-            Json.arr("foo", "bar")
-          )
-        )
-      }.getMessage shouldBe """I am serialization only. Cannot deserialize [["foo","bar"]]"""
     }
   }
 }

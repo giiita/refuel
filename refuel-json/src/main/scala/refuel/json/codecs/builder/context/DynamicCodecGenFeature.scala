@@ -1,7 +1,7 @@
 package refuel.json.codecs.builder.context
 
 import refuel.internal.json.codec.builder.JsonKeyRef
-import refuel.json.codecs.{CodecRaiseable, CodecTyper, Read, Write}
+import refuel.json.codecs.{CodecTyper, Read, Write}
 import refuel.json.{Codec, JsonVal}
 
 trait DynamicCodecGenFeature {
@@ -9,9 +9,14 @@ trait DynamicCodecGenFeature {
   def Deserialize[T](f: JsonVal => T): Read[T]                    = f(_)
   def Format[T](apl: JsonVal => T)(unapl: T => JsonVal): Codec[T] = apl -> unapl
 
-  def Wrap[T, C[_] <: CodecRaiseable[_]](key: JsonKeyRef)(implicit codec: C[T], mapper: CodecTyper[C]): C[T] =
-    mapper.wrap(key)(codec)
+  def ReadWith[T](key: JsonKeyRef)(implicit codec: Read[T]): Read[T] = {
+    implicitly[CodecTyper[Read]].wrap(key)(codec)
+  }
+  def WriteWith[T](key: JsonKeyRef)(implicit codec: Write[T]): Write[T] = {
+    implicitly[CodecTyper[Write]].wrap(key)(codec)
+  }
+  def BothWith[T](key: JsonKeyRef)(implicit codec: Codec[T]): Codec[T] = {
+    implicitly[CodecTyper[Codec]].wrap(key)(codec)
+  }
 
 }
-
-object DynamicCodecGenFeature extends CodecDefinitionContext
