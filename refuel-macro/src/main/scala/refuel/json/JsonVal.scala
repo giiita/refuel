@@ -44,7 +44,11 @@ trait JsonVal extends Serializable {
     */
   def ++(js: JsonVal): JsonVal
 
+  @deprecated("Use `des` instead of `to` to avoid the possibility of function name duplication.")
   def to[T](implicit c: Read[T]): T =
+    c.deserialize(this)
+
+  def des[T](implicit c: Read[T]): T =
     c.deserialize(this)
 
   /**

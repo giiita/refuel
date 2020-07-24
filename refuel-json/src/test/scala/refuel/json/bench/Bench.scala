@@ -49,7 +49,7 @@ class Bench extends JsonTransform with CodecDef {
 //    Json.stringify(Json.toJson(p.get))
 //  }
 
-  val r = jt.jsonTree.to[Root]
+  val r = jt.jsonTree.des[Root]
 
   @Benchmark
   def refuelSerialize = {
@@ -63,6 +63,6 @@ class Bench extends JsonTransform with CodecDef {
 
   @Benchmark
   def refuelDeserialize = {
-    jt.jsonTree.to[Root]
+    jt.jsonTree.des[Root]
   }
 }

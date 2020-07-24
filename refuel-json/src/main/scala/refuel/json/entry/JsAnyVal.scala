@@ -3,7 +3,7 @@ package refuel.json.entry
 import refuel.json.JsonVal
 import refuel.json.error.IllegalJsonSyntaxTreeBuilding
 
-case class JsAnyVal private[entry] (literal: String) extends JsVariable {
+case class JsAnyVal private (literal: String) extends JsVariable {
   override def pure: String = literal
 
   override def pour(sb: StringBuffer): Unit = sb.append(literal.trim)
@@ -13,7 +13,7 @@ case class JsAnyVal private[entry] (literal: String) extends JsVariable {
 }
 
 object JsAnyVal {
-  def apply(value: Any): JsonVal = {
-    if (value == null || value == "null") JsNull else JsAnyVal(value.toString)
+  def apply[T](value: T): JsonVal = {
+    if (value == null || value == "null") JsNull else new JsAnyVal(value.toString)
   }
 }

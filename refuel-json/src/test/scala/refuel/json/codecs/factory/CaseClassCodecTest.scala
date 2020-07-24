@@ -54,8 +54,8 @@ class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with 
   implicit def _bCodec: Codec[BBB] = new Codec[BBB] with All {
     override def deserialize(bf: JsonVal): BBB = {
       new BBB(
-        bf.named("bbbId").to(implicitly[Codec[Long]]),
-        bf.named("aaa").to(OptionCodec(CaseClassCodec.from[AAA]))
+        bf.named("bbbId").des(implicitly[Codec[Long]]),
+        bf.named("aaa").des(OptionCodec(CaseClassCodec.from[AAA]))
       )
     }
 

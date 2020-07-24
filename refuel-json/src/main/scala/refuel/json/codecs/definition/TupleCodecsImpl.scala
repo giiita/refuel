@@ -27,7 +27,7 @@ private[codecs] trait TupleCodecsImpl extends TupleCodecs {
     protected def tb(that: List[JsonVal]): X
   }
 
-  private[this] class Tuple2CodecConst[A, B](a: Codec[A], b: Codec[B]) extends TupleCodec[(A, B)] {
+  private[this] class Tuple2CodecConst[A, B, C[_]](a: Codec[A], b: Codec[B]) extends TupleCodec[(A, B)] {
     override def serialize(t: (A, B)): JsonVal = JsArray(
       Seq(
         a.serialize(t._1),

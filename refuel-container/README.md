@@ -1,13 +1,58 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.3.3"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.3.4"
 ````
 
 ## Features
 
-In most cases, refuel-container injections are inspected at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection. In this case, the error can be avoided even if the dependency is not found at compile time.
+In most cases, refuel-container injections are inspected at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection. In this case, the error can be avoided even if the dependency is not found at compile time.<br/>
+In layered architectures, for example, primary constructor injection is recommended in order to avoid having dependency decisions made in submodules.
 
+In sub module.
+```scala
+class MyService(myRepository: MyRepository, myClient: MyClient) extends AutoInject {
+  def run = {
+    myRepository.find().map(myClient.post)
+  }
+}
+```
+
+In root module.
+```scala
+class Main extends AutoInject with Injector {
+  inject[MyService].run
+}
+```
+This will prevent dependencies from being determined at build time for modules containing MyService.</br>
+However, in the case of constructor injections, the dependencies injected during initialization are fixed and fixed.</br>
+There may be cases where you want to override a dependency in some operations, for example, with container mirroring.</br>
+In this case, the dependency can be wrapped in Lazy to change it to an always-on evaluation instead of an initialization evaluation.
+
+```scala
+class MyService(myRepository: Lazy[MyRepository], myClient: MyClient) extends AutoInject {
+  def run = {
+    myRepository.find().map(myClient.post)
+  }
+}
+
+class MyRepositoryImpl extends MyRepository
+```
+
+```scala
+class MyRepositoryOverrides extends MyRepository
+
+class AAA(myService: MyService) extends AutoInject {
+  myService.run // It will used MyRepositoryImpl
+  
+  shade { implicit container =>
+    new MyRepositoryOverrides().index(Overwrite)
+    myService.run // It will used MyRepositoryOverrides
+  }
+}
+```
+
+shade can work as many times as you want, but only one declaration can be made in the same implicit scope.
 
 # Usage
 

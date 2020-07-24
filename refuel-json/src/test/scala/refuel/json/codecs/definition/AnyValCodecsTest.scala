@@ -3,12 +3,18 @@ package refuel.json.codecs.definition
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.{CodecDef, JsonTransform}
+import refuel.json.entry.{JsNull, JsObject}
+import refuel.json.{CodecDef, Json, JsonTransform}
 import refuel.json.model.TestJson._
 
 class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "json deserialize" should {
-
+    "null deserialize" in {
+      val js = s"""{"value":null}""".jsonTree
+      s"""{"value":null}""".jsonTree shouldBe Json.obj(
+        "value" -> JsNull
+      )
+    }
     "Int deserialize" in {
       s"""{"value":3}""".as[JInt](CaseClassCodec.from[JInt]) shouldBe Right {
         JInt(3)
