@@ -4,7 +4,7 @@
 
 ```
 libraryDependencies ++= Seq(
-  "com.phylage"       %% "refuel-http" % "1.3.3",
+  "com.phylage"       %% "refuel-http" % "1.3.4",
   "com.typesafe.akka" %% "akka-stream" % "2.6.4",
   "com.typesafe.akka" %% "akka-http"   % "10.1.11"
 )
@@ -32,13 +32,8 @@ import refuel.http.io.Http._
 
 object MySetting extends HttpRequestSetting(retryThreshold = 3) with AutoInject
 
-val requets = Map(
-  "id" -> 1,
-  "name" -> "Jack"
-)
-
 val result: Future[FutureSearch.Response] =
-  http[GET](s"http://localhost:80/?${requets.asUrl}")
+  http[GET](s"http://localhost:80/")
     .header("auth", "abcde")
     .as[ResponseType]
     .map(_.value)

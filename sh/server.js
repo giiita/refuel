@@ -26,6 +26,12 @@ server.get('/failed', (req, res) => {
     })
 })
 
+server.get('/notfound', (req, res) => {
+    res.status(404).jsonp({
+        status: "failed"
+    })
+})
+
 server.listen(3289, () => {
     console.log('JSON Server is running')
 })

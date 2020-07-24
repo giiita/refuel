@@ -39,7 +39,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val IntCdc: Codec[Int] = new AnyValCodec[Int] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Int -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into an Int", e)
     }
 
     def parse(bf: JsonVal): Int = Integer.parseInt(bf.pure)
@@ -48,7 +48,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val FloatCdc: Codec[Float] = new AnyValCodec[Float] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Float -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a Float", e)
     }
 
     def parse(bf: JsonVal): Float = java.lang.Float.parseFloat(bf.pure)
@@ -57,7 +57,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val DoubleCdc: Codec[Double] = new AnyValCodec[Double] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Double -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a Double", e)
     }
 
     def parse(bf: JsonVal): Double = java.lang.Double.parseDouble(bf.pure)
@@ -66,7 +66,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val LongCdc: Codec[Long] = new AnyValCodec[Long] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Long -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a Long", e)
     }
 
     def parse(bf: JsonVal): Long = java.lang.Long.parseLong(bf.pure)
@@ -75,7 +75,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val BooleanCdc: Codec[Boolean] = new AnyValCodec[Boolean] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Boolean -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a Boolean", e)
     }
 
     def parse(bf: JsonVal): Boolean = bf.pure.toLowerCase match {
@@ -88,7 +88,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val CharCdc: Codec[Char] = new AnyValCodec[Char] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Char -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a Char", e)
     }
 
     override def serialize(t: Char): JsonVal = JsString(t.toString)
@@ -103,7 +103,7 @@ private[codecs] trait AnyValCodecs {
   implicit final val StringCdc: Codec[String] = new AnyValCodec[String] {
 
     override def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to String -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a String", e)
     }
 
     override def serialize(t: String): JsonVal = JsString(t)
@@ -115,7 +115,7 @@ private[codecs] trait AnyValCodecs {
     import st._
 
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ZonedDateTime -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into a ZonedDateTime", e)
     }
 
     override def serialize(t: ZonedDateTime): JsonVal = JsString(t.format())

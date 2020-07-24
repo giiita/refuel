@@ -32,13 +32,13 @@ install_json_server() {
   if test `npm ls -g --depth=0 | grep json-server | wc -l` -eq 0; then
     cd $script
     echo "JSON-SERVER installing"
-    npm install json-server --save-dev
+    npm install json-server
   fi
 }
 
 run_jsonserver() {
   echo "STARTING JSON SERVER"
-  node ${script}/server.js &
+  node ${script}/server.js > /dev/null &
   sleep 5
 }
 

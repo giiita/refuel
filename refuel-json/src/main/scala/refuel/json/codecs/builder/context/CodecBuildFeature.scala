@@ -1,14 +1,14 @@
 package refuel.json.codecs.builder.context
 
 import refuel.json.JsonVal
-import refuel.json.codecs.Write
+import refuel.json.codecs.builder.DeserializeConcatenation
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
   IterableCodecTranslator,
   RootCodecTranslator,
   TupleCodecTranslator
 }
-import refuel.json.codecs.builder.context.write.DynamicCodecGenFeature
+import refuel.json.codecs.{Read, Write}
 
 import scala.language.implicitConversions
 
@@ -18,8 +18,7 @@ trait CodecBuildFeature
     with RootCodecTranslator
     with DynamicCodecGenFeature {
 
-  /**
-    * Set the key literal to add.
+  /** Set the key literal to add.
     * Calling [[NatureKeyRef.->>]] from String implicitly converts it to a literal object.
     *
     * @param v initial json key literal
@@ -27,7 +26,21 @@ trait CodecBuildFeature
     */
   protected implicit def __jsonKeyLiteralBuild(v: String): NatureKeyRef = NatureKeyRef(v)
 
+  /** Synthesize the deserialize result.
+    *
+    * @param v Any values
+    * @tparam T Any type
+    * @return
+    */
+  implicit def __deserializeConcatenation[T](
+      v: Read[T]
+  ): DeserializeConcatenation[T] =
+    new DeserializeConcatenation(v)
+
   implicit class __Value[V](value: V) {
+    @deprecated("Use `ser` instead of `to` to avoid the possibility of function name duplication.")
     def to[T >: V](implicit wr: Write[T]): JsonVal = wr.serialize(value)
+
+    def ser[T >: V](implicit wr: Write[T]): JsonVal = wr.serialize(value)
   }
 }

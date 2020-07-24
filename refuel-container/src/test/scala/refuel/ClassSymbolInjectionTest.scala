@@ -3,9 +3,10 @@ package refuel
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import refuel.ClassSymbolInjectionTest.TEST_N.{Inner, N1, N2}
 import refuel.container.anno.{Effective, RecognizedDynamicInjection}
 import refuel.domination.Inject
-import refuel.domination.InjectionPriority.{Overwrite, Primary}
+import refuel.domination.InjectionPriority.{Overwrite, Primary, Secondary}
 import refuel.injector.{AutoInject, Injector}
 import refuel.internal.di.Effect
 import refuel.provider.Lazy
@@ -308,6 +309,18 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
     }
 
     "Internal lazy injection" in {
+      def nest(n2: N2): Int = {
+        shade { implicit ctn2 =>
+          N1(
+            new Inner {
+              override val value = 3
+            }
+          ).index(Secondary)
+
+          n2.n1.inner.value
+        }
+      }
+
       import refuel.ClassSymbolInjectionTest.TEST_N._
 
       val n2: N2 = inject[N2]
@@ -319,7 +332,11 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
             override val value = 2
           }
         ).index(Overwrite)
-        n2.n1
+
+        n2.n1.inner.value shouldBe 2
+
+        nest(n2) shouldBe 3
+
         n2.n1.inner.value shouldBe 2
       }
 

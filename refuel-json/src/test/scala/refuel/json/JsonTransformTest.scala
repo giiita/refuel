@@ -33,7 +33,7 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
         case Left(e) =>
           e.printStackTrace()
           e.getMessage shouldBe s"""Internal structure analysis raised an exception."""
-          e.getCause.getMessage shouldBe s"""Cannot deserialize to String -> null"""
+          e.getCause.getMessage shouldBe s"""Cannot deserialize null into a String"""
         case Right(r) => fail(r.toString)
       }
     }

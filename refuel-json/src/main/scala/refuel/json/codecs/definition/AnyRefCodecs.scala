@@ -1,8 +1,9 @@
 package refuel.json.codecs.definition
 
+import refuel.json.JsonVal
+import refuel.json.codecs.{CodecRaiseable, CodecTyper}
 import refuel.json.entry._
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
-import refuel.json.{Codec, JsonVal}
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -19,41 +20,25 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner type parameter.
     * @tparam C Collection types.
     */
-  private[this] class IterableOnceCodec[T, C[T] <: Iterable[T]](c: => C[T], j: (C[T], T) => C[T])(tct: Codec[T])
-      extends Codec[C[T]] {
-
+  private[this] def IterableOnceCodec[T, C[_] <: Iterable[_], D[_] <: CodecRaiseable[_]](
+      c: => C[T],
+      j: (C[T], T) => C[T]
+  )(tct: D[T])(implicit mapper: CodecTyper[D]): D[C[T]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
-    /**
-      * Deserialize Json to T format.
-      * Failure should continue and propagate up.
-      *
-      * @param bf Json syntax tree.
-      * @return
-      */
-    override def deserialize(bf: JsonVal): C[T] = {
-      bf match {
+    mapper.build[C[T]](
+      {
         case JsArray(x) =>
           x.foldLeft(c: C[T]) {
-            case (a, b) => j(a, b.to(this.tct))
+            case (a, b) => j(a, mapper.read(b)(tct))
           }
         case JsNull => c
-        case _      => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
-      }
-    }
-
-    /**
-      * Serialize Json to T format.
-      * Failure should continue and propagate up.
-      *
-      * @param t Serializable object.
-      * @return
-      */
-    override def serialize(t: C[T]): JsonVal = {
-      JsArray(t.map(this.tct.serialize))
-    }
+        case bf     => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
+      },
+      { x: C[T] => JsArray(x.asInstanceOf[Iterable[T]].map(q => mapper.write[T](q)(tct))) }
+    )
   }
 
   /**
@@ -63,7 +48,8 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def SeqCodec[T](_x: Codec[T]): Codec[Seq[T]] = new IterableOnceCodec[T, Seq](Nil, _ :+ _)(_x)
+  implicit final def SeqCodec[T, C[_] <: CodecRaiseable[_]: CodecTyper](_x: C[T]): C[Seq[T]] =
+    IterableOnceCodec[T, Seq, C](Nil, _ :+ _)(_x)
 
   /**
     * [[Set]] codec generator.
@@ -72,7 +58,8 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def SetCodec[T](_x: Codec[T]): Codec[Set[T]] = new IterableOnceCodec[T, Set](Set.empty, _ + _)(_x)
+  implicit final def SetCodec[T, C[_] <: CodecRaiseable[_]: CodecTyper](_x: C[T]): C[Set[T]] =
+    IterableOnceCodec[T, Set, C](Set.empty, _ + _)(_x)
 
   /**
     * [[Vector]] codec generator.
@@ -81,8 +68,8 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def VectorCodec[T](_x: Codec[T]): Codec[Vector[T]] =
-    new IterableOnceCodec[T, Vector](Vector.empty, _ :+ _)(_x)
+  implicit final def VectorCodec[T, C[_] <: CodecRaiseable[_]: CodecTyper](_x: C[T]): C[Vector[T]] =
+    IterableOnceCodec[T, Vector, C](Vector.empty, _ :+ _)(_x)
 
   /**
     * [[Array]] codec generator.
@@ -91,39 +78,24 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def ArrayCodec[T: ClassTag](_x: Codec[T]): Codec[Array[T]] = new Codec[Array[T]] {
+  implicit final def ArrayCodec[T: ClassTag, C[_] <: CodecRaiseable[_]](
+      _x: C[T]
+  )(implicit mapper: CodecTyper[C]): C[Array[T]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to ${this.getClass.getName} -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
-    /**
-      * Deserialize Json to T format.
-      * Failure should continue and propagate up.
-      *
-      * @param bf Json syntax tree.
-      * @return
-      */
-    override def deserialize(bf: JsonVal): Array[T] = {
-      bf match {
+    mapper.build[Array[T]](
+      {
         case JsArray(x) =>
           x.foldLeft[Array[T]](Array.empty) {
-            case (a, b) => a.:+(b.to(_x))
+            case (a, b) => a.:+(mapper.read(b)(_x))
           }
         case JsNull => Array.empty[T]
-        case _      => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
-      }
-    }
-
-    /**
-      * Serialize Json to T format.
-      * Failure should continue and propagate up.
-      *
-      * @param t Serializable object.
-      * @return
-      */
-    override def serialize(t: Array[T]): JsonVal = {
-      JsArray(t.map(_x.serialize))
-    }
+        case bf     => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
+      },
+      t => JsArray(t.map(mapper.write(_)(_x)))
+    )
   }
 
   /**
@@ -133,7 +105,8 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def ListCodec[T](_x: Codec[T]): Codec[List[T]] = new IterableOnceCodec[T, List](List.empty, _ :+ _)(_x)
+  implicit final def ListCodec[T, C[_] <: CodecRaiseable[_]: CodecTyper](_x: C[T]): C[List[T]] =
+    IterableOnceCodec[T, List, C](List.empty, _ :+ _)(_x)
 
   /**
     * [[Map]] codec generator.
@@ -143,32 +116,31 @@ private[codecs] trait AnyRefCodecs {
     * @tparam V Inner key param type.
     * @return
     */
-  implicit final def MapCodec[K, V](_x: (Codec[K], Codec[V])): Codec[Map[K, V]] = new Codec[Map[K, V]] {
-
+  implicit final def MapCodec[K, V, C[_] <: CodecRaiseable[_]](
+      _x: (C[K], C[V])
+  )(implicit mapper: CodecTyper[C]): C[Map[K, V]] = {
     def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize to Map -> $bf", e)
+      UnexpectedDeserializeType(s"Cannot deserialize $bf into ${this.getClass.getName}", e)
     }
 
-    override def deserialize(bf: JsonVal): Map[K, V] = {
-      bf match {
+    mapper.build[Map[K, V]](
+      {
         case JsObject(x) =>
           Map(
             x.map {
-              case (k, v) => _x._1.deserialize(k) -> _x._2.deserialize(v)
+              case (k, v) => mapper.read(k)(_x._1) -> mapper.read(v)(_x._2)
             }: _*
           )
         case JsNull => Map()
-        case _      => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
-      }
-    }
-
-    override def serialize(t: Map[K, V]): JsonVal = {
-      JsObject(
-        t.map {
-          case (k, v) => _x._1.serialize(k).asInstanceOf[JsString] -> _x._2.serialize(v)
-        }.toSeq
-      )
-    }
+        case bf     => throw fail(bf, UnsupportedOperation("Only JsArray or JsObject can be Seq[T] decoded"))
+      },
+      x =>
+        JsObject(
+          x.map {
+            case (k, v) => mapper.write(k)(_x._1).asInstanceOf[JsString] -> mapper.write(v)(_x._2)
+          }.toSeq
+        )
+    )
   }
 
   /**
@@ -178,26 +150,18 @@ private[codecs] trait AnyRefCodecs {
     * @tparam T Inner param type.
     * @return
     */
-  implicit final def OptionCodec[T](_x: Codec[T]): Codec[Option[T]] = {
-    new Codec[Option[T]] {
-
-      def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-        UnexpectedDeserializeType(s"Cannot deserialize to Option -> $bf", e)
-      }
-
-      override def deserialize(bf: JsonVal): Option[T] = {
-        bf match {
-          case JsNull => None
-          case _ =>
-            Try {
-              _x.deserialize(bf)
-            }.toOption
-        }
-      }
-
-      override def serialize(t: Option[T]): JsonVal = {
-        t.fold(JsEmpty: JsonVal) { x => _x.serialize(x) }
-      }
-    }
+  implicit final def OptionCodec[T, C[_] <: CodecRaiseable[_]](
+      _x: C[T]
+  )(implicit mapper: CodecTyper[C]): C[Option[T]] = {
+    mapper.build[Option[T]](
+      {
+        case JsNull => None
+        case bf =>
+          Try {
+            mapper.read(bf)(_x)
+          }.toOption
+      },
+      x => x.fold(JsEmpty: JsonVal)(t => mapper.write(t)(_x))
+    )
   }
 }

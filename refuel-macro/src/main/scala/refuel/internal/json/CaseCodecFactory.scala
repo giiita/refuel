@@ -275,7 +275,7 @@ class CaseCodecFactory(val c: blackbox.Context) extends PropertyDebugModeEnabler
 
         def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
           UnexpectedDeserializeType(
-            s"Cannot deserialize to ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice} -> ${bf.toString}",
+            s"Cannot deserialize $bf into ${c.Expr(c.reifyRuntimeClass(weakTypeOf[T])).splice}",
             e
           )
         }
