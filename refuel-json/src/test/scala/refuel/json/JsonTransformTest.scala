@@ -21,7 +21,7 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
     "fail case - Syntax error" in {
       intercept[IllegalJsonFormat] {
         s"""{"value: "aaa"}""".jsonTree
-      }.getMessage shouldBe s"""Unspecified json value of key: #"value: "#"""
+      }.getMessage shouldBe s"""Unspecified json value of key: #"value:"#"""
     }
     "fail case - EOF position 2" in {
       intercept[IllegalJsonFormat] {
