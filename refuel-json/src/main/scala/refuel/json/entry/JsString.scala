@@ -6,7 +6,7 @@ import refuel.json.error.{CannotAccessJsonKey, IllegalJsonSyntaxTreeBuilding}
 
 import scala.annotation.tailrec
 
-case class JsString(literal: String) extends JsVariable {
+case class JsString private (literal: String) extends JsVariable {
 
   override def pure: String = literal
 
@@ -38,5 +38,6 @@ case class JsString(literal: String) extends JsVariable {
 }
 
 object JsString {
-  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString)
+  def apply(literal: String): JsString     = new JsString(literal.trim)
+  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString.trim)
 }

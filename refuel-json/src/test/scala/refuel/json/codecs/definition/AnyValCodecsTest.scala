@@ -20,6 +20,13 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
         JInt(3)
       }
     }
+    "Int deserialize with break line" in {
+      s"""{
+         |  "value": 3
+         |}""".stripMargin.as[JInt](CaseClassCodec.from[JInt]) shouldBe Right {
+        JInt(3)
+      }
+    }
     "Int deserialize minus" in {
       s"""{"value":-3}""".as[JInt](CaseClassCodec.from[JInt]) shouldBe Right {
         JInt(-3)
@@ -34,6 +41,14 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
 
     "String deserialize" in {
       s"""{"value":"body"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
+        JString("body")
+      }
+    }
+    "String deserialize with break line" in {
+      s"""
+         |{
+         |  "value": "body"
+         |}""".stripMargin.as[JString](CaseClassCodec.from[JString]) shouldBe Right {
         JString("body")
       }
     }

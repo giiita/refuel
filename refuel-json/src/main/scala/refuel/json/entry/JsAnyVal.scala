@@ -14,6 +14,6 @@ case class JsAnyVal private (literal: String) extends JsVariable {
 
 object JsAnyVal {
   def apply[T](value: T): JsonVal = {
-    if (value == null || value == "null") JsNull else new JsAnyVal(value.toString)
+    if (value == null || value == "null") JsNull else new JsAnyVal(value.toString.trim)
   }
 }

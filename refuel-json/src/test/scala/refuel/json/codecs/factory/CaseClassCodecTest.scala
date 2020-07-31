@@ -51,7 +51,7 @@ class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with 
   implicit val bLocalCodec: Codec[B] = CaseClassCodec.from[B]
   implicit val cLocalCodec: Codec[C] = CaseClassCodec.from[C]
 
-  implicit def _bCodec: Codec[BBB] = new Codec[BBB] with All {
+  implicit def _bCodec: Codec[BBB] = new Codec[BBB] with CodecDef {
     override def deserialize(bf: JsonVal): BBB = {
       new BBB(
         bf.named("bbbId").des(implicitly[Codec[Long]]),
