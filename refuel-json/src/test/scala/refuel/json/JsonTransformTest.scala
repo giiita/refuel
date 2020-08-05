@@ -3,11 +3,18 @@ package refuel.json
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
+import refuel.json.entry.JsEmpty
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.model.TestJson.JString
 
 class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Json tree build" should {
+    "Empty input" in {
+      s"".jsonTree shouldBe JsEmpty
+    }
+    "Whitespace only" in {
+      s" ".jsonTree shouldBe JsEmpty
+    }
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {
         s"""{"value":123"""".jsonTree
