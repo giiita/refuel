@@ -12,6 +12,14 @@ trait JsonVal extends Serializable {
     buf.toString
   }
 
+  /** Determines that the target JSON syntax tree does not exist or is a null symbol.
+    * Empty arrays and empty objects are not considered to be empty.
+    *
+    * @return
+    */
+  def isEmpty: Boolean     = false
+  def isNonEmptry: Boolean = true
+
   /**
     * Detects hooked binding syntax of Json literal.
     * This detects syntax errors when joining Json objects.

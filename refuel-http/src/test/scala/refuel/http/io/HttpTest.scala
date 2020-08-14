@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
-import refuel.http.io.HttpTest.TestEntity.{InnerJokeBody, Jokes}
+import refuel.http.io.HttpTest.TestEntity.{Errors, InnerJokeBody, JokeBody, Jokes}
 import refuel.injector.Injector
 import refuel.json.{Codec, CodecDef}
 
@@ -23,6 +23,7 @@ object HttpTest extends Injector {
 
     case class InnerJokes(value: InnerJokeBody)
 
+    case class Errors(status: String, error: String)
   }
 
 }
@@ -37,11 +38,11 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
       implicit val codec: Codec[InnerJokeBody] = CaseClassCodec.from[InnerJokeBody]
       http[GET]("http://localhost:3289/success")
         .as[InnerJokeBody]
-        .map(_.joke)
         .run
-        .map(x => fail(x))
+        .map(_ => fail())
         .recover {
-          case e => e.getMessage should startWith("Internal structure analysis raised an exception.")
+          case e =>
+            e.getCause.getMessage should startWith("Internal structure analysis raised an exception.")
         }
     }
     "deserializing" in {
@@ -124,6 +125,91 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         .run
         .map(_ => succeed)
         .recover {
+          case _ => fail()
+        }
+    }
+
+    "eitherMap if success" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/200/success")
+        .eitherMap[Errors, Jokes]
+        .map {
+          case Right(x) =>
+            x.status shouldBe "success"
+            x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          case Left(_) => fail()
+        }
+        .run
+    }
+
+    "eitherMap if failed" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/200/failed")
+        .eitherMap[Errors, Jokes]
+        .map {
+          case Right(_) =>
+            fail()
+          case Left(x) =>
+            x.status shouldBe "failed"
+            x.error shouldBe "foo"
+        }
+        .run
+    }
+
+    "eitherTransform if success" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/200/success")
+        .eitherTransform[Errors, Jokes, Errors]
+        .map {
+          case Right(x) =>
+            x.status shouldBe "success"
+            x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          case Left(_) => fail()
+        }
+        .run
+    }
+
+    "eitherTransform if 200 failed" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/200/failed")
+        .eitherTransform[Errors, Jokes, Errors]
+        .map {
+          case Right(_) =>
+            fail()
+          case Left(x) =>
+            x.status shouldBe "failed"
+            x.error shouldBe "foo"
+        }
+        .run
+    }
+
+    "eitherTransform if 200 failed and processing failed" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/200/failed")
+        .eitherTransform[Int, Jokes, Errors]
+        .map { _ => fail() }
+        .recover {
+          case _ => succeed
+        }
+        .run
+    }
+
+    "eitherTransform if 500 failed" in {
+      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
+      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
+      http[GET]("http://localhost:3289/failed")
+        .eitherTransform[Errors, Jokes, Jokes]
+        .run
+        .map(_ => fail())
+        .recover {
+          case HttpResponseError(x: Jokes, _) =>
+            x.status shouldBe "failed"
+            x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
           case _ => fail()
         }
     }

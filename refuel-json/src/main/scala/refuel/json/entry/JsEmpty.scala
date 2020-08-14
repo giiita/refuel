@@ -5,6 +5,9 @@ import refuel.json.error.UnexpectedDeserializeOperation
 
 private[refuel] case object JsEmpty extends JsVariable {
 
+  override def isEmpty: Boolean     = true
+  override def isNonEmptry: Boolean = false
+
   override def toString: String   = ""
   def pour(b: StringBuffer): Unit = ()
 

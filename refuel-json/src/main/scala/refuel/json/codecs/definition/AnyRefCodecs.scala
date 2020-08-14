@@ -164,4 +164,42 @@ private[codecs] trait AnyRefCodecs {
       x => x.fold(JsEmpty: JsonVal)(t => mapper.write(t)(_x))
     )
   }
+
+  /**
+    * [[Either]] type codec generator.
+    *
+    * @tparam L Inner key param type.
+    * @tparam R Inner key param type.
+    * @return
+    */
+  final def EitherCondCodec[L, R, C[_] <: CodecRaiseable[_]](
+      _cond: JsonVal => Boolean
+  )(implicit f: C[L], s: C[R], mapper: CodecTyper[C]): C[Either[L, R]] = {
+    mapper.build[Either[L, R]](
+      { x => Either.cond(_cond(x), mapper.read(x)(s), mapper.read(x)(f)) }, {
+        case Right(x) => mapper.write(x)(s)
+        case Left(x)  => mapper.write(x)(f)
+      }
+    )
+  }
+
+  /**
+    * [[Either]] type codec generator.
+    *
+    * @tparam L Inner key param type.
+    * @tparam R Inner key param type.
+    * @return
+    */
+  implicit final def EitherCodec[L, R, C[_] <: CodecRaiseable[_]](
+      implicit f: C[L],
+      s: C[R],
+      mapper: CodecTyper[C]
+  ): C[Either[L, R]] = {
+    mapper.build[Either[L, R]](
+      { x => Try(mapper.read(x)(s)).fold[Either[L, R]](_ => Left[L, R](mapper.read(x)(f)), Right[L, R]) }, {
+        case Right(x) => mapper.write(x)(s)
+        case Left(x)  => mapper.write(x)(f)
+      }
+    )
+  }
 }

@@ -2,7 +2,7 @@ package refuel.json.codecs.definition
 
 import java.time.ZonedDateTime
 
-import refuel.json.entry.{JsAnyVal, JsNull, JsString}
+import refuel.json.entry.{JsAnyVal, JsEmpty, JsNull, JsString}
 import refuel.json.error.{DeserializeFailed, UnexpectedDeserializeType, UnsupportedOperation}
 import refuel.json.{Codec, JsonVal}
 import refuel.lang.ScalaTime
@@ -10,6 +10,11 @@ import refuel.lang.ScalaTime
 import scala.util.{Failure, Success, Try}
 
 private[codecs] trait AnyValCodecs {
+
+  implicit final val UnitCdc: Codec[Unit] = new Codec[Unit] {
+    override def serialize(t: Unit): JsonVal    = JsEmpty
+    override def deserialize(bf: JsonVal): Unit = ()
+  }
 
   /**
     * The base of scala base api codec.
