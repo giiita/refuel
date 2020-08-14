@@ -7,7 +7,7 @@ import refuel.json.codecs.{Read, Write}
 import refuel.json.error.UnsupportedOperation
 import refuel.json.{Codec, CodecDef, Json, JsonTransform}
 
-class AnyRefCodecsExportTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
+class AnyRefCodecsExplicitTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Any ref codec auto generation" should {
     "Expected to be compileable without explicit Codec[_] generation" in {
       implicitly[Codec[Map[String, Option[List[Seq[Vector[Array[Set[(String, String)]]]]]]]]]

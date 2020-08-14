@@ -18,5 +18,4 @@ trait DynamicCodecGenFeature {
   def BothWith[T](key: JsonKeyRef)(implicit codec: Codec[T]): Codec[T] = {
     implicitly[CodecTyper[Codec]].wrap(key)(codec)
   }
-
 }

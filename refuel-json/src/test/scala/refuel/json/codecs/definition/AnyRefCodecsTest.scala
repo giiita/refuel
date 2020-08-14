@@ -3,8 +3,8 @@ package refuel.json.codecs.definition
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.{CodecDef, JsonTransform}
 import refuel.json.model.TestJson._
+import refuel.json.{CodecDef, JsonTransform}
 
 class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
 
@@ -90,6 +90,43 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
         JOptBoolean(None)
       }
     }
+    "Either with switch condition deserialize when succeed" in {
+      s"""{"success": true, "value": "foo"}""".as(
+        eitherCond(UnitCdc, ReadWith[String]("value")).cond(_.named("success").des[Boolean])
+      ) shouldBe Right(
+        Right("foo")
+      )
+    }
+    "Either with switch condition deserialize when failed" in {
+      s"""{"success": 0, "error": "foo"}""".as(
+        eitherCond(ReadWith[String]("error"), UnitCdc).cond(_.named("success").des[Boolean])
+      ) shouldBe Right(
+        Left("foo")
+      )
+    }
+    "Either without switch condition deserialize when succeed" in {
+      s"""{"success": true, "value": "foo"}""".as(
+        either(UnitCdc, ReadWith[String]("value"))
+      ) shouldBe Right(
+        Right("foo")
+      )
+    }
+    "Either without switch condition deserialize when failed" in {
+      s"""{"success": true, "error": "foo"}""".as(
+        either(ReadWith[String]("error"), ReadWith[String]("value"))
+      ) shouldBe Right(
+        Left("foo")
+      )
+    }
+    "Either without switch condition deserialize be failed" in {
+      assert(
+        s"""{"success": true, "foo": "bar"}"""
+          .as(
+            either(ReadWith[String]("error"), ReadWith[String]("value"))
+          )
+          .isLeft
+      )
+    }
   }
 
   "json serialize" should {
@@ -157,6 +194,28 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     "Option Boolean serialize None" in {
       val str: JOptBoolean = JOptBoolean(None)
       str.toJString(CaseClassCodec.from[JOptBoolean]).toString shouldBe s"""{}"""
+    }
+
+    "Either with switch condition serialize when succeed" in {
+      Right("foo").toJString(
+        eitherCond(UnitCdc, WriteWith[String]("value")).cond(_.named("success").des[Boolean])
+      ) shouldBe s"""{"value":"foo"}"""
+    }
+    "Either with switch condition serialize when failed" in {
+      Left("foo").toJString(
+        eitherCond(WriteWith[String]("error"), UnitCdc).cond(_.named("success").des[Boolean])
+      ) shouldBe s"""{"error":"foo"}"""
+    }
+
+    "Either without switch condition serialize when succeed" in {
+      Right("foo").toJString(
+        either(UnitCdc, WriteWith[String]("value"))
+      ) shouldBe s"""{"value":"foo"}"""
+    }
+    "Either without switch condition serialize when failed" in {
+      Left("foo").toJString(
+        either(WriteWith[String]("error"), UnitCdc)
+      ) shouldBe s"""{"error":"foo"}"""
     }
   }
 }

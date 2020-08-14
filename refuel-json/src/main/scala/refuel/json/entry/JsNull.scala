@@ -4,6 +4,10 @@ import refuel.json.JsonVal
 import refuel.json.error.IllegalJsonSyntaxTreeBuilding
 
 case object JsNull extends JsVariable {
+
+  override def isEmpty: Boolean     = true
+  override def isNonEmptry: Boolean = false
+
   override final def toString: String = "null"
   def pour(b: StringBuffer): Unit     = b.append(toString)
 
