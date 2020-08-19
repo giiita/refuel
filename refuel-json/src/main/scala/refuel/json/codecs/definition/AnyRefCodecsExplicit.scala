@@ -1,7 +1,6 @@
 package refuel.json.codecs.definition
 
 import refuel.json.Codec
-import refuel.json.codecs.builder.EitherCodecConditionBuilder
 import refuel.json.codecs.{Read, Write}
 
 import scala.reflect.ClassTag
@@ -101,4 +100,8 @@ trait AnyRefCodecsExplicit extends AnyRefCodecs {
   implicit final def OptionCodecImpl[T: Read]: Read[Option[T]] = OptionCodec(implicitly[Read[T]])
 
   implicit final def OptionCodecImpl[T: Write]: Write[Option[T]] = OptionCodec(implicitly[Write[T]])
+
+  implicit final def EitherCodecImpl[L: Codec, R: Codec]: Codec[Either[L, R]] = EitherCodec[L, R, Codec]
+  implicit final def EitherCodecImpl[L: Read, R: Read]: Read[Either[L, R]]    = EitherCodec[L, R, Read]
+  implicit final def EitherCodecImpl[L: Write, R: Write]: Write[Either[L, R]] = EitherCodec[L, R, Write]
 }

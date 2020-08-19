@@ -1,7 +1,7 @@
 package refuel.json
 
 import refuel.json.codecs.All
-import refuel.json.codecs.builder.context.{CodecBuildFeature, CodecDefinitionContext}
+import refuel.json.codecs.builder.context.CodecBuildFeature
 
 /**
   * Every interface for defining codecs is defined.

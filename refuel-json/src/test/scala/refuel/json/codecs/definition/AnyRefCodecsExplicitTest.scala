@@ -15,7 +15,7 @@ class AnyRefCodecsExplicitTest extends AsyncWordSpec with Matchers with Diagrams
     }
 
     "read auto inferred before deserialize" in {
-      seq(implicitly[Read[Seq[String]]]).deserialize(
+      seqR(implicitly[Read[Seq[String]]]).deserialize(
         Json.arr(
           Json.arr("foo", "bar")
         )

@@ -5,14 +5,13 @@ import akka.http.scaladsl.model.ContentType.NonBinary
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
-import akka.util.ByteString
 import com.typesafe.scalalogging.LazyLogging
 import refuel.http.io.setting.HttpSetting
 import refuel.http.io.task.execution.HttpResultExecution
-import refuel.http.io.task.{CombineTask, HttpTask}
+import refuel.http.io.task.{CombineTask, HttpTask, StrictTask}
 import refuel.json.JsonTransform
-import refuel.json.codecs.builder.context.translation.IterableCodecTranslator
 import refuel.json.codecs.{Read, Write}
+import refuel.json.codecs.definition.AnyRefCodecs
 
 import scala.concurrent.Future
 
@@ -20,19 +19,24 @@ object HttpRunner {
 
   import scala.concurrent.duration._
 
-  private[refuel] implicit def __asString(
-      res: HttpResponse
-  )(implicit as: ActorSystem, setting: HttpSetting, timeout: FiniteDuration = 30.seconds): Future[String] =
-    res.entity
-      .toStrict(timeout)
-      .flatMap(
-        setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-      )(as.dispatcher)
-
   implicit class HttpResponseStream(value: HttpTask[HttpResponse])
       extends JsonTransform
-      with IterableCodecTranslator
+      with AnyRefCodecs
       with LazyLogging {
+
+    private[this] final def convert[R: Read](
+        x: HttpResponse,
+        recover: (HttpTask[R], String) => HttpTask[R] = (x: HttpTask[R], _: String) => x
+    )(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[R] = {
+      new StrictTask(x).flatMap { strict =>
+        recover(
+          map[String, R] { implicit as => res =>
+            res.as[R].fold(e => Future.failed(HttpErrorRaw(x, e)), Future(_)(as.dispatcher))
+          }(strict),
+          strict
+        )
+      }
+    }
 
     /** Sets the Unmarshaller of normal and error, and returns [[T]] on success or `HttpResponseError[E]` on failure.
       * This [[E]] is used when HttpStatus is not a success, or when HttpResponse is explicitly combined with HttpErrorRaw.
@@ -43,17 +47,16 @@ object HttpRunner {
       *
       * @return
       */
-    def transform[T: Read, E: Read](
+    final def transform[T: Read, E <: Throwable: Read](
         implicit setting: HttpSetting,
         timeout: FiniteDuration = 30.seconds
     ): HttpTask[T] = {
-      as[T].recoverWith[T] {
+      value.flatMap(convert[T](_)).recoverWith {
         case HttpErrorRaw(res, _) =>
-          new CombineTask[T] {
-            override def run(implicit as: ActorSystem): Future[T] =
-              __asString(res).flatMap { x =>
-                Future.failed[T](x.as[E].fold[Throwable](x => x, x => HttpResponseError(x, res)))
-              }(as.dispatcher)
+          new StrictTask(res).flatMap {
+            map[String, T] { implicit as => _res =>
+              _res.as[E].fold[Future[T]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
+            }
           }
       }
     }
@@ -63,14 +66,14 @@ object HttpRunner {
       * If you want to handle the result of a specific json key, define your own Reader of
       * Either[L, R] and use a bipolar transformer such as `transform[Either[L, R], E]`.
       */
-    def eitherMap[L: Read, R: Read](
+    final def eitherMap[L: Read, R: Read](
         implicit setting: HttpSetting,
         timeout: FiniteDuration = 30.seconds
     ): HttpTask[Either[L, R]] = {
       as[Either[L, R]]
     }
 
-    /** If the Http request succeeds, it is handled by Read[R]; if Read[R] fails, it is handled by Read[L];
+    /** If the Http request succeeds, it is handled by Read[R]; if Read[R] fails, it is handledAnyRefCodecs by Read[L];
       * if Read[L] also fails, it returns Future. HttpResponse))).
       * If the Http request fails, handle the response body with Read[E].
       *
@@ -84,19 +87,11 @@ object HttpRunner {
       * @tparam E
       * @return
       */
-    def eitherTransform[L: Read, R: Read, E: Read](
+    final def eitherTransform[L: Read, R: Read, E <: Throwable: Read](
         implicit setting: HttpSetting,
         timeout: FiniteDuration = 30.seconds
     ): HttpTask[Either[L, R]] = {
-      eitherMap[L, R].recoverWith[Either[L, R]] {
-        case HttpErrorRaw(res, _) =>
-          new CombineTask[Either[L, R]] {
-            override def run(implicit as: ActorSystem): Future[Either[L, R]] =
-              __asString(res).flatMap { x =>
-                Future.failed[Either[L, R]](x.as[E].fold[Throwable](x => x, x => HttpResponseError(x, res)))
-              }(as.dispatcher)
-          }
-      }
+      transform[Either[L, R], E](EitherCodec[L, R, Read], implicitly[Read[E]], setting, timeout)
     }
 
     /** Regist a type of returning deserialized json texts.
@@ -105,12 +100,8 @@ object HttpRunner {
       * @tparam X Deserialized type.
       * @return
       */
-    def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
-      value.flatMap({ implicit as => res =>
-        __asString(res)
-          .map(_.as[X])(as.dispatcher)
-          .flatMap(_.fold(e => Future.failed(HttpErrorRaw(res, e)), Future(_)(as.dispatcher)))(as.dispatcher)
-      }: ActorSystem => HttpResponse => Future[X])
+    final def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
+      value.flatMap(convert[X](_))
     }
 
     /** Regist a type of returning deserialized json texts.
@@ -120,8 +111,8 @@ object HttpRunner {
       *
       * @return
       */
-    def asString(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
-      value.flatMap({ implicit as => __asString(_) }: ActorSystem => HttpResponse => Future[String])
+    final def asString(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[String] = {
+      value.flatMap(new StrictTask(_))
     }
   }
 
