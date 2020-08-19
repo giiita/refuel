@@ -7,8 +7,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.http.io.Http._
 import refuel.http.io.HttpMethod.GET
-import refuel.http.io.HttpTest.TestEntity.{Errors, InnerJokeBody, JokeBody, Jokes}
 import refuel.injector.Injector
+import refuel.json.codecs.Read
 import refuel.json.{Codec, CodecDef}
 
 object HttpTest extends Injector {
@@ -19,16 +19,21 @@ object HttpTest extends Injector {
 
     case class Jokes(status: String, value: JokeBody)
 
+    case class ErrorJokes(status: String, value: JokeBody) extends Throwable
+
     case class InnerJokeBody(id: Int, joke: String, categories: Seq[String])
 
     case class InnerJokes(value: InnerJokeBody)
 
-    case class Errors(status: String, error: String)
+    case class Errors(status: String, error: String) extends Throwable
+
   }
 
 }
 
 class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector with CodecDef {
+
+  import HttpTest.TestEntity._
 
   implicit val as: ActorSystem = ActorSystem().index()
 
@@ -57,23 +62,6 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
       http[GET]("http://localhost:3289/success")
         .map { x => s"Got it [ $x ]" }
         .run
-        .map { result => result.length > 0 shouldBe true }
-    }
-    "Failure deserialize" in {
-      implicit val codec: Codec[Jokes] = CaseClassCodec.from[Jokes]
-      http[GET]("http://localhost:3289/failed")
-        .transform[Jokes, Jokes]
-        .map[scalatest.Assertion](_ => fail())
-        .run
-        .recover[scalatest.Assertion] {
-          case HttpResponseError(e: Jokes, _) => {
-            e.status shouldBe "failed"
-            e.value.id shouldBe 90
-          }
-        }
-    }
-    "asString" in {
-      http[GET]("http://localhost:3289/success").asString.run
         .map { result => result.length > 0 shouldBe true }
     }
     "UnknownHostException" in {
@@ -198,19 +186,185 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         }
         .run
     }
+  }
 
-    "eitherTransform if 500 failed" in {
-      implicit val _c1: Codec[Jokes]  = CaseClassCodec.from[Jokes]
-      implicit val _c2: Codec[Errors] = CaseClassCodec.from[Errors]
-      http[GET]("http://localhost:3289/failed")
-        .eitherTransform[Errors, Jokes, Jokes]
-        .run
+  "asString" should {
+    "Success" in {
+      http[GET]("http://localhost:3289/success").asString.run
+        .map {
+          _ shouldBe s"""{
+                        |  "status": "success",
+                        |  "value": {
+                        |    "id": 90,
+                        |    "joke": "Chuck Norris always knows the EXACT location of Carmen SanDiego.",
+                        |    "categories": []
+                        |  }
+                        |}""".stripMargin
+        }
+    }
+    "Failure" in {
+      http[GET]("http://localhost:3289/failed").asString.run
         .map(_ => fail())
         .recover {
-          case HttpResponseError(x: Jokes, _) =>
-            x.status shouldBe "failed"
-            x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
-          case _ => fail()
+          case HttpErrorRaw(res, _) =>
+            res.status.intValue() shouldBe 500
+        }
+    }
+  }
+
+  "transform" should {
+
+    implicit val _c1: Codec[Jokes]     = CaseClassCodec.from[Jokes]
+    implicit val _c2: Read[ErrorJokes] = CaseClassCodec.from[ErrorJokes]
+    implicit val _c3: Read[Errors]     = CaseClassCodec.from[Errors]
+    implicit val _c4: Read[Exception]  = Deserialize(x => new Exception(x.named("error").des[String]))
+
+    "Success" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Jokes, ErrorJokes]
+        .run
+        .map { x =>
+          x.status shouldBe "success"
+          x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+        }
+    }
+    "Failed by status code: 500" in {
+      http[GET]("http://localhost:3289/failed")
+        .transform[Jokes, ErrorJokes]
+        .map[scalatest.Assertion](_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case ErrorJokes(status, value) => {
+            status shouldBe "failed"
+            value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          }
+        }
+    }
+    "Failed by deserialization" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Int, ErrorJokes]
+        .map[scalatest.Assertion](_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case ErrorJokes(status, value) => {
+            status shouldBe "success"
+            value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          }
+        }
+    }
+    "Success with either deserialization to right" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Either[Int, Jokes], ErrorJokes]
+        .run
+        .map { x =>
+          x.fold(
+            _ => fail(),
+            x => {
+              x.status shouldBe "success"
+              x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+            }
+          )
+
+        }
+    }
+    "Failed by either deserialization to right" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Either[ErrorJokes, Int], Exception]
+        .run
+        .map { x =>
+          x.fold(
+            {
+              case ErrorJokes(status, value) => {
+                status shouldBe "success"
+                value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+              }
+            },
+            _ => fail()
+          )
+        }
+    }
+    "Failed by either deserialization to right and left" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Either[Int, Int], ErrorJokes]
+        .map(_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case ErrorJokes(status, value) => {
+            status shouldBe "success"
+            value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          }
+        }
+    }
+    "Failed by deserialization for all" in {
+      http[GET]("http://localhost:3289/success")
+        .transform[Either[Int, Int], Exception]
+        .map(_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case HttpErrorRaw(res, _) =>
+            res.status.intValue() shouldBe 200
+        }
+    }
+  }
+
+  "eitherTransform" should {
+
+    implicit val codec: Codec[Jokes]       = CaseClassCodec.from[Jokes]
+    implicit val _codec: Codec[ErrorJokes] = CaseClassCodec.from[ErrorJokes]
+    implicit val _r: Read[Errors]          = CaseClassCodec.from[Errors]
+    implicit val _e: Read[Exception]       = Deserialize(x => new Exception(x.named("error").des[String]))
+
+    "Success with either deserialization to right" in {
+      http[GET]("http://localhost:3289/success")
+        .eitherTransform[Int, Jokes, ErrorJokes]
+        .run
+        .map { x =>
+          x.fold(
+            _ => fail(),
+            x => {
+              x.status shouldBe "success"
+              x.value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+            }
+          )
+
+        }
+    }
+    "Failed by either deserialization to right" in {
+      http[GET]("http://localhost:3289/success")
+        .eitherTransform[ErrorJokes, Int, Exception]
+        .run
+        .map { x =>
+          x.fold(
+            {
+              case ErrorJokes(status, value) => {
+                status shouldBe "success"
+                value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+              }
+            },
+            _ => fail()
+          )
+        }
+    }
+    "Failed by either deserialization to right and left" in {
+      http[GET]("http://localhost:3289/success")
+        .eitherTransform[Int, Int, ErrorJokes]
+        .map(_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case ErrorJokes(status, value) => {
+            status shouldBe "success"
+            value shouldBe JokeBody(90, "Chuck Norris always knows the EXACT location of Carmen SanDiego.", Nil)
+          }
+        }
+    }
+    "Failed by deserialization for all" in {
+      http[GET]("http://localhost:3289/success")
+        .eitherTransform[Int, Int, Exception]
+        .map(_ => fail())
+        .run
+        .recover[scalatest.Assertion] {
+          case HttpErrorRaw(res, _) =>
+            res.status.intValue() shouldBe 200
         }
     }
   }

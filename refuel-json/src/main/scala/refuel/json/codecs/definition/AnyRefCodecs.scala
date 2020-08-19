@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
 
-private[codecs] trait AnyRefCodecs {
+private[refuel] trait AnyRefCodecs {
 
   /**
     * Codec base class for classes that inherit iterable.

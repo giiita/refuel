@@ -1,6 +1,6 @@
 package refuel.json.codecs.builder.context
 
-import refuel.json.JsonVal
+import refuel.json.{Codec, JsonVal}
 import refuel.json.codecs.builder.DeserializeConcatenation
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
