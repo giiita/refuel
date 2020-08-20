@@ -47,7 +47,7 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         .map(_ => fail())
         .recover {
           case e =>
-            e.getCause.getMessage should startWith("Internal structure analysis raised an exception.")
+            e.getCause.getMessage shouldBe "Internal structure analysis by class refuel.http.io.HttpTest$$anon$1 raised an exception."
         }
     }
     "deserializing" in {
