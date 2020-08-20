@@ -10,8 +10,8 @@ import refuel.http.io.setting.HttpSetting
 import refuel.http.io.task.execution.HttpResultExecution
 import refuel.http.io.task.{CombineTask, HttpTask, StrictTask}
 import refuel.json.JsonTransform
-import refuel.json.codecs.{Read, Write}
 import refuel.json.codecs.definition.AnyRefCodecs
+import refuel.json.codecs.{Read, Write}
 
 import scala.concurrent.Future
 
@@ -51,14 +51,28 @@ object HttpRunner {
         implicit setting: HttpSetting,
         timeout: FiniteDuration = 30.seconds
     ): HttpTask[T] = {
-      value.flatMap(convert[T](_)).recoverWith {
-        case HttpErrorRaw(res, _) =>
-          new StrictTask(res).flatMap {
-            map[String, T] { implicit as => _res =>
-              _res.as[E].fold[Future[T]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
+      value
+        .recoverWith {
+          case HttpErrorRaw(res, _) =>
+            new StrictTask(res).flatMap {
+              map[String, HttpResponse] { implicit as => _res =>
+                _res.as[E].fold[Future[HttpResponse]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
+              }
             }
-          }
-      }
+        }
+        .flatMap(
+          convert[T](
+            _, {
+              case (convertTask, strict) =>
+                convertTask.recoverWith {
+                  case HttpErrorRaw(res, _) =>
+                    map[String, T] { implicit as => _res =>
+                      _res.as[E].fold[Future[T]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
+                    }(strict)
+                }
+            }
+          )
+        )
     }
 
     /** If the Request is successful, it is always handled by Read[R]. If the request fails, it is handled by Read[L].

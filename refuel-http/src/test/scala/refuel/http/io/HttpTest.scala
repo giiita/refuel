@@ -231,7 +231,7 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
     "Failed by status code: 500" in {
       http[GET]("http://localhost:3289/failed")
         .transform[Jokes, ErrorJokes]
-        .map[scalatest.Assertion](_ => fail())
+        .map[scalatest.Assertion](x => fail("hogehoge"))
         .run
         .recover[scalatest.Assertion] {
           case ErrorJokes(status, value) => {
