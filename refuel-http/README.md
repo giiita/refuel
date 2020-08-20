@@ -4,7 +4,7 @@
 
 ```
 libraryDependencies ++= Seq(
-  "com.phylage"       %% "refuel-http" % "1.3.8",
+  "com.phylage"       %% "refuel-http" % "1.3.9",
   "com.typesafe.akka" %% "akka-stream" % "2.6.4",
   "com.typesafe.akka" %% "akka-http"   % "10.1.11"
 )
