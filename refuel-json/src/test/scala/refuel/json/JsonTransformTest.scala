@@ -15,6 +15,11 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
     "Whitespace only" in {
       s" ".jsonTree shouldBe JsEmpty
     }
+    "Unicode type" in {
+      s"""{"value":"test\uD83C\uDF0Ftest\uD83C\uDF0Ftest"}""".jsonTree shouldBe Json.obj(
+        "value" -> s"""test🌏test🌏test"""
+      )
+    }
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {
         s"""{"value":123"""".jsonTree

@@ -2,6 +2,7 @@ package refuel.http.io.task
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.util.ByteString
 import refuel.http.io.setting.HttpSetting
 
@@ -19,10 +20,14 @@ private[refuel] class StrictTask(response: HttpResponse)(
     * @return
     */
   override def run(implicit as: ActorSystem): Future[String] = {
-    response.entity
-      .toStrict(timeout)
-      .flatMap(
-        setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-      )(as.dispatcher)
+    Unmarshal(response)
+      .to[String]
+      .flatMap { dum =>
+        response.entity
+          .toStrict(timeout)
+          .flatMap { x =>
+            setting.responseBuilder(x).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+          }(as.dispatcher)
+      }(as.dispatcher)
   }
 }

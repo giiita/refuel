@@ -1,6 +1,7 @@
 package refuel.http.io
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import org.scalatest
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
@@ -27,6 +28,7 @@ object HttpTest extends Injector {
 
     case class Errors(status: String, error: String) extends Throwable
 
+    case class Emojis(emojis: String)
   }
 
 }

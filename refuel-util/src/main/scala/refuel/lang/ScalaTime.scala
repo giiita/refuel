@@ -25,8 +25,6 @@ object ScalaTime extends ScalaTime(RuntimeTZ)
 @Inject(Finally)
 class ScalaTime(TZ: RuntimeTZ) extends Injector with AutoInject {
 
-  println(TZ.ZONE_ID)
-
   /**
     * Get a current time.
     *
