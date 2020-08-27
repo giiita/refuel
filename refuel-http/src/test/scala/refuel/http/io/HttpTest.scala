@@ -27,8 +27,6 @@ object HttpTest extends Injector {
     case class InnerJokes(value: InnerJokeBody)
 
     case class Errors(status: String, error: String) extends Throwable
-
-    case class Emojis(emojis: String)
   }
 
 }
