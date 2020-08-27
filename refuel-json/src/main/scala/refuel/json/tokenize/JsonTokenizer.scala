@@ -11,6 +11,8 @@ import scala.annotation.{switch, tailrec}
 
 class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
+  private[this] lazy final val Radix = 16
+
   override protected var pos: Int                     = 0
   private[this] var closingSyntaxCheckEnable: Boolean = false
 
@@ -20,8 +22,8 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
 
   private[this] var chbuff = new Array[Char](1 << 7)
 
-  private def incl: Unit = {
-    pos += 1
+  private def incl(x: Int = 1): Unit = {
+    pos += x
   }
 
   override def beEOF: Unit = {
@@ -32,11 +34,17 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
   private[this] final def detectLiteral(len: Int): Int = {
     if (pos >= length) beEOF
     (rs(pos): @switch) match {
+      case '\\' if pos + 5 <= length && rs(pos + 1) == 'u' =>
+        incl(6)
+        val lastLen = len + 1
+        if (chbuff.length < lastLen) glowArray(len)
+        chbuff(len) = Integer.parseInt(new String(rs, pos - 4, 4), Radix).toChar
+        detectLiteral(lastLen)
       case '"' if rs(pos - 1) != '\\' =>
-        incl
+        incl()
         len
       case s =>
-        incl
+        incl()
         val lastLen = len + 1
         if (chbuff.length < lastLen) glowArray(len)
         chbuff(len) = s
@@ -52,7 +60,7 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         case ',' | ':' | ' ' | '}' | ']' =>
           len
         case s =>
-          incl
+          incl()
           val lastLen = len + 1
           if (chbuff.length < lastLen) glowArray(len)
           chbuff(len) = s
@@ -67,25 +75,25 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
     val x = rs(pos)
     (x: @switch) match {
       case '"' =>
-        incl
+        incl()
         val len = detectLiteral(0)
         if (closingSyntaxCheckEnable) {
           loop(rb ++ JsString(new String(chbuff, 0, len)))
         } else JsString(new String(chbuff, 0, len))
       case ':' | ',' =>
-        incl
+        incl()
         rb.approvalSyntax(x)
         loop(rb)
       case '{' =>
         closingSyntaxCheckEnable = true
-        incl
+        incl()
         loop(JsStackObjects(rb))
       case '[' =>
         closingSyntaxCheckEnable = true
-        incl
+        incl()
         loop(JsStackArray(rb))
       case '}' | ']' =>
-        incl
+        incl()
         val skashed = rb.squash
         if (skashed.isSquashable) loop(skashed) else skashed
       case _ =>

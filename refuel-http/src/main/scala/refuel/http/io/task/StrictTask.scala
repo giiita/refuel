@@ -21,8 +21,8 @@ private[refuel] class StrictTask(response: HttpResponse)(
   override def run(implicit as: ActorSystem): Future[String] = {
     response.entity
       .toStrict(timeout)
-      .flatMap(
-        setting.responseBuilder(_).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
-      )(as.dispatcher)
+      .flatMap { x =>
+        setting.responseBuilder(x).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+      }(as.dispatcher)
   }
 }
