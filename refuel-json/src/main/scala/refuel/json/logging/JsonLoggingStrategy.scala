@@ -5,7 +5,10 @@ import com.typesafe.scalalogging.LazyLogging
 import refuel.json.JsonVal
 
 trait JsonLoggingStrategy extends LazyLogging {
-  private[this] val logEnabled: Boolean = ConfigFactory.defaultApplication().getBoolean("json.logging.enabled")
+  private[this] val logEnabled: Boolean = {
+    val conf = ConfigFactory.load()
+    if (conf.hasPath("json.logging.enabled")) conf.getBoolean("json.logging.enabled") else false
+  }
 
   def jsonReadLogging(v: String): Unit = {
     if (logEnabled) {
