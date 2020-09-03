@@ -8,9 +8,11 @@ trait JsonVal extends Serializable {
 
   override def toString: String = {
     val buf = new StringBuffer()
-    pour(buf)
+    writeToBufferString(buf)
     buf.toString
   }
+
+  def writeToBufferString(buffer: StringBuffer): Unit
 
   /** Determines that the target JSON syntax tree does not exist or is a null symbol.
     * Empty arrays and empty objects are not considered to be empty.
@@ -34,14 +36,7 @@ trait JsonVal extends Serializable {
     *
     * @return
     */
-  def pour(b: StringBuffer): Unit
-
-  /**
-    * Outputs a highly visible string including blanks and newlines.
-    *
-    * @return
-    */
-  def prettyprint: String = toString
+  def encode(b: StringBuffer): Unit
 
   /**
     * Synthesize Json object.

@@ -9,7 +9,9 @@ case object JsNull extends JsVariable {
   override def isNonEmptry: Boolean = false
 
   override final def toString: String = "null"
-  def pour(b: StringBuffer): Unit     = b.append(toString)
+  def encode(b: StringBuffer): Unit   = b.append(toString)
 
   override def ++(js: JsonVal): JsonVal = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsNull.")
+
+  override def writeToBufferString(buffer: StringBuffer): Unit = buffer.append(toString)
 }

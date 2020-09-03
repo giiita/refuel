@@ -5,24 +5,25 @@ import java.util
 import refuel.json.JsonVal
 import refuel.json.entry._
 import refuel.json.error.IllegalJsonFormat
-import refuel.json.tokenize.combinator.ExtensibleIndexWhere
+import refuel.json.tokenize.strategy.JTransformStrategy
 
 import scala.annotation.{switch, tailrec}
 
-class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
+abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) {
 
-  private[this] lazy final val Radix = 16
+  protected def encodedLiteralHandle(len: Int): Int
 
-  override protected var pos: Int                     = 0
+  protected lazy final val Radix = 16
+
   private[this] var closingSyntaxCheckEnable: Boolean = false
 
-  private[this] final def glowArray(addStrLen: Int): Unit = {
+  protected final def glowArray(addStrLen: Int): Unit = {
     chbuff = util.Arrays.copyOf(chbuff, Integer.highestOneBit(addStrLen) << 1)
   }
 
-  private[this] var chbuff = new Array[Char](1 << 7)
+  protected var chbuff = new Array[Char](1 << 7)
 
-  private def incl(x: Int = 1): Unit = {
+  protected def incl(x: Int = 1): Unit = {
     pos += x
   }
 
@@ -30,40 +31,12 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
     throw new IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
   }
 
-  private[this] final def fromEscaping(c: Char): Char = {
-    (c: @switch) match {
-      case 'r'   => '\r'
-      case 'n'   => '\n'
-      case 'f'   => '\f'
-      case 'b'   => '\b'
-      case 't'   => '\t'
-      case other => other
-    }
-  }
-
   @tailrec
   private[this] final def detectLiteral(len: Int): Int = {
     if (pos >= length) beEOF
     (rs(pos): @switch) match {
       case '\\' =>
-        if (pos + 5 <= length && rs(pos + 1) == 'u') {
-          incl(6)
-          val lastLen = len + 1
-          if (chbuff.length < lastLen) glowArray(len)
-          chbuff(len) = Integer.parseInt(new String(rs, pos - 4, 4), Radix).toChar
-          detectLiteral(lastLen)
-        } else if (pos + 1 <= length) {
-          incl(2)
-          val lastLen = len + 1
-          if (chbuff.length < lastLen) glowArray(len)
-          if (rs(pos - 1) == '\\') {
-            chbuff(len) = '\\'
-            detectLiteral(lastLen)
-          } else {
-            chbuff(len) = fromEscaping(rs(pos - 1))
-            detectLiteral(lastLen)
-          }
-        } else beEOF
+        detectLiteral(encodedLiteralHandle(len))
       case '"' if rs(pos - 1) != '\\' =>
         incl()
         len
@@ -94,7 +67,7 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
   }
 
   @tailrec
-  protected final def loop(rb: ResultBuff[JsonVal]): JsonVal = {
+  protected final def tokenize(rb: ResultBuff[JsonVal]): JsonVal = {
     indexWhere(_ > 32)
     val x = rs(pos)
     (x: @switch) match {
@@ -102,28 +75,28 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
         incl()
         val len = detectLiteral(0)
         if (closingSyntaxCheckEnable) {
-          loop(rb ++ JsString(new String(chbuff, 0, len)))
+          tokenize(rb ++ JsString(new String(chbuff, 0, len)))
         } else JsString(new String(chbuff, 0, len))
       case ':' | ',' =>
         incl()
         rb.approvalSyntax(x)
-        loop(rb)
+        tokenize(rb)
       case '{' =>
         closingSyntaxCheckEnable = true
         incl()
-        loop(JsStackObjects(rb))
+        tokenize(JsStackObjects(rb))
       case '[' =>
         closingSyntaxCheckEnable = true
         incl()
-        loop(JsStackArray(rb))
+        tokenize(JsStackArray(rb))
       case '}' | ']' =>
         incl()
         val skashed = rb.squash
-        if (skashed.isSquashable) loop(skashed) else skashed
+        if (skashed.isSquashable) tokenize(skashed) else skashed
       case _ =>
         val len = detectAnyVal(0)
         if (closingSyntaxCheckEnable) {
-          loop(rb ++ JsAnyVal.apply[String](new String(chbuff, 0, len)))
+          tokenize(rb ++ JsAnyVal.apply[String](new String(chbuff, 0, len)))
         } else JsAnyVal.apply[String](new String(chbuff, 0, len))
     }
   }
