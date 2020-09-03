@@ -13,12 +13,11 @@ case class JsString private (literal: String) extends JsVariable {
   private[this] final def toEscaping(c: Char, b: StringBuffer): Unit = {
     (c: @switch) match {
       case '"'   => b.append("\\\"")
-      case '\\'  => b.append("\\\\")
-      case '\r'  => b.append("\\\\r")
-      case '\n'  => b.append("\\\\n")
-      case '\f'  => b.append("\\\\f")
-      case '\b'  => b.append("\\\\b")
-      case '\t'  => b.append("\\\\t")
+      case '\r'  => b.append("\\r")
+      case '\n'  => b.append("\\n")
+      case '\f'  => b.append("\\f")
+      case '\b'  => b.append("\\b")
+      case '\t'  => b.append("\\t")
       case other => b.append(other)
     }
   }

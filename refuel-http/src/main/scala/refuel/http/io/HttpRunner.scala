@@ -12,6 +12,7 @@ import refuel.http.io.task.{CombineTask, HttpTask, StrictTask}
 import refuel.json.JsonTransform
 import refuel.json.codecs.definition.AnyRefCodecs
 import refuel.json.codecs.{Read, Write}
+import refuel.json.logging.JsonConvertLogEnabled
 
 import scala.concurrent.Future
 
@@ -20,18 +21,19 @@ object HttpRunner {
   import scala.concurrent.duration._
 
   implicit class HttpResponseStream(value: HttpTask[HttpResponse])
-      extends JsonTransform
+    extends JsonTransform
       with AnyRefCodecs
       with LazyLogging {
 
     private[this] final def convert[R: Read](
-        x: HttpResponse,
-        recover: (HttpTask[R], String) => HttpTask[R] = (x: HttpTask[R], _: String) => x
-    )(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[R] = {
+                                              x: HttpResponse,
+                                              recover: (HttpTask[R], String) => HttpTask[R] = (x: HttpTask[R], _: String) => x
+                                            )(implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds, logEnabled: JsonConvertLogEnabled): HttpTask[R] = {
       new StrictTask(x).flatMap { strict =>
         recover(
-          map[String, R] { implicit as => res =>
-            res.as[R].fold(e => Future.failed(HttpErrorRaw(x, Some(strict), e)), Future(_)(as.dispatcher))
+          map[String, R] { implicit as =>
+            res =>
+              res.as[R].fold(e => Future.failed(HttpErrorRaw(x, Some(strict), e)), Future(_)(as.dispatcher))
           }(strict),
           strict
         )
@@ -47,18 +49,20 @@ object HttpRunner {
       *
       * @return
       */
-    final def transform[T: Read, E <: Throwable: Read](
-        implicit setting: HttpSetting,
-        timeout: FiniteDuration = 30.seconds
-    ): HttpTask[T] = {
+    final def transform[T: Read, E <: Throwable : Read](
+                                                         implicit setting: HttpSetting,
+                                                         timeout: FiniteDuration = 30.seconds,
+                                                         logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
+                                                       ): HttpTask[T] = {
       value
         .recoverWith {
           case HttpErrorRaw(res, _, _) =>
             new StrictTask(res).flatMap { strict =>
-              map[String, HttpResponse] { implicit as => _res =>
-                _res
-                  .as[E]
-                  .fold[Future[HttpResponse]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
+              map[String, HttpResponse] { implicit as =>
+                _res =>
+                  _res
+                    .as[E]
+                    .fold[Future[HttpResponse]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
               }(strict)
             }
         }
@@ -68,10 +72,11 @@ object HttpRunner {
               case (convertTask, strict) =>
                 convertTask.recoverWith {
                   case HttpErrorRaw(res, _, _) =>
-                    map[String, T] { implicit as => _res =>
-                      _res
-                        .as[E]
-                        .fold[Future[T]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
+                    map[String, T] { implicit as =>
+                      _res =>
+                        _res
+                          .as[E]
+                          .fold[Future[T]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
                     }(strict)
                 }
             }
@@ -85,9 +90,10 @@ object HttpRunner {
       * Either[L, R] and use a bipolar transformer such as `transform[Either[L, R], E]`.
       */
     final def eitherMap[L: Read, R: Read](
-        implicit setting: HttpSetting,
-        timeout: FiniteDuration = 30.seconds
-    ): HttpTask[Either[L, R]] = {
+                                           implicit setting: HttpSetting,
+                                           timeout: FiniteDuration = 30.seconds,
+                                           logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
+                                         ): HttpTask[Either[L, R]] = {
       as[Either[L, R]]
     }
 
@@ -105,10 +111,11 @@ object HttpRunner {
       * @tparam E
       * @return
       */
-    final def eitherTransform[L: Read, R: Read, E <: Throwable: Read](
-        implicit setting: HttpSetting,
-        timeout: FiniteDuration = 30.seconds
-    ): HttpTask[Either[L, R]] = {
+    final def eitherTransform[L: Read, R: Read, E <: Throwable : Read](
+                                                                        implicit setting: HttpSetting,
+                                                                        timeout: FiniteDuration = 30.seconds,
+                                                                        logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
+                                                                      ): HttpTask[Either[L, R]] = {
       transform[Either[L, R], E](EitherCodec[L, R, Read], implicitly[Read[E]], setting, timeout)
     }
 
@@ -118,7 +125,7 @@ object HttpRunner {
       * @tparam X Deserialized type.
       * @return
       */
-    final def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds): HttpTask[X] = {
+    final def as[X: Read](implicit setting: HttpSetting, timeout: FiniteDuration = 30.seconds, logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default): HttpTask[X] = {
       value.flatMap(convert[X](_))
     }
 
