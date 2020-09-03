@@ -76,7 +76,7 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     }
     "Option String deserialize ^ escaped 1" in {
       s"""{"value":"bo\\\\\\"d'y"}""".as(CaseClassCodec.from[JOptString]) shouldBe Right {
-        JOptString(Some("bo\\\\\\\"d'y"))
+        JOptString(Some("bo\\\"d'y"))
       }
     }
 

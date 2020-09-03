@@ -1,7 +1,6 @@
 package refuel.http.io
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import org.scalatest
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
@@ -206,8 +205,9 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
       http[GET]("http://localhost:3289/failed").asString.run
         .map(_ => fail())
         .recover {
-          case HttpErrorRaw(res, _) =>
+          case HttpErrorRaw(res, x, _) =>
             res.status.intValue() shouldBe 500
+            x shouldBe None
         }
     }
   }
@@ -301,8 +301,16 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         .map(_ => fail())
         .run
         .recover[scalatest.Assertion] {
-          case HttpErrorRaw(res, _) =>
+          case HttpErrorRaw(res, x, _) =>
             res.status.intValue() shouldBe 200
+            x shouldBe Some(s"""{
+                               |  "status": "success",
+                               |  "value": {
+                               |    "id": 90,
+                               |    "joke": "Chuck Norris always knows the EXACT location of Carmen SanDiego.",
+                               |    "categories": []
+                               |  }
+                               |}""".stripMargin)
         }
     }
   }
@@ -363,8 +371,16 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         .map(_ => fail())
         .run
         .recover[scalatest.Assertion] {
-          case HttpErrorRaw(res, _) =>
+          case HttpErrorRaw(res, x, _) =>
             res.status.intValue() shouldBe 200
+            x shouldBe Some(s"""{
+                               |  "status": "success",
+                               |  "value": {
+                               |    "id": 90,
+                               |    "joke": "Chuck Norris always knows the EXACT location of Carmen SanDiego.",
+                               |    "categories": []
+                               |  }
+                               |}""".stripMargin)
         }
     }
   }

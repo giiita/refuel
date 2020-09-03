@@ -2,6 +2,7 @@ package refuel.json
 
 import refuel.json.codecs.{Read, Write}
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
+import refuel.json.logging.JsonLoggingStrategy
 import refuel.json.tokenize.JsonTransformRouter
 
 import scala.util.Try
@@ -9,7 +10,7 @@ import scala.util.Try
 /**
   * Context that performs Json serialize / deserialize by refuel json.
   */
-trait JsonTransform {
+trait JsonTransform extends JsonLoggingStrategy {
 
   /**
     * Serialize any object to Json syntax tree.
@@ -23,7 +24,9 @@ trait JsonTransform {
     * @tparam T Any object type
     */
   protected implicit class JScribe[T](t: T) {
-    def toJson[X >: T](implicit ct: Write[X]): JsonVal = ct.serialize(t)
+    def toJson[X >: T](implicit ct: Write[X]): JsonVal = {
+      jsonWriteLogging(ct.serialize(t))
+    }
 
     def toJString[X >: T](implicit ct: Write[X]): String = {
       val buf = new StringBuffer()
@@ -74,11 +77,13 @@ trait JsonTransform {
     * @param t Json literal
     */
   protected implicit class JDescribe(t: String) {
-    def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] =
+    def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] = {
       Try {
+        jsonReadLogging(t)
         jsonTree.des[E]
       }.toEither.left
         .map(DeserializeFailPropagation(s"Internal structure analysis by ${c.getClass} raised an exception.", _))
+    }
 
     def jsonTree: JsonVal = new JsonTransformRouter(t).jsonTree
   }

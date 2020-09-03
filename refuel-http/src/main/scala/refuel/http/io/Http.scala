@@ -70,7 +70,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
             }
             .flatMap { res =>
               if (res.status.isSuccess()) Future(res)(as.dispatcher)
-              else Future.failed(HttpErrorRaw(res))
+              else Future.failed(HttpErrorRaw(res, None))
             }(as.dispatcher)
       }
     )

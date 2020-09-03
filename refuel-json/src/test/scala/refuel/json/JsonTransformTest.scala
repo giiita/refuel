@@ -20,6 +20,16 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
         "value" -> s"""test🌏test🌏test"""
       )
     }
+    "Breakline" in {
+      s"""{"value":"foo\\nbar"}""".jsonTree shouldBe Json.obj(
+        "value" -> "foo\nbar"
+      )
+      Json
+        .obj(
+          "value" -> "foo\nbar"
+        )
+        .des[String] shouldBe s"""{"value":"foo\nbar"}"""
+    }
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {
         s"""{"value":123"""".jsonTree
