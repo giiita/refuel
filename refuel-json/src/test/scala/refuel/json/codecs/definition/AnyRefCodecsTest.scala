@@ -184,7 +184,7 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     }
     "Option String serialize ^ escaped 1" in {
       val str: JOptString = JOptString(Some("bo\\\"d'y"))
-      str.toJString(CaseClassCodec.from[JOptString]) shouldBe "{\"value\":\"bo\\\\\\\"d'y\"}"
+      str.toJString(CaseClassCodec.from[JOptString]) shouldBe "{\"value\":\"bo\\\\\"d'y\"}"
     }
 
     "Option Boolean serialize true" in {

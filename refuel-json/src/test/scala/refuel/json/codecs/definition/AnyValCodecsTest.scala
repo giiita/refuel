@@ -119,11 +119,11 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     }
     "String serialize ^ escaped 1" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\"d'y"}"""
     }
     "String serialize ^ escaped 2" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\"d'y"}"""
     }
 
     "Float serialize" in {

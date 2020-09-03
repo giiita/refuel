@@ -31,7 +31,7 @@ class EncodedJsonTransformTest
         .obj(
           "value" -> "foo\nbar"
         )
-        .toJString shouldBe s"""{"value":"foo\\\\nbar"}"""
+        .toJString shouldBe s"""{"value":"foo\\nbar"}"""
       Json
         .obj(
           "value" -> "foo\nbar"

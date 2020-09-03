@@ -20,7 +20,7 @@ import refuel.json.tokenize.strategy.JsonEntry
   */
 trait JsonTransform extends JsonLoggingStrategy {
   protected implicit def __toEntryMaterialization(raw: String)(
-    implicit logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
+      implicit logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
   ): JsonEntry = new DecodedJsonRaw(raw)
 
   /**
@@ -35,7 +35,7 @@ trait JsonTransform extends JsonLoggingStrategy {
     * @tparam T Any object type
     */
   protected implicit class JSerialization[T](t: T)(
-    implicit logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
+      implicit logEnabled: JsonConvertLogEnabled = JsonConvertLogEnabled.Default
   ) {
     def toJson[X >: T](implicit ct: Write[X]): JsonVal = {
       jsonWriteLogging(ct.serialize(t))
@@ -48,8 +48,6 @@ trait JsonTransform extends JsonLoggingStrategy {
       * For example, if you do a Json.str("foo\n\"bar"), you will get `"foo foo\\\\n\"bar"` by toJString, but you will get `"foo\n\"bar"` bar by toString.
       *
       * Also, as[String] returns the same result as toString.
-      *
-      * Translated with www.DeepL.com/Translator (free version)
       *
       * @param ct
       * @tparam X
