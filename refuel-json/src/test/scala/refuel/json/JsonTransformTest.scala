@@ -20,9 +20,25 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
         "value" -> s"""test🌏test🌏test"""
       )
     }
+    "Breakline raw" in {
+      s"""{"value":"foo\nbar"}""".jsonTree shouldBe Json.obj(
+        "value" -> "foo\nbar"
+      )
+      s"""{"value":"foo\nbar"}""".as[String] shouldBe Right(s"""{"value":"foo\nbar"}""")
+      Json
+        .obj(
+          "value" -> "foo\nbar"
+        )
+        .toJString shouldBe s"""{"value":"foo\\nbar"}"""
+      Json
+        .obj(
+          "value" -> "foo\nbar"
+        )
+        .toString shouldBe s"""{"value":"foo\nbar"}"""
+    }
     "Breakline" in {
       s"""{"value":"foo\\nbar"}""".jsonTree shouldBe Json.obj(
-        "value" -> "foo\nbar"
+        "value" -> "foo\\nbar"
       )
       Json
         .obj(

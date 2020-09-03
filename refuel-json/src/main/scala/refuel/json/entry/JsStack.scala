@@ -7,10 +7,7 @@ import scala.reflect.ClassTag
 
 private[refuel] abstract class JsStack[T: ClassTag] private[entry] (bf: JsonVal) extends JsonVal {
 
-  def pour(b: StringBuffer): Unit =
-    throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
-
-  override def prettyprint: String =
+  def encode(b: StringBuffer): Unit =
     throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
 
   override def named(key: String): JsonVal =
@@ -24,4 +21,7 @@ private[refuel] abstract class JsStack[T: ClassTag] private[entry] (bf: JsonVal)
   def ++(js: JsonVal): JsonVal
 
   override def isSquashable: Boolean = true
+
+  override def writeToBufferString(buffer: StringBuffer): Unit =
+    throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
 }

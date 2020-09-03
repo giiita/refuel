@@ -5,14 +5,27 @@ import refuel.json.error.{IllegalJsonSyntaxTreeBuilding, UnsupportedOperation}
 
 case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVariable {
 
-  def pour(b: StringBuffer): Unit = {
+  override def writeToBufferString(buf: StringBuffer): Unit = {
+    var unempty = false
+    buf.append('{')
+    bf.foreach { x =>
+      if (unempty) buf.append(",")
+      x._1.writeToBufferString(buf)
+      buf.append(':')
+      x._2.writeToBufferString(buf)
+      if (!unempty) unempty = true
+    }
+    buf.append('}')
+  }
+
+  def encode(b: StringBuffer): Unit = {
     var unempty = false
     b.append('{')
     bf.foreach { x =>
       if (unempty) b.append(",")
-      x._1.pour(b)
+      x._1.encode(b)
       b.append(':')
-      x._2.pour(b)
+      x._2.encode(b)
       if (!unempty) unempty = true
     }
     b.append('}')

@@ -4,7 +4,7 @@ import java.io.File
 
 import org.openjdk.jmh.annotations.{Benchmark, State}
 import refuel.json.bench.Foo._
-import refuel.json.tokenize.JsonTransformRouter
+import refuel.json.tokenize.decoded.{DecodedJsonRaw, DecodedJsonTokenizer}
 import refuel.json.{Codec, CodecDef, JsonTransform}
 
 import scala.io.Source
@@ -39,7 +39,7 @@ class Bench extends JsonTransform with CodecDef {
 //  implicit val codec7 = Json.writes[Hoge]
 //  implicit val codec8 = Json.writes[Root]
 
-  val jt = new JsonTransformRouter(source)
+  val jt = new DecodedJsonRaw(source)
 
 //  val p = Json.parse(source).validate[Root]
 //

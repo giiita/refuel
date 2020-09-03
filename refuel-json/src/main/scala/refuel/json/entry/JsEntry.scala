@@ -30,7 +30,7 @@ case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
     *
     * @return
     */
-  override def pour(b: StringBuffer): Unit =
+  override def encode(b: StringBuffer): Unit =
     throw UnsupportedOperation("Operations other than composition are not allowed for incomplete Json entries.")
 
   /**
@@ -54,4 +54,6 @@ case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
     if (key.pure == _key) {
       value
     } else JsNull
+
+  override def writeToBufferString(buffer: StringBuffer): Unit = JsObject.fromEntry(this).writeToBufferString(buffer)
 }

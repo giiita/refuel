@@ -6,10 +6,12 @@ import refuel.json.error.IllegalJsonSyntaxTreeBuilding
 case class JsAnyVal private (literal: String) extends JsVariable {
   override def pure: String = literal
 
-  override def pour(sb: StringBuffer): Unit = sb.append(literal.trim)
+  override def encode(sb: StringBuffer): Unit = sb.append(literal.trim)
 
   override def ++(js: JsonVal): JsonVal =
     throw IllegalJsonSyntaxTreeBuilding(s"Cannot add element $js to JsAnyVal($literal).")
+
+  override def writeToBufferString(buffer: StringBuffer): Unit = buffer.append(literal.trim)
 }
 
 object JsAnyVal {

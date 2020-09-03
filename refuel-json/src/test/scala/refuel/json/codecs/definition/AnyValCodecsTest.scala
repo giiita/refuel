@@ -55,12 +55,12 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     "String deserialize ^ escaped 1" in {
       val x = s"""{"value":"bo\\"d'y"}""".as[JString](CaseClassCodec.from[JString])
       s"""{"value":"bo\\"d'y"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
-        JString("bo\"d'y")
+        JString("bo\\\"d'y")
       }
     }
     "String deserialize ^ escaped 2" in {
       s"""{"value":"bo\\\\\\"d'y"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
-        JString("bo\\\"d'y")
+        JString("bo\\\\\\\"d'y")
       }
     }
 
@@ -119,11 +119,11 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     }
     "String serialize ^ escaped 1" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\"d'y"}"""
     }
     "String serialize ^ escaped 2" in {
       val str: JString = JString("bo\\\"d'y")
-      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\\\"d'y"}"""
+      str.toJString(CaseClassCodec.from[JString]).toString shouldBe s"""{"value":"bo\\\\"d'y"}"""
     }
 
     "Float serialize" in {
