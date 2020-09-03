@@ -8,7 +8,7 @@ abstract class ExtensibleIndexWhere(rs: Array[Char]) {
 
   protected final val length = rs.length
 
-  protected def beEOF: Unit
+  protected def beEOF: Int
 
   @tailrec
   protected final def indexWhere(fn: Char => Boolean): Unit = {

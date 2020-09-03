@@ -26,20 +26,44 @@ class JsonTokenizer(rs: Array[Char]) extends ExtensibleIndexWhere(rs) {
     pos += x
   }
 
-  override def beEOF: Unit = {
+  override def beEOF: Int = {
     throw new IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
+  }
+
+  private[this] final def fromEscaping(c: Char): Char = {
+    (c: @switch) match {
+      case 'r'   => '\r'
+      case 'n'   => '\n'
+      case 'f'   => '\f'
+      case 'b'   => '\b'
+      case 't'   => '\t'
+      case other => other
+    }
   }
 
   @tailrec
   private[this] final def detectLiteral(len: Int): Int = {
     if (pos >= length) beEOF
     (rs(pos): @switch) match {
-      case '\\' if pos + 5 <= length && rs(pos + 1) == 'u' =>
-        incl(6)
-        val lastLen = len + 1
-        if (chbuff.length < lastLen) glowArray(len)
-        chbuff(len) = Integer.parseInt(new String(rs, pos - 4, 4), Radix).toChar
-        detectLiteral(lastLen)
+      case '\\' =>
+        if (pos + 5 <= length && rs(pos + 1) == 'u') {
+          incl(6)
+          val lastLen = len + 1
+          if (chbuff.length < lastLen) glowArray(len)
+          chbuff(len) = Integer.parseInt(new String(rs, pos - 4, 4), Radix).toChar
+          detectLiteral(lastLen)
+        } else if (pos + 1 <= length) {
+          incl(2)
+          val lastLen = len + 1
+          if (chbuff.length < lastLen) glowArray(len)
+          if (rs(pos - 1) == '\\') {
+            chbuff(len) = '\\'
+            detectLiteral(lastLen)
+          } else {
+            chbuff(len) = fromEscaping(rs(pos - 1))
+            detectLiteral(lastLen)
+          }
+        } else beEOF
       case '"' if rs(pos - 1) != '\\' =>
         incl()
         len

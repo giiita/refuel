@@ -31,7 +31,7 @@ object HttpRunner {
       new StrictTask(x).flatMap { strict =>
         recover(
           map[String, R] { implicit as => res =>
-            res.as[R].fold(e => Future.failed(HttpErrorRaw(x, e)), Future(_)(as.dispatcher))
+            res.as[R].fold(e => Future.failed(HttpErrorRaw(x, Some(strict), e)), Future(_)(as.dispatcher))
           }(strict),
           strict
         )
@@ -53,11 +53,13 @@ object HttpRunner {
     ): HttpTask[T] = {
       value
         .recoverWith {
-          case HttpErrorRaw(res, _) =>
-            new StrictTask(res).flatMap {
+          case HttpErrorRaw(res, _, _) =>
+            new StrictTask(res).flatMap { strict =>
               map[String, HttpResponse] { implicit as => _res =>
-                _res.as[E].fold[Future[HttpResponse]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
-              }
+                _res
+                  .as[E]
+                  .fold[Future[HttpResponse]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
+              }(strict)
             }
         }
         .flatMap(
@@ -65,9 +67,11 @@ object HttpRunner {
             _, {
               case (convertTask, strict) =>
                 convertTask.recoverWith {
-                  case HttpErrorRaw(res, _) =>
+                  case HttpErrorRaw(res, _, _) =>
                     map[String, T] { implicit as => _res =>
-                      _res.as[E].fold[Future[T]](x => Future.failed(HttpErrorRaw(res, x)), Future.failed(_))
+                      _res
+                        .as[E]
+                        .fold[Future[T]](x => Future.failed(HttpErrorRaw(res, Some(strict), x)), Future.failed(_))
                     }(strict)
                 }
             }

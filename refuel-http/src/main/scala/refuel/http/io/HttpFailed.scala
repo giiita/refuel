@@ -8,7 +8,7 @@ case class HttpResponseError[T](override val entry: T, response: HttpResponse) e
   override def getMessage: String = s"Http request failed. status code: ${response.status.value}"
 }
 
-case class HttpErrorRaw(override val entry: HttpResponse, cause: Throwable = null)
+case class HttpErrorRaw(override val entry: HttpResponse, strictedSource: Option[String], cause: Throwable = null)
     extends HttpRequestFailed[HttpResponse](entry, cause) {
   override def getMessage: String = s"Http request failed. status code: ${entry.status.value}"
 }
