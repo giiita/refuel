@@ -8,7 +8,6 @@ import refuel.domination.InjectionPriority.Finally
 import refuel.injector.{AutoInject, Injector}
 
 @deprecated("Instead, use dependency injection")
-@Inject(Finally)
 object ScalaTime extends ScalaTime(RuntimeTZ)
 
 /** Use DI as a starting point.

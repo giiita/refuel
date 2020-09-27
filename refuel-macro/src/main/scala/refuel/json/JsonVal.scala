@@ -1,16 +1,9 @@
 package refuel.json
 
+import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.codecs.{Read, Write}
 
 trait JsonVal extends Serializable {
-
-  private[refuel] def pure: String = toString
-
-  override def toString: String = {
-    val buf = new StringBuffer()
-    writeToBufferString(buf)
-    buf.toString
-  }
 
   def writeToBufferString(buffer: StringBuffer): Unit
 
@@ -19,7 +12,8 @@ trait JsonVal extends Serializable {
     *
     * @return
     */
-  def isEmpty: Boolean     = false
+  def isEmpty: Boolean = false
+
   def isNonEmptry: Boolean = true
 
   /**
@@ -61,7 +55,7 @@ trait JsonVal extends Serializable {
     * @param key Target json key name
     * @return
     */
-  def named(key: String): JsonVal
+  def named(key: JsonKeyRef): JsonVal = key.dig(this)
 
   /**
     * Squash the Json buffer under construction.
@@ -78,6 +72,16 @@ trait JsonVal extends Serializable {
     * @return
     */
   def isSquashable: Boolean = false
+
+  private[refuel] def named(key: String): JsonVal
+
+  private[refuel] def pure: String = toString
+
+  override def toString: String = {
+    val buf = new StringBuffer()
+    writeToBufferString(buf)
+    buf.toString
+  }
 }
 
 object JsonVal {
