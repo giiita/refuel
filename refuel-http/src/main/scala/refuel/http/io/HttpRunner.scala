@@ -148,7 +148,7 @@ object HttpRunner {
 
 }
 
-sealed class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) extends JsonTransform with HttpTask[T] {
+class HttpRunner[T](request: HttpRequest, task: HttpResultExecution[T]) extends JsonTransform with HttpTask[T] {
   me =>
 
   import akka.http.scaladsl.model.MediaTypes._
