@@ -1,8 +1,8 @@
 package refuel.json
 
-import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.json.entry.JsEmpty
 import refuel.json.error.IllegalJsonFormat
 import refuel.json.model.TestJson.JString
@@ -79,11 +79,39 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
     "fail case - Not found key name" in {
       s"""{"value":"3"}""".as(ConstCodec.from("hoge")(JString.apply)(JString.unapply)) match {
         case Left(e) =>
-          e.printStackTrace()
           e.getMessage shouldBe """Internal structure analysis by class refuel.json.codecs.JoinableCodec$T1 raised an exception."""
           e.getCause.getMessage shouldBe s"""Cannot deserialize null into a String"""
         case Right(r) => fail(r.toString)
       }
+    }
+    "Nested array tree" in {
+      val json = s"""
+         |{
+         |  "blocks": [
+         |    {
+         |      "type": "rich_text",
+         |      "block_id": "vMWQ",
+         |      "elements": [
+         |        {
+         |          "type": "rich_text_section",
+         |          "elements": [
+         |            {
+         |              "type": "user",
+         |              "user_id": "U01BBCSP6NP"
+         |            },
+         |            {
+         |              "type": "text",
+         |              "text": "hey"
+         |            }
+         |          ]
+         |        }
+         |      ]
+         |    }
+         |  ]
+         |}
+         |""".stripMargin.jsonTree
+      json.named("blocks").named("elements").named("elements").named("text") shouldBe Json.arr(Json.str("hey"))
+      json.named("blocks" @@ "elements" @@ "elements" @@ "text") shouldBe Json.arr(Json.str("hey"))
     }
   }
 }

@@ -1,5 +1,6 @@
 package refuel.json.entry
 
+import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.JsonVal
 import refuel.json.error.UnsupportedOperation
 
@@ -50,10 +51,11 @@ case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
     * @param _key Target json key name
     * @return
     */
-  override def named(_key: String): JsonVal =
+  override def named(_key: String): JsonVal = {
     if (key.pure == _key) {
       value
     } else JsNull
+  }
 
   override def writeToBufferString(buffer: StringBuffer): Unit = JsObject.fromEntry(this).writeToBufferString(buffer)
 }

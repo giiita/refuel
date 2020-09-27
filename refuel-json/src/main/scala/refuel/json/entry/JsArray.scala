@@ -1,5 +1,6 @@
 package refuel.json.entry
 
+import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.JsonVal
 
 case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
@@ -14,17 +15,20 @@ case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
     sb.append(']')
   }
 
-  def ++(js: JsonVal): JsonVal = {
+  override def named(key: String): JsonVal = {
+    bf.map(_.named(key)).foldLeft(JsArray(None))(_ ++ _)
+  }
+
+  def ++(js: JsonVal): JsArray = {
     if (js == null) this
     else {
       js match {
         case JsArray(x) => JsArray(bf ++ x)
+        case JsNull     => this
         case _          => JsArray(bf :+ js)
       }
     }
   }
-
-  override def named(key: String): JsonVal = copy(bf.map(_.named(key)))
 
   override def writeToBufferString(buffer: StringBuffer): Unit = {
     var unempty = false
