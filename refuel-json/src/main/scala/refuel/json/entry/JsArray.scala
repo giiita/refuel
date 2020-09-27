@@ -16,9 +16,7 @@ case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
   }
 
   override def named(key: String): JsonVal = {
-    val r = bf.map(_.named(key)).foldLeft(JsArray(None))(_ ++ _)
-    println(r)
-    r
+    bf.map(_.named(key)).foldLeft(JsArray(None))(_ ++ _)
   }
 
   def ++(js: JsonVal): JsArray = {
