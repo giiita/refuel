@@ -1,13 +1,24 @@
 package refuel.json.codecs.definition
 
+import java.time.ZonedDateTime
+
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.entry.{JsNull, JsObject}
-import refuel.json.{CodecDef, Json, JsonTransform}
+import refuel.injector.Injector
+import refuel.json.codecs.definition.DateTimeParserStrategy.{Epoch, EpochMillis, Formatter}
+import refuel.json.entry.JsNull
 import refuel.json.model.TestJson._
+import refuel.json.{CodecDef, Json, JsonTransform}
+import refuel.lang.ScalaTime
 
-class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
+class AnyValCodecsTest
+    extends AsyncWordSpec
+    with Matchers
+    with Diagrams
+    with JsonTransform
+    with CodecDef
+    with Injector {
   "json deserialize" should {
     "null deserialize" in {
       val js = s"""{"value":null}""".jsonTree
@@ -96,6 +107,28 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
         JBoolean(false)
       }
     }
+    implicit val st: ScalaTime = inject[ScalaTime]
+    import st._
+    "ZonedDateTime deserialize epoch" in {
+      implicit val strategy: DateTimeParserStrategy = Epoch
+      s"""100000""".as[ZonedDateTime].right.get shouldBe 100000.datetime
+    }
+    "ZonedDateTime deserialize string to epoch" in {
+      implicit val strategy: DateTimeParserStrategy = Epoch
+      s""""100000"""".as[ZonedDateTime].right.get shouldBe 100000.datetime
+    }
+    "ZonedDateTime deserialize epoch millis" in {
+      implicit val strategy: DateTimeParserStrategy = EpochMillis
+      s"""100001""".as[ZonedDateTime].right.get shouldBe 100001.millisToDatetime
+    }
+    "ZonedDateTime deserialize string to epoch millis" in {
+      implicit val strategy: DateTimeParserStrategy = EpochMillis
+      s""""100001"""".as[ZonedDateTime].right.get shouldBe 100001.millisToDatetime
+    }
+    "ZonedDateTime deserialize format" in {
+      implicit val strategy: DateTimeParserStrategy = Formatter
+      s""""2000/01/01 10:11:22"""".as[ZonedDateTime].right.get shouldBe "2000/01/01 10:11:22".datetime
+    }
   }
 
   "json serialize" should {
@@ -151,6 +184,20 @@ class AnyValCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     "Boolean serialize false" in {
       val str: JBoolean = JBoolean(false)
       str.toJString(CaseClassCodec.from[JBoolean]).toString shouldBe s"""{"value":false}"""
+    }
+    implicit val st: ScalaTime = inject[ScalaTime]
+    import st._
+    "ZonedDateTime serialize epoch" in {
+      implicit val strategy: DateTimeParserStrategy = Epoch
+      100000.datetime.ser[ZonedDateTime] shouldBe Json.any(100000)
+    }
+    "ZonedDateTime serialize epoch millis" in {
+      implicit val strategy: DateTimeParserStrategy = EpochMillis
+      100001.millisToDatetime.ser[ZonedDateTime] shouldBe Json.any(100001)
+    }
+    "ZonedDateTime serialize format" in {
+      implicit val strategy: DateTimeParserStrategy = Formatter
+      "2000/01/01 10:11:22".datetime.ser[ZonedDateTime] shouldBe Json.str(s"""2000/1/1 10:11:22""")
     }
   }
 }

@@ -8,24 +8,22 @@ import refuel.domination.InjectionPriority.Finally
 import refuel.injector.{AutoInject, Injector}
 
 @deprecated("Instead, use dependency injection")
-@Inject(Finally)
-object ScalaTime extends ScalaTimeBase(RuntimeTZ)
+object ScalaTime extends ScalaTime(RuntimeTZ)
 
 /** Use DI as a starting point.
   * ```
   * MyService(st: ScalaTime) {
   *   import st._
-  *
-  *     "2020-01-01".datetime
+  *   "2020-01-01".datetime
   * }
   * ```
   * By default, the system default TimeZone is used.
   * I would override it as needed and refer to it by mixing in the AutoInject.
   */
 @Inject(Finally)
-class ScalaTime(TZ: RuntimeTZ) extends ScalaTimeBase(TZ) with AutoInject
+class ScalaTimeImpl(TZ: RuntimeTZ) extends ScalaTime(TZ) with AutoInject
 
-abstract class ScalaTimeBase(TZ: RuntimeTZ) extends Injector {
+abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {
 
   /**
     * Get a current time.
@@ -110,6 +108,13 @@ abstract class ScalaTimeBase(TZ: RuntimeTZ) extends Injector {
     def maxToday: LocalDateTime = value.toZonedDateTime.maxToday.toLocalDateTime
 
     /**
+      * Convert to ZonedDateTime with default zone id.
+      *
+      * @return
+      */
+    def toZonedDateTime: ZonedDateTime = ZonedDateTime.of(value, TZ.ZONE_ID)
+
+    /**
       * LocalDateTime to this hour, HH:59:59.99999999
       *
       * @return
@@ -123,13 +128,6 @@ abstract class ScalaTimeBase(TZ: RuntimeTZ) extends Injector {
       * @return
       */
     def format(): String = value.toZonedDateTime.format(TZ.format)
-
-    /**
-      * Convert to ZonedDateTime with default zone id.
-      *
-      * @return
-      */
-    def toZonedDateTime: ZonedDateTime = ZonedDateTime.of(value, TZ.ZONE_ID)
   }
 
   implicit class ZonedDateTimeBs(value: ZonedDateTime) {
@@ -186,6 +184,8 @@ abstract class ScalaTimeBase(TZ: RuntimeTZ) extends Injector {
       * @return
       */
     def epoch: Long = value.toEpochSecond
+
+    def epochMillis: Long = value.toInstant.toEpochMilli
   }
 
   implicit class UnixTimeBs(value: Long) {
@@ -203,7 +203,7 @@ abstract class ScalaTimeBase(TZ: RuntimeTZ) extends Injector {
       *
       * @return
       */
-    def milliToDatetime: ZonedDateTime =
+    def millisToDatetime: ZonedDateTime =
       ZonedDateTime.ofInstant(Instant.ofEpochMilli(value), TZ.ZONE_ID)
   }
 

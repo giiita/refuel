@@ -116,21 +116,13 @@ private[codecs] trait AnyValCodecs {
     def parse(bf: JsonVal): String = bf.pure
   }
 
-  implicit def ZonedDateTimeCdc(implicit st: ScalaTime): Codec[ZonedDateTime] = new Codec[ZonedDateTime] {
-    import st._
+  implicit def ZonedDateTimeCdc(implicit st: ScalaTime, strategy: DateTimeParserStrategy): Codec[ZonedDateTime] =
+    new Codec[ZonedDateTime] {
 
-    def fail(bf: JsonVal, e: Throwable): DeserializeFailed = {
-      UnexpectedDeserializeType(s"Cannot deserialize $bf into a ZonedDateTime", e)
-    }
+      override def serialize(t: ZonedDateTime): JsonVal = strategy.serialize(t)
 
-    override def serialize(t: ZonedDateTime): JsonVal = JsString(t.format())
-
-    override def deserialize(bf: JsonVal): ZonedDateTime = {
-      bf match {
-        case x: JsAnyVal => LongCdc.deserialize(x).datetime
-        case JsString(x) => x.datetime
-        case _           => throw fail(bf, UnsupportedOperation("Only JsAnyVal or JsString can be charactor decoded"))
+      override def deserialize(bf: JsonVal): ZonedDateTime = {
+        strategy.deserialize(bf)
       }
     }
-  }
 }
