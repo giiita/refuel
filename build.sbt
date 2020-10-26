@@ -9,10 +9,10 @@ lazy val akkaHttpVersion = "10.1.11"
 lazy val pac4jVersion    = "4.1.0"
 
 lazy val asemble = Seq(
-  sonatypeBundleDirectory := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
-  publishTo := sonatypePublishToBundle.value,
+  sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  publishTo in ThisProject := sonatypePublishToBundle.value,
   organization := "com.phylage",
-  scalacOptions ++= Seq(
+  scalacOptions in Test ++= Seq(
       "-deprecation",
       "-unchecked",
       "-feature",
@@ -59,7 +59,6 @@ lazy val root = project
     interfaces_impl,
     call_interfaces
   )
-  .settings(asemble)
   .settings(
     releaseProcess in ThisProject := Nil,
     publishLocal in ThisProject := {},
