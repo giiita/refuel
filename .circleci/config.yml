@@ -30,13 +30,13 @@ jobs:
       - run:
           name: Cross version compile
           command: |
-            sbt -mem 4000 sbtVersion +clean +compile
+            sbt -mem 3000 sbtVersion +clean +compile
           no_output_timeout: 60m
 
       - run:
           name: Cross version test
           command: |
-            sbt -mem 4000 +test
+            sbt -mem 3000 +test
           no_output_timeout: 60m
 
       - save_cache:
