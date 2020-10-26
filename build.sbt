@@ -8,42 +8,44 @@ lazy val akkaVersion     = "2.6.4"
 lazy val akkaHttpVersion = "10.1.11"
 lazy val pac4jVersion    = "4.1.0"
 
-sonatypeBundleDirectory in ThisBuild := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}"
-publishTo in ThisBuild := sonatypePublishToBundle.value
-organization in ThisBuild := "com.phylage"
-scalacOptions in ThisBuild ++= Seq(
-  "-deprecation",
-  "-unchecked",
-  "-feature",
-  "-Xlint",
-  "-Ywarn-dead-code",
-  "-Ywarn-numeric-widen",
-  "-Ywarn-value-discard",
-  "-language:higherKinds",
-  "-language:implicitConversions"
-)
-licenses in ThisBuild += ("Apache-2.0", url(
-  "https://www.apache.org/licenses/LICENSE-2.0.html"
-))
-releaseProcess in ThisBuild := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  runClean,
-  runTest,
-  tagRelease,
-  releaseStepCommandAndRemaining("+publishSigned"),
-  ReleaseStep(
-    action = Command.process("sonatypeBundleRelease", _),
-    enableCrossBuild = true
-  )
+lazy val cmn = Seq(
+  sonatypeBundleDirectory in ThisBuild := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  publishTo in ThisBuild := sonatypePublishToBundle.value,
+  organization in ThisBuild := "com.phylage",
+  scalacOptions in ThisBuild ++= Seq(
+      "-deprecation",
+      "-unchecked",
+      "-feature",
+      "-Xlint",
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-value-discard",
+      "-language:higherKinds",
+      "-language:implicitConversions"
+    ),
+  licenses in ThisBuild += ("Apache-2.0", url(
+      "https://www.apache.org/licenses/LICENSE-2.0.html"
+    )),
+  releaseProcess in ThisBuild := Seq[ReleaseStep](
+      checkSnapshotDependencies,
+      inquireVersions,
+      runClean,
+      runTest,
+      tagRelease,
+      releaseStepCommandAndRemaining("+publishSigned"),
+      ReleaseStep(
+        action = Command.process("sonatypeBundleRelease", _),
+        enableCrossBuild = true
+      )
+    ),
+  ThisBuild / libraryDependencies ++= {
+    Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
+  },
+  ThisBuild / libraryDependencies ++= scl213(
+      Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+    ).value
 )
 
-ThisBuild / libraryDependencies ++= {
-  Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
-}
-ThisBuild / libraryDependencies ++= scl213(
-  Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
-).value
 lazy val root = project
   .in(file("."))
   .aggregate(
@@ -65,6 +67,7 @@ lazy val root = project
     }
   )
 lazy val `macro` = (project in file("refuel-macro"))
+  .settings(cmn)
   .settings(
     name := "refuel-macro",
     description := "Lightweight DI container for Scala.",
@@ -79,6 +82,7 @@ lazy val `macro` = (project in file("refuel-macro"))
     scalacOptions += "-language:experimental.macros"
   )
 lazy val container = (project in file("refuel-container"))
+  .settings(cmn)
   .dependsOn(`macro`)
   .settings(
     name := "refuel-container",
@@ -96,12 +100,14 @@ lazy val container = (project in file("refuel-container"))
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   )
 lazy val util = (project in file("refuel-util"))
+  .settings(cmn)
   .dependsOn(container)
   .settings(
     name := "refuel-util"
   )
   .enablePlugins(JavaAppPackaging)
 lazy val json = (project in file("refuel-json"))
+  .settings(cmn)
   .dependsOn(util)
   .settings(
     name := "refuel-json",
@@ -111,6 +117,7 @@ lazy val json = (project in file("refuel-json"))
   )
   .enablePlugins(JavaAppPackaging, JmhPlugin)
 lazy val cipher = (project in file("refuel-cipher"))
+  .settings(cmn)
   .dependsOn(json)
   .settings(
     name := "refuel-cipher",
@@ -119,6 +126,7 @@ lazy val cipher = (project in file("refuel-cipher"))
   )
   .enablePlugins(JavaAppPackaging)
 lazy val http = (project in file("refuel-http"))
+  .settings(cmn)
   .dependsOn(json)
   .settings(
     name := "refuel-http",
@@ -144,6 +152,7 @@ lazy val http = (project in file("refuel-http"))
   )
   .enablePlugins(JavaAppPackaging)
 lazy val auth = (project in file("refuel-auth-provider"))
+  .settings(cmn)
   .dependsOn(http)
   .settings(
     ThisBuild / resolvers += ("Shibboleth Repository" at "https://build.shibboleth.net/nexus/content/repositories/releases/"),
