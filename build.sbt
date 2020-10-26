@@ -8,11 +8,11 @@ lazy val akkaVersion     = "2.6.4"
 lazy val akkaHttpVersion = "10.1.11"
 lazy val pac4jVersion    = "4.1.0"
 
-lazy val cmn = Seq(
-  sonatypeBundleDirectory in ThisBuild := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
-  publishTo in ThisBuild := sonatypePublishToBundle.value,
-  organization in ThisBuild := "com.phylage",
-  scalacOptions in ThisBuild ++= Seq(
+lazy val asemble = Seq(
+  sonatypeBundleDirectory := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
+  publishTo := sonatypePublishToBundle.value,
+  organization := "com.phylage",
+  scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",
       "-feature",
@@ -23,10 +23,10 @@ lazy val cmn = Seq(
       "-language:higherKinds",
       "-language:implicitConversions"
     ),
-  licenses in ThisBuild += ("Apache-2.0", url(
+  licenses += ("Apache-2.0", url(
       "https://www.apache.org/licenses/LICENSE-2.0.html"
     )),
-  releaseProcess in ThisBuild := Seq[ReleaseStep](
+  releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
       runClean,
@@ -38,10 +38,10 @@ lazy val cmn = Seq(
         enableCrossBuild = true
       )
     ),
-  ThisBuild / libraryDependencies ++= {
+  libraryDependencies ++= {
     Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
   },
-  ThisBuild / libraryDependencies ++= scl213(
+  libraryDependencies ++= scl213(
       Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
     ).value
 )
@@ -59,7 +59,9 @@ lazy val root = project
     interfaces_impl,
     call_interfaces
   )
+  .settings(asemble)
   .settings(
+    releaseProcess in ThisProject := Nil,
     publishLocal in ThisProject := {},
     publishArtifact in ThisProject := false,
     resourceDirectories in Compile += {
@@ -67,7 +69,7 @@ lazy val root = project
     }
   )
 lazy val `macro` = (project in file("refuel-macro"))
-  .settings(cmn)
+  .settings(asemble)
   .settings(
     name := "refuel-macro",
     description := "Lightweight DI container for Scala.",
@@ -82,8 +84,8 @@ lazy val `macro` = (project in file("refuel-macro"))
     scalacOptions += "-language:experimental.macros"
   )
 lazy val container = (project in file("refuel-container"))
-  .settings(cmn)
   .dependsOn(`macro`)
+  .settings(asemble)
   .settings(
     name := "refuel-container",
     description := "Lightweight DI container for Scala.",
@@ -100,15 +102,15 @@ lazy val container = (project in file("refuel-container"))
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   )
 lazy val util = (project in file("refuel-util"))
-  .settings(cmn)
   .dependsOn(container)
+  .settings(asemble)
   .settings(
     name := "refuel-util"
   )
   .enablePlugins(JavaAppPackaging)
 lazy val json = (project in file("refuel-json"))
-  .settings(cmn)
   .dependsOn(util)
+  .settings(asemble)
   .settings(
     name := "refuel-json",
     description := "Various classes serializer / deserializer",
@@ -117,7 +119,6 @@ lazy val json = (project in file("refuel-json"))
   )
   .enablePlugins(JavaAppPackaging, JmhPlugin)
 lazy val cipher = (project in file("refuel-cipher"))
-  .settings(cmn)
   .dependsOn(json)
   .settings(
     name := "refuel-cipher",
@@ -126,8 +127,8 @@ lazy val cipher = (project in file("refuel-cipher"))
   )
   .enablePlugins(JavaAppPackaging)
 lazy val http = (project in file("refuel-http"))
-  .settings(cmn)
   .dependsOn(json)
+  .settings(asemble)
   .settings(
     name := "refuel-http",
     description := "Http client for Scala.",
@@ -152,8 +153,8 @@ lazy val http = (project in file("refuel-http"))
   )
   .enablePlugins(JavaAppPackaging)
 lazy val auth = (project in file("refuel-auth-provider"))
-  .settings(cmn)
   .dependsOn(http)
+  .settings(asemble)
   .settings(
     ThisBuild / resolvers += ("Shibboleth Repository" at "https://build.shibboleth.net/nexus/content/repositories/releases/"),
     name := "refuel-auth-provider",
@@ -177,6 +178,7 @@ lazy val root_interfaces =
   (project in file("test-across-module/root_interfaces"))
     .dependsOn(http)
     .settings(
+      Keys.`package` := file(""),
       publishArtifact in ThisProject := false,
       releaseProcess in ThisProject := Nil,
       publish in ThisProject := {},
@@ -188,6 +190,7 @@ lazy val interfaces_impl =
   (project in file("test-across-module/interfaces_impl"))
     .dependsOn(root_interfaces)
     .settings(
+      Keys.`package` := file(""),
       publishArtifact in ThisProject := false,
       releaseProcess in ThisProject := Nil,
       publish in ThisProject := {},
@@ -198,6 +201,7 @@ lazy val call_interfaces =
   (project in file("test-across-module/call_interfaces"))
     .dependsOn(interfaces_impl)
     .settings(
+      Keys.`package` := file(""),
       publishArtifact in ThisProject := false,
       releaseProcess in ThisProject := Nil,
       publish in ThisProject := {},
