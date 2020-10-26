@@ -1,7 +1,7 @@
 # refuel-saml-provider
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-saml-provider" % "1.4.0"
+libraryDependencies += "com.phylage" %% "refuel-auth-provider" % "1.4.0"
 ```
 
 Provides SAML 2.0 service provider support for Akka http. The refuel framework will be worked on to support Scala 3.
@@ -28,10 +28,37 @@ saml {
 ##### MyController.scala
 
 ```scala
-class MyController(builder: AkkaHttpSecurityBuilder)(implicit actorSystem: ActorSystem) extends Directives with AutoInject {
-  def xxx: Route = path("xxx") {
-    builder.Default.clientsAuthentication() { _: AuthenticatedRequest =>
+class MyController(builder: AuthnSAMLBuilder)(implicit actorSystem: ActorSystem) extends Directives with AutoInject {
+  def staged: Route = path("staged") {
+    get {
       StatusCodes.OK
+    }
+  }
+
+  def logout: Route = path("logout") {
+    get {
+      builder.Default.logout("/loggedout")
+    }
+  }
+
+  // ログアウトが完了した
+  def loggedout: Route = path("loggedout") {
+    get {
+      StatusCodes.OK
+    }
+  } 
+
+  def stage: Route = path("stage") {
+    post {
+      builder.Default.callback("/staged")
+    }
+  }
+
+  def anyAction: Route = path("do_???") {
+    get {
+      builder.Default.clientsAuthentication() { x: AuthenticatedRequest =>
+        StatusCodes.OK -> x.profiles.toJString
+      }
     }
   }
 }
