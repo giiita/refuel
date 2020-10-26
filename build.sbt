@@ -8,10 +8,9 @@ lazy val akkaVersion     = "2.6.4"
 lazy val akkaHttpVersion = "10.1.11"
 lazy val pac4jVersion    = "4.1.0"
 
-
 libraryDependencies in Scope.Global ++= {
   Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
-},
+}
 libraryDependencies in Scope.Global ++= scl213(
   Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
 ).value
