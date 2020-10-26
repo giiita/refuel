@@ -132,6 +132,12 @@ class AnyValCodecsTest
   }
 
   "json serialize" should {
+    "Union serialization" in {
+      (WriteWith[Int]("num") |+| WriteWith[String]("str")).serialize(1 -> "foo") shouldBe Json.obj(
+        "str"                                                          -> "foo",
+        "num"                                                          -> 1
+      )
+    }
     "Int serialize" in {
       val str: JInt = JInt(3)
       str.toJString(CaseClassCodec.from[JInt]) shouldBe s"""{"value":3}"""

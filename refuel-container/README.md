@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.3.17"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.4.0"
 ````
 
 ## Features
@@ -79,7 +79,7 @@ The same is true for the automatic injection of constructors.
 [info] Foo.scala:266:26: refuel.FooImpl will be decided.
 [info]       inject[Foo]
 [info]
-[info] <macro>:1:118: refuel.BarImpl will be decided.
+[info] <macro>:1:118: refuel.BarImpl will be used.
 [info] new refuel.FooImpl(inject[refuel.Bar]) with refuel.injector.Injector
 ```
 

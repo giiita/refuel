@@ -8,13 +8,13 @@ jobs:
   build:
     docker:
 
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/openjdk:11-jdk
 
     working_directory: ~/giiita/srces
 
     environment:
       # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx5g
+      JVM_OPTS: -Xmx3g
       TERM: dumb
 
     steps:
@@ -30,13 +30,13 @@ jobs:
       - run:
           name: Cross version compile
           command: |
-            sbt -mem 4000 sbtVersion +clean +compile
+            sbt -mem 2000 sbtVersion +clean +compile
           no_output_timeout: 60m
 
       - run:
           name: Cross version test
           command: |
-            sbt -mem 4000 +test
+            sbt -mem 2000 +test
           no_output_timeout: 60m
 
       - save_cache:

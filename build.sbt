@@ -4,61 +4,46 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.3")
 
-lazy val assemblySettings = Seq(
-  sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
-  publishTo in ThisProject := sonatypePublishToBundle.value,
-  organization := "com.phylage",
-  scalacOptions in Test ++= Seq(
-      "-deprecation",
-      "-unchecked",
-      "-feature",
-      "-Xlint",
-      "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen",
-      "-Ywarn-value-discard",
-      "-language:higherKinds",
-      "-language:implicitConversions"
-    ),
-  licenses += ("Apache-2.0", url(
-      "https://www.apache.org/licenses/LICENSE-2.0.html"
-    )),
-  releaseProcess := Seq[ReleaseStep](
-      checkSnapshotDependencies,
-      inquireVersions,
-      runClean,
-      runTest,
-      tagRelease,
-      releaseStepCommandAndRemaining("+publishSigned"),
-      ReleaseStep(
-        action = Command.process("sonatypeBundleRelease", _),
-        enableCrossBuild = true
-      )
-    )
+lazy val akkaVersion     = "2.6.4"
+lazy val akkaHttpVersion = "10.1.11"
+lazy val pac4jVersion    = "4.1.0"
+
+sonatypeBundleDirectory in ThisBuild := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}"
+publishTo in ThisBuild := sonatypePublishToBundle.value
+organization in ThisBuild := "com.phylage"
+scalacOptions in ThisBuild ++= Seq(
+  "-deprecation",
+  "-unchecked",
+  "-feature",
+  "-Xlint",
+  "-Ywarn-dead-code",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-value-discard",
+  "-language:higherKinds",
+  "-language:implicitConversions"
+)
+licenses in ThisBuild += ("Apache-2.0", url(
+  "https://www.apache.org/licenses/LICENSE-2.0.html"
+))
+releaseProcess in ThisBuild := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  tagRelease,
+  releaseStepCommandAndRemaining("+publishSigned"),
+  ReleaseStep(
+    action = Command.process("sonatypeBundleRelease", _),
+    enableCrossBuild = true
+  )
 )
 
-def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
-  scalaVersion.value match {
-    case "2.13.2" => f
-    case _        => Nil
-  }
+ThisBuild / libraryDependencies ++= {
+  Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
 }
-
-def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
-  scalaVersion.value match {
-    case "2.13.2" => Nil
-    case _        => f
-  }
-}
-
-lazy val commonDependencySettings = Seq(
-  libraryDependencies ++= {
-    Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
-  },
-  libraryDependencies ++= scl213(
-      Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
-    ).value
-)
-
+ThisBuild / libraryDependencies ++= scl213(
+  Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+).value
 lazy val root = project
   .in(file("."))
   .aggregate(
@@ -67,6 +52,7 @@ lazy val root = project
     util,
     json,
     http,
+    auth,
     root_interfaces,
     interfaces_impl,
     call_interfaces
@@ -78,9 +64,7 @@ lazy val root = project
       (ThisProject / baseDirectory).value / "project" / "resources"
     }
   )
-
 lazy val `macro` = (project in file("refuel-macro"))
-  .settings(assemblySettings, commonDependencySettings)
   .settings(
     name := "refuel-macro",
     description := "Lightweight DI container for Scala.",
@@ -94,9 +78,7 @@ lazy val `macro` = (project in file("refuel-macro"))
     },
     scalacOptions += "-language:experimental.macros"
   )
-
 lazy val container = (project in file("refuel-container"))
-  .settings(assemblySettings, commonDependencySettings)
   .dependsOn(`macro`)
   .settings(
     name := "refuel-container",
@@ -113,17 +95,13 @@ lazy val container = (project in file("refuel-container"))
       ),
     unmanagedClasspath in Compile ++= (unmanagedResources in Compile).value
   )
-
 lazy val util = (project in file("refuel-util"))
-  .settings(assemblySettings, commonDependencySettings)
   .dependsOn(container)
   .settings(
     name := "refuel-util"
   )
   .enablePlugins(JavaAppPackaging)
-
 lazy val json = (project in file("refuel-json"))
-  .settings(assemblySettings, commonDependencySettings)
   .dependsOn(util)
   .settings(
     name := "refuel-json",
@@ -132,20 +110,16 @@ lazy val json = (project in file("refuel-json"))
     javacOptions in Compile ++= Seq("-source", "1.8", "-target", "1.8")
   )
   .enablePlugins(JavaAppPackaging, JmhPlugin)
-
 lazy val cipher = (project in file("refuel-cipher"))
   .dependsOn(json)
-  .settings(commonDependencySettings)
   .settings(
     name := "refuel-cipher",
     description := "Cipher module for Scala.",
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value
   )
   .enablePlugins(JavaAppPackaging)
-
 lazy val http = (project in file("refuel-http"))
   .dependsOn(json)
-  .settings(assemblySettings, commonDependencySettings)
   .settings(
     name := "refuel-http",
     description := "Http client for Scala.",
@@ -169,17 +143,30 @@ lazy val http = (project in file("refuel-http"))
       )
   )
   .enablePlugins(JavaAppPackaging)
-
+lazy val auth = (project in file("refuel-auth-provider"))
+  .dependsOn(http)
+  .settings(
+    ThisBuild / resolvers += ("Shibboleth Repository" at "https://build.shibboleth.net/nexus/content/repositories/releases/"),
+    name := "refuel-auth-provider",
+    description := "Auth provider.",
+    libraryDependencies ++= Seq(
+        "com.typesafe.akka"     %% "akka-stream"         % akkaVersion % Provided,
+        "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion % Provided,
+        "org.pac4j"             % "pac4j-saml"           % pac4jVersion,
+        "com.github.pureconfig" %% "pureconfig"          % "0.12.3",
+        "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,
+        "com.typesafe.akka"     %% "akka-http-testkit"   % akkaHttpVersion % Test,
+        "com.typesafe.akka"     %% "akka-stream-testkit" % akkaVersion % Test
+      ),
+    unmanagedClasspath in Test ++= (unmanagedResources in Compile).value
+  )
 lazy val `test` = (project in file("refuel-test"))
   .dependsOn(json)
-  .settings(commonDependencySettings)
   .settings(name := "refuel-test", description := "DI testing framework.")
   .enablePlugins(JavaAppPackaging)
-
 lazy val root_interfaces =
   (project in file("test-across-module/root_interfaces"))
     .dependsOn(http)
-    .settings(commonDependencySettings)
     .settings(
       publishArtifact in ThisProject := false,
       releaseProcess in ThisProject := Nil,
@@ -188,11 +175,19 @@ lazy val root_interfaces =
       publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
     )
     .enablePlugins(JmhPlugin)
-
 lazy val interfaces_impl =
   (project in file("test-across-module/interfaces_impl"))
     .dependsOn(root_interfaces)
-    .settings(commonDependencySettings)
+    .settings(
+      publishArtifact in ThisProject := false,
+      releaseProcess in ThisProject := Nil,
+      publish in ThisProject := {},
+      publishLocal in ThisProject := {},
+      publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
+    )
+lazy val call_interfaces =
+  (project in file("test-across-module/call_interfaces"))
+    .dependsOn(interfaces_impl)
     .settings(
       publishArtifact in ThisProject := false,
       releaseProcess in ThisProject := Nil,
@@ -201,14 +196,16 @@ lazy val interfaces_impl =
       publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
     )
 
-lazy val call_interfaces =
-  (project in file("test-across-module/call_interfaces"))
-    .dependsOn(interfaces_impl)
-    .settings(commonDependencySettings)
-    .settings(
-      publishArtifact in ThisProject := false,
-      releaseProcess in ThisProject := Nil,
-      publish in ThisProject := {},
-      publishLocal in ThisProject := {},
-      publishTo in ThisProject := Some(Opts.resolver.mavenLocalFile)
-    )
+def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
+  scalaVersion.value match {
+    case "2.13.3" => f
+    case _        => Nil
+  }
+}
+
+def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
+  scalaVersion.value match {
+    case "2.13.3" => Nil
+    case _        => f
+  }
+}
