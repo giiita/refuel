@@ -8,6 +8,14 @@ lazy val akkaVersion     = "2.6.4"
 lazy val akkaHttpVersion = "10.1.11"
 lazy val pac4jVersion    = "4.1.0"
 
+
+libraryDependencies in Scope.Global ++= {
+  Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
+},
+libraryDependencies in Scope.Global ++= scl213(
+  Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+).value
+
 lazy val asemble = Seq(
   sonatypeBundleDirectory in ThisProject := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
   publishTo in ThisProject := sonatypePublishToBundle.value,
@@ -37,13 +45,7 @@ lazy val asemble = Seq(
         action = Command.process("sonatypeBundleRelease", _),
         enableCrossBuild = true
       )
-    ),
-  libraryDependencies ++= {
-    Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
-  },
-  libraryDependencies ++= scl213(
-      Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
-    ).value
+    )
 )
 
 lazy val root = project
