@@ -9,6 +9,7 @@
 [![Latest version of util](https://index.scala-lang.org/giiita/refuel/refuel-util/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
+[![Latest version of saml](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-saml-provider)
 
 Refuel is a simple and lightweight DI framework<br/>
 Provides DI, utility, JSON parser, HTTPClient, etc. suitable for layered architecture.<br/>
@@ -37,10 +38,11 @@ You can replace second or third party injections from anywhere and easily handle
 > Http server client with Akka-HTTP.<br/>
 > In future, we plan to implement test stub control by dependency injection..<br/>
 
+## [refuel-auth-provider](https://github.com/giiita/refuel/tree/master/refuel-auth-provider)
+
+> Can use a SAML service provider that supports akka http.<br/>
+> At this time, there is no Identity provider feature available.<br/>
+
 ## refuel-test
-
-> In preparation.
-
-## refuel-cipher
 
 > In preparation.
