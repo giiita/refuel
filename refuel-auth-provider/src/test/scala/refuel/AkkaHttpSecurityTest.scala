@@ -27,7 +27,7 @@ import refuel.http.AkkaHttpActionAdapter
 import refuel.injector.Injector
 import refuel.lang.ScalaTime
 import AkkaHttpSecurity.{AkkaHttpCallbackLogic, AkkaHttpLogoutLogic, AkkaHttpSecurityLogic}
-import refuel.saml.SAMLAuthConfig
+import refuel.saml.{AuthnSAMLBuilder, SAMLAuthConfig}
 import refuel.session.SessionIDGenerator
 import refuel.store.{ForgetfulSessionStorage, InMemorySessionStorage, SessionStorage}
 

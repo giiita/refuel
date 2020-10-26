@@ -1,6 +1,5 @@
 package refuel
 
-import java.security.Security
 import java.util
 
 import akka.actor.ActorSystem
@@ -13,9 +12,7 @@ import akka.http.scaladsl.server.{Directive, Directive0, Directive1, Directives,
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
 import akka.stream.Materializer
 import akka.util.ByteString
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.pac4j.core.authorization.authorizer.Authorizer
-import org.pac4j.core.client.IndirectClient
 import org.pac4j.core.config.Config
 import org.pac4j.core.engine.{
   CallbackLogic,
@@ -28,10 +25,7 @@ import org.pac4j.core.engine.{
 import org.pac4j.core.http.adapter.HttpActionAdapter
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
-import org.pac4j.saml.client.SAML2Client
-import org.pac4j.saml.config.SAML2Configuration
 import refuel.http.AkkaHttpActionAdapter
-import refuel.injector.AutoInject
 import refuel.json.codecs.Read
 import refuel.json.{CodecDef, EncodedJsonTranform}
 import AkkaHttpWebContext.ResponseChanges
@@ -50,6 +44,18 @@ object AkkaHttpSecurity extends EncodedJsonTranform with CodecDef with Directive
 
   def auth(authorizer: Authorizer[UserProfile])(request: AuthenticatedRequest): Directive0 =
     akkaHttpAuthorize(authorizer.isAuthorized(request._webContext, request.profiles.asJava))
+
+  protected def unmarshaller[T](implicit read: Read[T], system: ActorSystem): Unmarshaller[HttpRequest, T] =
+    Unmarshaller.apply { implicit ec => (hr: HttpRequest) =>
+      hr.entity.dataBytes
+        .runFold(ByteString.empty)(_ ++ _)
+        .map(_.utf8String)
+        .flatMap { r =>
+          __toEntryMaterialization(r)
+            .as[T]
+            .fold(e => Future.failed(e), Future(_))
+        }
+    }
 
   private[refuel] final def applyHeadersAndCookiesToResponse(
       changes: ResponseChanges
@@ -79,60 +85,6 @@ object AkkaHttpSecurity extends EncodedJsonTranform with CodecDef with Directive
         .map(_.toMap)
     }
   }
-
-  protected def unmarshaller[T](implicit read: Read[T], system: ActorSystem): Unmarshaller[HttpRequest, T] =
-    Unmarshaller.apply { implicit ec => (hr: HttpRequest) =>
-      hr.entity.dataBytes
-        .runFold(ByteString.empty)(_ ++ _)
-        .map(_.utf8String)
-        .flatMap { r =>
-          __toEntryMaterialization(r)
-            .as[T]
-            .fold(e => Future.failed(e), Future(_))
-        }
-    }
-}
-
-/** {{{
-  * class Controller(securityBuilder: AuthnSecrityBuilder) {
-  *   securityBuilder.build(samlConfig, )
-  * }
-  * }}}
-  *
-  * @param conf injected
-  * @param gen injected
-  * @param storage injected
-  */
-class AuthnSAMLBuilder(conf: SAMLAuthConfig, gen: SessionIDGenerator, storage: SessionStorage)(implicit as: ActorSystem)
-    extends AutoInject {
-  Security.addProvider(new BouncyCastleProvider())
-
-  lazy final val DefaultSAMLConf: SAML2Configuration = {
-    val config = new SAML2Configuration(
-      conf.keystorePath,
-      conf.keystorePassword,
-      conf.privateKeyPassword,
-      conf.idpMetadataPath
-    )
-    conf.spMetadataPath.foreach(config.setServiceProviderMetadataPath)
-    config.setAuthnRequestBindingType(conf.authnRequestBindingType)
-    config
-  }
-
-  lazy final val DefaultSAMLClient: SAML2Client = {
-    val client = new SAML2Client(DefaultSAMLConf)
-    client.setCallbackUrl(conf.callbackurl)
-    client
-  }
-
-  lazy final val Default: AkkaHttpSecurity = {
-    build(
-      new Config(DefaultSAMLClient)
-    )
-  }
-
-  def build(config: Config)(implicit as: ActorSystem) =
-    new AkkaHttpSecurity(config, storage, conf, gen)
 }
 
 class AkkaHttpSecurity private[refuel] (
@@ -201,27 +153,6 @@ class AkkaHttpSecurity private[refuel] (
       getFormFields(ctx.request).flatMap { params => inner(Tuple1(params))(ctx) }
     }
 
-  def logout(
-      defaultUrl: String = Pac4jConstants.DEFAULT_URL_VALUE,
-      logoutPatternUrl: String = Pac4jConstants.DEFAULT_LOGOUT_URL_PATTERN_VALUE,
-      localLogout: Boolean = true,
-      destroySession: Boolean = true,
-      centralLogout: Boolean = true
-  ): Route = {
-    withContext() { akkaWebContext => ctx =>
-      LogoutLogic.perform(
-        akkaWebContext,
-        config,
-        ActionAdapter,
-        defaultUrl,
-        logoutPatternUrl,
-        localLogout,
-        destroySession,
-        centralLogout
-      )
-    }
-  }
-
   /** This directive constructs a pac4j context for a route. This means the request is interpreted into
     * an AkkaHttpWebContext and any changes to this context are applied when the route returns (e.g. headers/cookies).
     *
@@ -242,6 +173,27 @@ class AkkaHttpSecurity private[refuel] (
         case rejection          => rejection
       }
     }
+
+  def logout(
+      defaultUrl: String = Pac4jConstants.DEFAULT_URL_VALUE,
+      logoutPatternUrl: String = Pac4jConstants.DEFAULT_LOGOUT_URL_PATTERN_VALUE,
+      localLogout: Boolean = true,
+      destroySession: Boolean = true,
+      centralLogout: Boolean = true
+  ): Route = {
+    withContext() { akkaWebContext => ctx =>
+      LogoutLogic.perform(
+        akkaWebContext,
+        config,
+        ActionAdapter,
+        defaultUrl,
+        logoutPatternUrl,
+        localLogout,
+        destroySession,
+        centralLogout
+      )
+    }
+  }
 
   def clientsAuthentication(multiProfile: Boolean = true): Directive1[AuthenticatedRequest] = {
     withAuthentication(
