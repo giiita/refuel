@@ -17,7 +17,8 @@ import refuel.injector.AutoInject
   * @param lifetimeSeconds Cookie lifetime seconds.
   * @param cookiePath Cookie path
   * @param cookieDomain Cookie domain
-  * @param cookieExtension Cookie extension
+  * @param cookieExtension Cookie extension.
+  *                        For use with the REST API, the SameSite=None; attribute and https communication are mandatory..
   * @param csrfTokenKey CSRF token cookie name
   */
 case class SAMLAuthConfig(
