@@ -5,6 +5,7 @@ import java.security.Security
 import akka.actor.ActorSystem
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.pac4j.core.config.Config
+import org.pac4j.core.matching.checker.MatchingChecker
 import org.pac4j.saml.client.SAML2Client
 import org.pac4j.saml.config.SAML2Configuration
 import refuel.AkkaHttpSecurity
@@ -22,8 +23,9 @@ import refuel.store.SessionStorage
   * @param gen injected
   * @param storage injected
   */
-class AuthnSAMLBuilder(conf: SAMLAuthConfig, gen: SessionIDGenerator, storage: SessionStorage)(implicit as: ActorSystem)
-    extends AutoInject {
+class AuthnSAMLBuilder(conf: SAMLAuthConfig, gen: SessionIDGenerator, storage: SessionStorage, checker: MatchingChecker)(
+    implicit as: ActorSystem
+) extends AutoInject {
   Security.addProvider(new BouncyCastleProvider())
 
   lazy final val DefaultSAMLConf: SAML2Configuration = {
@@ -51,5 +53,5 @@ class AuthnSAMLBuilder(conf: SAMLAuthConfig, gen: SessionIDGenerator, storage: S
   }
 
   def build(config: Config)(implicit as: ActorSystem) =
-    new AkkaHttpSecurity(config, storage, conf, gen)
+    new AkkaHttpSecurity(config, storage, conf, gen, checker)
 }

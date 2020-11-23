@@ -52,12 +52,15 @@ trait JsonTransform extends JsonLoggingStrategy {
       * @param ct
       * @tparam X
       * @return
-      * */
-    def toJString[X >: T](implicit ct: Write[X]): String = {
+      **/
+    def encodedStr[X >: T](implicit ct: Write[X]): String = {
       val buf = new StringBuffer()
       toJson[X].encode(buf)
       buf.toString
     }
+
+    @deprecated
+    def toJString[X >: T](implicit ct: Write[X]): String = encodedStr[X]
   }
 
 }

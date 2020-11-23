@@ -15,6 +15,8 @@ class ScalaTimeTest extends AnyWordSpec with Matchers with Injector {
 
   import st._
 
+  now.minToday.withHour(9).epochMillis
+
   "ZonedDateTimeBs" should {
 
     "parse yyyy/MM/dd HH:mm:ss" in {

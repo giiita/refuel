@@ -27,8 +27,10 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
 import refuel.http.AkkaHttpActionAdapter
 import refuel.json.codecs.Read
-import refuel.json.{CodecDef, EncodedJsonTranform}
+import refuel.json.{CodecDef, EncodedJsonTransform}
 import AkkaHttpWebContext.ResponseChanges
+import org.pac4j.core.matching.checker.MatchingChecker
+import org.pac4j.core.matching.matcher.DefaultMatchers
 import refuel.saml.SAMLAuthConfig
 import refuel.session.SessionIDGenerator
 import refuel.store.SessionStorage
@@ -37,7 +39,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
-object AkkaHttpSecurity extends EncodedJsonTranform with CodecDef with Directives {
+object AkkaHttpSecurity extends EncodedJsonTransform with CodecDef with Directives {
   type AkkaHttpSecurityLogic = SecurityLogic[Future[RouteResult], AkkaHttpWebContext]
   type AkkaHttpCallbackLogic = CallbackLogic[Future[RouteResult], AkkaHttpWebContext]
   type AkkaHttpLogoutLogic   = LogoutLogic[Future[RouteResult], AkkaHttpWebContext]
@@ -91,16 +93,20 @@ class AkkaHttpSecurity private[refuel] (
     config: Config,
     sessionStorage: SessionStorage,
     conf: SAMLAuthConfig,
-    gen: SessionIDGenerator
+    gen: SessionIDGenerator,
+    matchingChecker: MatchingChecker
 )(implicit val as: ActorSystem) {
 
   import AkkaHttpSecurity._
   private[this] implicit lazy final val ec: ExecutionContext = as.dispatcher
 
-  private[refuel] lazy final val SecurityLogic: AkkaHttpSecurityLogic =
-    Option(config.getSecurityLogic).fold[AkkaHttpSecurityLogic](
-      new DefaultSecurityLogic[Future[RouteResult], AkkaHttpWebContext]
-    )(_.asInstanceOf[AkkaHttpSecurityLogic])
+  private[refuel] lazy final val SecurityLogic: AkkaHttpSecurityLogic = {
+    Option(config.getSecurityLogic).fold[AkkaHttpSecurityLogic] {
+      val logic = new DefaultSecurityLogic[Future[RouteResult], AkkaHttpWebContext]
+      logic.setMatchingChecker(matchingChecker)
+      logic
+    }(_.asInstanceOf[AkkaHttpSecurityLogic])
+  }
 
   private[refuel] lazy final val ActionAdapter: HttpActionAdapter[Future[RouteResult], AkkaHttpWebContext] =
     Option(config.getHttpActionAdapter).fold[HttpActionAdapter[Future[RouteResult], AkkaHttpWebContext]](
@@ -153,27 +159,6 @@ class AkkaHttpSecurity private[refuel] (
       getFormFields(ctx.request).flatMap { params => inner(Tuple1(params))(ctx) }
     }
 
-  /** This directive constructs a pac4j context for a route. This means the request is interpreted into
-    * an AkkaHttpWebContext and any changes to this context are applied when the route returns (e.g. headers/cookies).
-    *
-    * @param existingContext
-    * @param formParams
-    * @return
-    */
-  def withContext(
-      existingContext: Option[AkkaHttpWebContext] = None,
-      formParams: Map[String, String] = Map.empty
-  ): Directive1[AkkaHttpWebContext] =
-    Directive[Tuple1[AkkaHttpWebContext]] { inner => ctx =>
-      val akkaWebContext = existingContext.getOrElse(
-        AkkaHttpWebContext(ctx.request, formParams, sessionStorage)(conf, gen)
-      )
-      inner(Tuple1(akkaWebContext))(ctx).map[RouteResult] {
-        case Complete(response) => Complete(applyHeadersAndCookiesToResponse(akkaWebContext.getChanges)(response))
-        case rejection          => rejection
-      }
-    }
-
   def logout(
       defaultUrl: String = Pac4jConstants.DEFAULT_URL_VALUE,
       logoutPatternUrl: String = Pac4jConstants.DEFAULT_LOGOUT_URL_PATTERN_VALUE,
@@ -195,6 +180,27 @@ class AkkaHttpSecurity private[refuel] (
     }
   }
 
+  /** This directive constructs a pac4j context for a route. This means the request is interpreted into
+    * an AkkaHttpWebContext and any changes to this context are applied when the route returns (e.g. headers/cookies).
+    *
+    * @param existingContext
+    * @param formParams
+    * @return
+    */
+  def withContext(
+      existingContext: Option[AkkaHttpWebContext] = None,
+      formParams: Map[String, String] = Map.empty
+  ): Directive1[AkkaHttpWebContext] =
+    Directive[Tuple1[AkkaHttpWebContext]] { inner => ctx =>
+      val akkaWebContext = existingContext.getOrElse(
+        AkkaHttpWebContext(ctx.request, formParams, sessionStorage)(conf, gen)
+      )
+      inner(Tuple1(akkaWebContext))(ctx).map[RouteResult] {
+        case Complete(response) => Complete(applyHeadersAndCookiesToResponse(akkaWebContext.getChanges)(response))
+        case rejection          => rejection
+      }
+    }
+
   def clientsAuthentication(multiProfile: Boolean = true): Directive1[AuthenticatedRequest] = {
     withAuthentication(
       config.getClients.findAllClients().asScala.map(_.getName).mkString(","),
@@ -214,7 +220,8 @@ class AkkaHttpSecurity private[refuel] (
   def withAuthentication(
       clients: String = null /* Default null, meaning all defined clients */,
       multiProfile: Boolean = true,
-      authorizers: String = ""
+      authorizers: String = "",
+      matchers: String = DefaultMatchers.CSRF_TOKEN
   ): Directive1[AuthenticatedRequest] =
     withContext().flatMap { akkaWebContext =>
       Directive[Tuple1[AuthenticatedRequest]] { inner => ctx =>
@@ -229,7 +236,7 @@ class AkkaHttpSecurity private[refuel] (
             ActionAdapter,
             clients,
             authorizers,
-            "",
+            matchers,
             multiProfile
           )
         }

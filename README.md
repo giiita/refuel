@@ -9,7 +9,8 @@
 [![Latest version of util](https://index.scala-lang.org/giiita/refuel/refuel-util/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
-[![Latest version of saml](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-saml-provider)
+[![Latest version of auth](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider)
+[![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
 
 Refuel is a simple and lightweight DI framework<br/>
 Provides DI, utility, JSON parser, HTTPClient, etc. suitable for layered architecture.<br/>
@@ -43,6 +44,6 @@ You can replace second or third party injections from anywhere and easily handle
 > Can use a SAML service provider that supports akka http.<br/>
 > At this time, there is no Identity provider feature available.<br/>
 
-## refuel-test
+## [refuel-cipher](https://github.com/giiita/refuel/tree/master/refuel-cipher)
 
-> In preparation.
+> The wrapper library that supports the interconversion of RSA / AES encryption methods.

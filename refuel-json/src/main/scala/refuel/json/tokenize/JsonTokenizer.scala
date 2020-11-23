@@ -37,7 +37,7 @@ abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) {
     (rs(pos): @switch) match {
       case '\\' =>
         detectLiteral(encodedLiteralHandle(len))
-      case '"' if rs(pos - 1) != '\\' =>
+      case '"' =>
         incl()
         len
       case s =>

@@ -78,4 +78,7 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
       ).toJString[Seq[Animal]] shouldBe """[{"name":"foo","beard":6},{"name":"bar","beard":6}]"""
     }
   }
+
 }
+
+case class AdFormatRegReads(charCountLimit: Int, restrictedSymbol: List[String])

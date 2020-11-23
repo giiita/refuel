@@ -9,7 +9,7 @@ import com.typesafe.scalalogging.LazyLogging
 import refuel.http.io.setting.HttpSetting
 import refuel.http.io.task.execution.HttpResultExecution
 import refuel.http.io.task.{CombineTask, HttpTask, StrictTask}
-import refuel.json.{EncodedJsonTranform, JsonTransform}
+import refuel.json.JsonTransform
 import refuel.json.codecs.definition.AnyRefCodecs
 import refuel.json.codecs.{Read, Write}
 import refuel.json.logging.JsonConvertLogEnabled
@@ -21,7 +21,7 @@ object HttpRunner {
   import scala.concurrent.duration._
 
   implicit class HttpResponseStream(value: HttpTask[HttpResponse])
-      extends EncodedJsonTranform
+      extends JsonTransform
       with AnyRefCodecs
       with LazyLogging {
 
