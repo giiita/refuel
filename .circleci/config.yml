@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Cross version test
           command: |
-            sbt -mem 3500 +test
+            sbt -mem 2500 +test
           no_output_timeout: 60m
 
       - save_cache:
