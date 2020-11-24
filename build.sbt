@@ -148,7 +148,7 @@ lazy val http = (project in file("refuel-http"))
         },
         Tests.Cleanup { _ =>
           import scala.sys.process._
-          Process("sh sh/shutdown-testing-http-server.sh").!!
+          println(s"Shutdown exit ${Process("sh sh/shutdown-testing-http-server.sh").!}")
           println("Shutdown completed.")
         }
       )
