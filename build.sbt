@@ -121,6 +121,7 @@ lazy val json = (project in file("refuel-json"))
   .enablePlugins(JavaAppPackaging, JmhPlugin)
 lazy val cipher = (project in file("refuel-cipher"))
   .dependsOn(json)
+  .settings(asemble)
   .settings(
     name := "refuel-cipher",
     description := "Cipher module for Scala.",
