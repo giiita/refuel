@@ -131,6 +131,7 @@ lazy val http = (project in file("refuel-http"))
   .dependsOn(json)
   .settings(asemble)
   .settings(
+    aggregate in Test := false,
     name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
