@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Cross version test
           command: |
-            sbt -mem 3000 +test
+            sbt -mem 3000 +macro/test +container/test +util/test +json/test +auth/test +cipher/test
           no_output_timeout: 5m
 
       - save_cache:
