@@ -16,6 +16,9 @@ import refuel.injector.AutoInject
   * @param sessionCookieName SESSION cookie name
   * @param lifetimeSeconds Cookie lifetime seconds.
   * @param cookiePath Cookie path
+  * @param cookieDomain Cookie domain
+  * @param cookieExtension Cookie extension.
+  *                        For use with the REST API, the SameSite=None; attribute and https communication are mandatory..
   * @param csrfTokenKey CSRF token cookie name
   */
 case class SAMLAuthConfig(
@@ -32,6 +35,8 @@ case class SAMLAuthConfig(
     lifetimeSeconds: Long = 86400 * 3,
     // CookieSetting
     cookiePath: String = Pac4jConstants.DEFAULT_URL_VALUE,
+    cookieDomain: Option[String] = None,
+    cookieExtension: Option[String] = None,
     csrfTokenKey: String = Pac4jConstants.CSRF_TOKEN
 )
 
@@ -62,6 +67,8 @@ object SAMLAuthConfig {
         conf.saml.sessionCookieName,
         conf.saml.lifetimeSeconds,
         conf.saml.cookiePath,
+        conf.saml.cookieDomain,
+        conf.saml.cookieExtension,
         conf.saml.csrfTokenKey
       )
       with AutoInject

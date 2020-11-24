@@ -51,7 +51,6 @@ private[refuel] abstract class JsonEntry(implicit logEnabled: JsonConvertLogEnab
 
   def as[E](implicit c: Read[E]): Either[DeserializeFailed, E] = {
     Try {
-      val js = jsonTree
       jsonReadLogging(jsonTree).des[E]
     }.toEither.left
       .map(DeserializeFailPropagation(s"Internal structure analysis by ${c.getClass} raised an exception.", _))

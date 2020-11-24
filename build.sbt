@@ -2,7 +2,7 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.3")
+crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.4")
 
 lazy val akkaVersion     = "2.6.4"
 lazy val akkaHttpVersion = "10.1.11"
@@ -56,6 +56,7 @@ lazy val root = project
     json,
     http,
     auth,
+    cipher,
     root_interfaces,
     interfaces_impl,
     call_interfaces
@@ -130,6 +131,7 @@ lazy val http = (project in file("refuel-http"))
   .dependsOn(json)
   .settings(asemble)
   .settings(
+    aggregate in Test := false,
     name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
@@ -147,7 +149,8 @@ lazy val http = (project in file("refuel-http"))
         },
         Tests.Cleanup { _ =>
           import scala.sys.process._
-          Process("sh sh/shutdown-testing-http-server.sh").run
+          println(s"Shutdown exit ${Process("sh sh/shutdown-testing-http-server.sh").!}")
+          println("Shutdown completed.")
         }
       )
   )
@@ -160,8 +163,8 @@ lazy val auth = (project in file("refuel-auth-provider"))
     name := "refuel-auth-provider",
     description := "Auth provider.",
     libraryDependencies ++= Seq(
-        "com.typesafe.akka"     %% "akka-stream"         % akkaVersion % Provided,
-        "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion % Provided,
+        "com.typesafe.akka"     %% "akka-stream"         % akkaVersion,
+        "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion,
         "org.pac4j"             % "pac4j-saml"           % pac4jVersion,
         "com.github.pureconfig" %% "pureconfig"          % "0.12.3",
         "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,

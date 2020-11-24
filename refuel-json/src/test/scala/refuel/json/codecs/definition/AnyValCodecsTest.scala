@@ -66,12 +66,12 @@ class AnyValCodecsTest
     "String deserialize ^ escaped 1" in {
       val x = s"""{"value":"bo\\"d'y"}""".as[JString](CaseClassCodec.from[JString])
       s"""{"value":"bo\\"d'y"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
-        JString("bo\\\"d'y")
+        JString("bo\"d'y")
       }
     }
     "String deserialize ^ escaped 2" in {
       s"""{"value":"bo\\\\\\"d'y"}""".as[JString](CaseClassCodec.from[JString]) shouldBe Right {
-        JString("bo\\\\\\\"d'y")
+        JString("bo\\\"d'y")
       }
     }
 

@@ -110,7 +110,7 @@ class AkkaHttpWebContextTest
           path = Some("/"),
           secure = false,
           httpOnly = true,
-          extension = None
+          extension = Some("SameSite=None")
         )
       )
     }
@@ -163,7 +163,7 @@ class AkkaHttpWebContextTest
         webContext.getChanges.cookies
           .find(_.name == conf.sessionCookieName)
           .get
-          .value shouldEqual "my_session"
+          .value shouldEqual "some_session"
       }
     }
 

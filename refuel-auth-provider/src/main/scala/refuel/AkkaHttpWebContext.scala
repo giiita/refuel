@@ -36,7 +36,7 @@ case class AkkaHttpWebContext(
   @volatile var sessionId: SessionId = {
     request.cookies
       .collectFirst {
-        case x if x.name == conf.sessionCookieName && sessionStorage.sessionExists(SessionId(x.value)) =>
+        case x if x.name == conf.sessionCookieName /* && sessionStorage.sessionExists(SessionId(x.value)) */ =>
           SessionId(x.value)
       }
       .getOrElse {
@@ -56,13 +56,15 @@ case class AkkaHttpWebContext(
   }
 
   override def setResponseHeader(name: String, value: String): Unit = {
-    val header = HttpHeader.parse(name, value) match {
-      case Ok(h, _)     => h
-      case Error(error) => throw new IllegalArgumentException(s"Error parsing http header ${error.formatPretty}")
-    }
+    if (name.toLowerCase != "cache-control" && name.toLowerCase != "pragma") {
+      val header = HttpHeader.parse(name, value) match {
+        case Ok(h, _)     => h
+        case Error(error) => throw new IllegalArgumentException(s"Error parsing http header ${error.formatPretty}")
+      }
 
-    // Avoid adding duplicate headers, Pac4J expects to overwrite headers like `Location`
-    changes = changes.copy(headers = header :: changes.headers.filter(_.name != name))
+      // Avoid adding duplicate headers, Pac4J expects to overwrite headers like `Location`
+      changes = changes.copy(headers = header :: changes.headers.filter(_.name != name))
+    }
   }
 
   override def getRequestParameters: java.util.Map[String, Array[String]] = {
@@ -124,12 +126,15 @@ case class AkkaHttpWebContext(
     changes.contentType
   }
 
-  def getChanges: ResponseChanges = changes
+  def getChanges: ResponseChanges = {
+    changes
+  }
 
   def addResponseSessionCookie(): Unit = {
     val cookie = new Cookie(conf.sessionCookieName, sessionId.value)
     cookie.setSecure(isSecure)
     cookie.setMaxAge(conf.lifetimeSeconds.toInt)
+    conf.cookieDomain.foreach(cookie.setDomain)
     cookie.setHttpOnly(true)
     cookie.setPath(conf.cookiePath)
     addResponseCookie(cookie)
@@ -149,12 +154,12 @@ case class AkkaHttpWebContext(
       path = Option(cookie.getPath),
       secure = cookie.isSecure,
       httpOnly = cookie.isHttpOnly,
-      extension = None
+      extension = conf.cookieExtension
     )
   }
 
   override def isSecure: Boolean = {
-    request.getUri().getScheme.toLowerCase == "https"
+    request.getUri().getScheme == "https"
   }
 
   def addResponseCsrfCookie(): AkkaHttpWebContext = CsrfCookieAuthorizer.setup(this)

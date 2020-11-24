@@ -14,7 +14,7 @@ jobs:
 
     environment:
       # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3g
+      JVM_OPTS: -Xmx3500
       TERM: dumb
 
     steps:
@@ -30,14 +30,44 @@ jobs:
       - run:
           name: Cross version compile
           command: |
-            sbt -mem 2000 sbtVersion +clean +compile
-          no_output_timeout: 60m
+            sbt -mem 3000 sbtVersion +clean +compile
+          no_output_timeout: 5m
 
       - run:
-          name: Cross version test
+          name: Cross version test1
           command: |
-            sbt -mem 2000 +test
-          no_output_timeout: 60m
+            sbt -mem 3000 +macro/test
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test2
+          command: |
+            sbt -mem 3000 +container/test
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test3
+          command: |
+            sbt -mem 3000 +util/test
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test4
+          command: |
+            sbt -mem 3000 +json/test
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test5
+          command: |
+            sbt -mem 3000 +auth/test
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test6
+          command: |
+            sbt -mem 3000 +cipher/test
+          no_output_timeout: 5m
 
       - save_cache:
           paths:
@@ -50,4 +80,6 @@ jobs:
             - ~/refuel-cipher/target
             - ~/refuel-json/target
             - ~/refuel-http/target
-          key: v1-dependencies--{{ checksum "build.sbt" }}
+            - ~/refuel-auth-provider/target
+            - ~/refuel-cipher/target
+          key: v1-dependencies-{{ checksum "build.sbt" }}

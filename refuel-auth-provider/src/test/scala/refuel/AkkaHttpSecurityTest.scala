@@ -80,7 +80,7 @@ class AkkaHttpSecurityTest
               parameters: AnyRef*
           ): Future[RouteResult] = {
             clients shouldBe "myclients"
-            matchers shouldBe ""                 // Empty string means always matching hit in RequireAllMatchersChecker.java
+            matchers shouldBe "csrfToken"        // Empty string means always matching hit in RequireAllMatchersChecker.java
             authorizers shouldBe "myauthorizers" // Empty string means always authorize in DefaultAuthorizationCheck.java
             multiProfile shouldBe false
 
@@ -185,7 +185,8 @@ class AkkaHttpSecurityTest
           status shouldEqual StatusCodes.OK
           responseAs[String] shouldBe "called!"
           headers.size shouldBe 1
-          header("Set-Cookie").get.value() shouldBe "MyCookie=MyValue; Max-Age=100; Path=/; Secure; HttpOnly"
+          header("Set-Cookie").get
+            .value() shouldBe "MyCookie=MyValue; Max-Age=100; Path=/; Secure; HttpOnly; SameSite=None"
         }
       }
 

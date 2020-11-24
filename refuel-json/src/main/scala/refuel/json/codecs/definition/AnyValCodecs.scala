@@ -31,7 +31,7 @@ private[codecs] trait AnyValCodecs {
     override final def deserialize(bf: JsonVal): T = {
       Try {
         bf match {
-          case JsNull => throw UnsupportedOperation("Null value cannot deserialize to String.")
+          case JsNull => throw UnsupportedOperation("Null value cannot deserialize.")
           case _      => parse(bf)
         }
       } match {
