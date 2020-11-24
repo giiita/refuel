@@ -30,8 +30,14 @@ jobs:
       - run:
           name: Cross version compile
           command: |
-            sbt -mem 2500 sbtVersion +clean +compile +test
-          no_output_timeout: 60m
+            sbt -mem 2500 sbtVersion +clean +compile
+          no_output_timeout: 5m
+
+      - run:
+          name: Cross version test
+          command: |
+            sbt -mem 2500 +test
+          no_output_timeout: 5m
 
       - save_cache:
           paths:
@@ -44,4 +50,6 @@ jobs:
             - ~/refuel-cipher/target
             - ~/refuel-json/target
             - ~/refuel-http/target
-          key: v1-dependencies--{{ checksum "build.sbt" }}
+            - ~/refuel-auth-provider/target
+            - ~/refuel-cipher/target
+          key: v1-dependencies-{{ checksum "build.sbt" }}
