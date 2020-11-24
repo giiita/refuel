@@ -14,7 +14,7 @@ jobs:
 
     environment:
       # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx2500g
+      JVM_OPTS: -Xmx5000g
       TERM: dumb
 
     steps:
@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Cross version test
           command: |
-            sbt -mem 2000 +test
+            sbt -mem 3000 +test
           no_output_timeout: 60m
 
       - save_cache:
