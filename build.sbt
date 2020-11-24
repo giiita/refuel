@@ -142,13 +142,13 @@ lazy val http = (project in file("refuel-http"))
         Tests.Setup { _ =>
           import scala.sys.process._
 
-          Process("sh sh/setup-testing-http-server.sh").run
+          Process("sh sh/setup-testing-http-server.sh").!!
 
           Http.connect("http://localhost:3289/success")
         },
         Tests.Cleanup { _ =>
           import scala.sys.process._
-          Process("sh sh/shutdown-testing-http-server.sh").run
+          Process("sh sh/shutdown-testing-http-server.sh").!!
           println("Shutdown completed.")
         }
       )
