@@ -16,6 +16,9 @@ import refuel.injector.AutoInject
   * @param sessionCookieName SESSION cookie name
   * @param lifetimeSeconds Cookie lifetime seconds.
   * @param cookiePath Cookie path
+  * @param cookieSecure Cookie secure mode.
+  *                     If not specified, check if the request uri scheme is https.
+  *                     In the case of SSL L4 termination, the client may not have the Secure attribute even though it is supposed to be communicating over SSL. Therefore, set True when enforcing Secure
   * @param cookieDomain Cookie domain
   * @param cookieExtension Cookie extension.
   *                        For use with the REST API, the SameSite=None; attribute and https communication are mandatory..
@@ -35,6 +38,7 @@ case class SAMLAuthConfig(
     lifetimeSeconds: Long = 86400 * 3,
     // CookieSetting
     cookiePath: String = Pac4jConstants.DEFAULT_URL_VALUE,
+    cookieSecure: Option[Boolean] = None,
     cookieDomain: Option[String] = None,
     cookieExtension: Option[String] = None,
     csrfTokenKey: String = Pac4jConstants.CSRF_TOKEN
@@ -67,6 +71,7 @@ object SAMLAuthConfig {
         conf.saml.sessionCookieName,
         conf.saml.lifetimeSeconds,
         conf.saml.cookiePath,
+        conf.saml.cookieSecure,
         conf.saml.cookieDomain,
         conf.saml.cookieExtension,
         conf.saml.csrfTokenKey

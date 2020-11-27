@@ -159,7 +159,7 @@ case class AkkaHttpWebContext(
   }
 
   override def isSecure: Boolean = {
-    request.getUri().getScheme == "https"
+    conf.cookieSecure.getOrElse(request.getUri().getScheme == "https")
   }
 
   def addResponseCsrfCookie(): AkkaHttpWebContext = CsrfCookieAuthorizer.setup(this)
