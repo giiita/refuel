@@ -74,7 +74,7 @@ case class AkkaHttpWebContext(
   }
 
   override def getFullRequestURL: String = {
-    request.getUri().toString
+    request.uri.withScheme("https").toString
   }
 
   override def getServerName: String = {

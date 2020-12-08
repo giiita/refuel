@@ -22,6 +22,8 @@ import refuel.injector.AutoInject
   * @param cookieDomain Cookie domain
   * @param cookieExtension Cookie extension.
   *                        For use with the REST API, the SameSite=None; attribute and https communication are mandatory..
+  * @param forceRedirectScheme For SSL L4 termination, to prevent that when the web app receives a request via http, the redirect URI is also http.
+  *                            Basically, https is required because SameSite=None; is required, but it is optional because you may test with http for verification.
   * @param csrfTokenKey CSRF token cookie name
   */
 case class SAMLAuthConfig(
@@ -38,9 +40,10 @@ case class SAMLAuthConfig(
     lifetimeSeconds: Long = 86400 * 3,
     // CookieSetting
     cookiePath: String = Pac4jConstants.DEFAULT_URL_VALUE,
-    cookieSecure: Option[Boolean] = None,
+    cookieSecure: Option[Boolean] = Some(true),
     cookieDomain: Option[String] = None,
-    cookieExtension: Option[String] = None,
+    cookieExtension: Option[String] = Some("SameSite=None"),
+    forceRedirectScheme: Option[String] = Some("https"),
     csrfTokenKey: String = Pac4jConstants.CSRF_TOKEN
 )
 
@@ -74,6 +77,7 @@ object SAMLAuthConfig {
         conf.saml.cookieSecure,
         conf.saml.cookieDomain,
         conf.saml.cookieExtension,
+        conf.saml.forceRedirectScheme,
         conf.saml.csrfTokenKey
       )
       with AutoInject

@@ -39,14 +39,14 @@ class AkkaHttpWebContextTest
       url = "/views/#/something.html",
       hostAddress = "localhost",
       hostPort = 7070
-    ) { webContext => webContext.getFullRequestURL shouldEqual "http://localhost:7070/views/#/something.html" }
+    ) { webContext => webContext.getFullRequestURL shouldEqual "https://localhost:7070/views/#/something.html" }
 
     "get the full url excluding port from a request" in withContext(url = "/views", hostAddress = "localhost") {
-      webContext => webContext.getFullRequestURL shouldEqual "http://localhost/views"
+      webContext => webContext.getFullRequestURL shouldEqual "https://localhost/views"
     }
 
     "get the full url including query" in withContext(url = "/views.html?bla=bla&bla=bla", hostAddress = "localhost") {
-      webContext => webContext.getFullRequestURL shouldEqual "http://localhost/views.html?bla=bla&bla=bla"
+      webContext => webContext.getFullRequestURL shouldEqual "https://localhost/views.html?bla=bla&bla=bla"
     }
 
     "get the request path" in withContext(url = "www.stackstate.com/views") { webContext =>
@@ -108,7 +108,7 @@ class AkkaHttpWebContextTest
           maxAge = Some(0),
           domain = None,
           path = Some("/"),
-          secure = false,
+          secure = true,
           httpOnly = true,
           extension = Some("SameSite=None")
         )
