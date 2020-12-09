@@ -15,12 +15,16 @@ saml {
   private-key-password = "" # required
   # You need to download the metadata from the identity provided
   idp-metadata-path = "" # required
-  sp-metadata-path = "" # optional
-  authn-request-binding-type = "" # default "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+  sp-metadata-path = "" # (optional) 
+  authn-request-binding-type = "" # (optional) default "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
   callbackurl = "" required
   session-cookie-name = "" # default Pac4jConstants.SESSION_ID
   lifetime-seconds = 86400 # default 86400 * 3
   cookie-path = "" # default Pac4jConstants.DEFAULT_URL_VALUE
+  cookie-secure = true # (optional) default true
+  cookie-domain = "xxx.com" # (optional) default requested domain
+  cookie-extension = "foo=bar" # (optional) default SameSite=None;
+  force-redirect-scheme = "https" # (optional) default https;
   csrf-token-key = "" # default Pac4jConstants.CSRF_TOKEN
 }
 ```
