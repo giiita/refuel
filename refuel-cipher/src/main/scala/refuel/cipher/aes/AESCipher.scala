@@ -16,13 +16,13 @@ class AESCipher(override val bytesTranscoder: BytesTranscoder, override val mode
 
   def encrypt(value: Array[Byte], key: AES#Key): Try[Array[Byte]] = Try {
     val cipher = mode.cipher
-    cipher.init(Cipher.ENCRYPT_MODE, key.key, key.iv)
+    key.paramSpec.fold(cipher.init(Cipher.ENCRYPT_MODE, key.key))(cipher.init(Cipher.ENCRYPT_MODE, key.key, _))
     bytesTranscoder.encodeToBytes(cipher.doFinal(value))
   }
 
   def decrypt(value: Array[Byte], key: AES#Key): Try[Array[Byte]] = Try {
     val cipher = mode.cipher
-    cipher.init(Cipher.DECRYPT_MODE, key.key, key.iv)
+    key.paramSpec.fold(cipher.init(Cipher.DECRYPT_MODE, key.key))(cipher.init(Cipher.DECRYPT_MODE, key.key, _))
     cipher.doFinal(bytesTranscoder.decodeToBytes(value))
   }
 }
