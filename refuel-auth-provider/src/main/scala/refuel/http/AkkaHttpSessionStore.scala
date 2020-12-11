@@ -6,7 +6,7 @@ import org.pac4j.core.context.session.SessionStore
 import refuel.AkkaHttpWebContext
 import AkkaHttpWebContext.SessionId
 
-class AkkaHttpSessionStore() extends SessionStore[AkkaHttpWebContext] {
+object AkkaHttpSessionStore extends SessionStore[AkkaHttpWebContext] {
 
   /** Get the object from its key in store.
     *

@@ -31,7 +31,7 @@ case class AkkaHttpWebContext(
   // Only compute the request cookies once
   private[this] lazy final val RequestCookies =
     request.cookies.map { akkaCookie => new Cookie(akkaCookie.name, akkaCookie.value) }.asJavaCollection
-  override lazy val getSessionStore = new AkkaHttpSessionStore()
+  override lazy val getSessionStore = AkkaHttpSessionStore
   @volatile private var changes     = ResponseChanges.empty
   @volatile var sessionId: SessionId = {
     request.cookies

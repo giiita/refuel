@@ -11,9 +11,9 @@ import refuel.saml.SAMLAuthConfig
 import scala.collection.SortedSet
 
 object InMemorySessionStorage {
-  private[store] type RegisteredMs = Long
-  private[store] case class ExpiryRecord(registered: RegisteredMs, id: SessionId)
-  private[store] case class DataRecord(registered: RegisteredMs, data: Map[ValueKey, Any])
+  private[refuel] type RegisteredMs = Long
+  private[refuel] case class ExpiryRecord(registered: RegisteredMs, id: SessionId)
+  private[refuel] case class DataRecord(registered: RegisteredMs, data: Map[ValueKey, Any])
 }
 
 /** Build server instance-specific session storage. This is not available in a redundant system, as the same session store must be referenced from all instances.
@@ -97,11 +97,16 @@ class InMemorySessionStorage(st: ScalaTime, conf: SAMLAuthConfig) extends Sessio
     */
   override def setSessionValue(SessionId: SessionId, key: ValueKey, value: Any): Boolean = {
     expireOldSessions()
-    sessionData.get(SessionId).fold(false) {
-      case DataRecord(registered, data) =>
-        sessionData = sessionData + (SessionId -> DataRecord(registered, data + (key -> value)))
+    sessionData
+      .get(SessionId)
+      .fold {
+        sessionData = sessionData + (SessionId -> DataRecord(getTime, Map(key -> value)))
         true
-    }
+      } {
+        case DataRecord(registered, data) =>
+          sessionData = sessionData + (SessionId -> DataRecord(registered, data + (key -> value)))
+          true
+      }
   }
 
   /** Add the additional attributes of the session.
@@ -111,11 +116,16 @@ class InMemorySessionStorage(st: ScalaTime, conf: SAMLAuthConfig) extends Sessio
     */
   override def setSessionValues(SessionId: SessionId, values: Map[ValueKey, Any]): Boolean = {
     expireOldSessions()
-    sessionData.get(SessionId).fold(false) {
-      case DataRecord(registered, data) =>
-        sessionData = sessionData + (SessionId -> DataRecord(registered, data ++ values))
+    sessionData
+      .get(SessionId)
+      .fold {
+        sessionData = sessionData + (SessionId -> DataRecord(getTime, values))
         true
-    }
+      } {
+        case DataRecord(registered, data) =>
+          sessionData = sessionData + (SessionId -> DataRecord(registered, data ++ values))
+          true
+      }
   }
 
   /** Destroy the session.

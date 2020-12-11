@@ -17,7 +17,7 @@ class AkkaHttpSessionStoreTest
     with Injector {
   "AkkaHttpSessionStore.get" should {
     "return null when the data is not available" in {
-      new AkkaHttpSessionStore().get(
+      AkkaHttpSessionStore.get(
         new AkkaHttpWebContext(
           HttpRequest(),
           Map.empty,
@@ -33,8 +33,8 @@ class AkkaHttpSessionStoreTest
         Map.empty,
         inject[InMemorySessionStorage]
       )(inject[SAMLAuthConfig], new SessionIDGenerator())
-      new AkkaHttpSessionStore().set(context, "mykey", "yooo")
-      new AkkaHttpSessionStore().get(context, "mykey") shouldBe Optional.of("yooo")
+      AkkaHttpSessionStore.set(context, "mykey", "yooo")
+      AkkaHttpSessionStore.get(context, "mykey") shouldBe Optional.of("yooo")
     }
   }
 }

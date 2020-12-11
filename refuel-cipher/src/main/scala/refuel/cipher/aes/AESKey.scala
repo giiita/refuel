@@ -16,6 +16,14 @@ import scala.util.Try
 case class AESKey(key: Key, paramSpec: Option[AlgorithmParameterSpec]) extends KEY { me =>
   def withIvParamSpec(_iv: IvParameterSpec): AESKey   = copy(paramSpec = Some(_iv))
   def withGCMParamSpec(gcm: GCMParameterSpec): AESKey = copy(paramSpec = Some(gcm))
+
+  override def serialize: String =
+    s"KEY: ${new String(Base64.getEncoder.encode(key.getEncoded))}\nSPEC: ${paramSpec
+      .map {
+        case x: GCMParameterSpec => x.getIV
+        case x: IvParameterSpec  => x.getIV
+      }
+      .map(x => new String(Base64.getEncoder.encode(x)))}"
 }
 
 object AESKey {
