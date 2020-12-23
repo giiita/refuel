@@ -50,6 +50,9 @@ case class SAMLAuthConfig(
 object SAMLAuthConfig {
   import pureconfig._
   import generic.auto._
+
+  val xxx = ConfigSource.default.value()
+
   private[this] lazy final val conf: SAMLAuthConfigWrapper = ConfigSource.default
     .load[SAMLAuthConfigWrapper]
     .fold(

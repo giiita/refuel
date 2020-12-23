@@ -3,9 +3,10 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.4")
+scalaVersion in Scope.Global := "2.13.4"
 
-lazy val akkaVersion     = "2.6.4"
-lazy val akkaHttpVersion = "10.1.11"
+lazy val akkaVersion     = "2.6.10"
+lazy val akkaHttpVersion = "10.2.2"
 lazy val pac4jVersion    = "4.1.0"
 
 libraryDependencies in Scope.Global ++= {
@@ -57,6 +58,7 @@ lazy val root = project
     http,
     auth,
     cipher,
+    oauth,
     root_interfaces,
     interfaces_impl,
     call_interfaces
@@ -136,8 +138,8 @@ lazy val http = (project in file("refuel-http"))
     name := "refuel-http",
     description := "Http client for Scala.",
     libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-stream" % "2.6.4"   % Provided,
-        "com.typesafe.akka" %% "akka-http"   % "10.1.11" % Provided
+        "com.typesafe.akka" %% "akka-stream" % akkaVersion     % Provided,
+        "com.typesafe.akka" %% "akka-http"   % akkaHttpVersion % Provided
       ),
     unmanagedClasspath in Test ++= (unmanagedResources in Compile).value,
     testOptions in Test ++= Seq(
@@ -171,8 +173,23 @@ lazy val auth = (project in file("refuel-auth-provider"))
         "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,
         "com.typesafe.akka"     %% "akka-http-testkit"   % akkaHttpVersion % Test,
         "com.typesafe.akka"     %% "akka-stream-testkit" % akkaVersion % Test
-      ),
-    unmanagedClasspath in Test ++= (unmanagedResources in Compile).value
+      )
+  )
+lazy val oauth = (project in file("refuel-oauth-provider"))
+  .dependsOn(cipher)
+  .settings(asemble)
+  .settings(
+    name := "refuel-oauth-provider",
+    description := "OAuth 2.0 provider.",
+    libraryDependencies ++= Seq(
+        "com.typesafe.akka"     %% "akka-stream"         % akkaVersion,
+        "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion,
+        "com.github.pureconfig" %% "pureconfig"          % "0.12.3",
+        "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,
+        "org.scalamock"         %% "scalamock"           % "4.4.0" % Test,
+        "com.typesafe.akka"     %% "akka-http-testkit"   % akkaHttpVersion % Test,
+        "com.typesafe.akka"     %% "akka-stream-testkit" % akkaVersion % Test
+      )
   )
 lazy val `test` = (project in file("refuel-test"))
   .dependsOn(json)
@@ -215,14 +232,14 @@ lazy val call_interfaces =
 
 def scl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
-    case "2.13.3" => f
+    case "2.13.4" => f
     case _        => Nil
   }
 }
 
 def notScl213[T](f: => Seq[T]): Def.Initialize[Seq[T]] = Def.setting {
   scalaVersion.value match {
-    case "2.13.3" => Nil
+    case "2.13.4" => Nil
     case _        => f
   }
 }

@@ -11,6 +11,7 @@
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
 [![Latest version of auth](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider)
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
+[![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider)
 
 Refuel is a simple and lightweight DI framework<br/>
 Provides DI, utility, JSON parser, HTTPClient, etc. suitable for layered architecture.<br/>
@@ -47,3 +48,9 @@ You can replace second or third party injections from anywhere and easily handle
 ## [refuel-cipher](https://github.com/giiita/refuel/tree/master/refuel-cipher)
 
 > The wrapper library that supports the interconversion of RSA / AES encryption methods.
+
+## [refuel-oauth-provider](https://github.com/giiita/refuel/tree/master/refuel-oauth-provider)
+
+> Supports building an OAuth authorization server for Akka HTTP.
+>
+>All authorization endpoints, token endpoints, and other grant flows are compliant with the OAuth 2.0 / 2.1 specification, and can be implemented mostly by implementing the prepared IF without having to think too much about the flow.
