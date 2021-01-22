@@ -1,6 +1,6 @@
 package refuel.json
 
-import refuel.json.codecs.Write
+import refuel.json.codecs.{Read, Write}
 import refuel.json.logging.{JsonConvertLogEnabled, JsonLoggingStrategy}
 import refuel.json.tokenize.decoded.DecodedJsonRaw
 import refuel.json.tokenize.strategy.JsonEntry
@@ -63,4 +63,12 @@ trait JsonTransform extends JsonLoggingStrategy {
     def toJString[X >: T](implicit ct: Write[X]): String = encodedStr[X]
   }
 
+}
+
+object JsonTransform extends JsonTransform {
+  def encodedStr[T: Write](v: T): String = v.encodedStr
+
+  def as[T: Read](v: String): Either[Throwable, T] = v.as
+
+  def jsonTree(v: String): JsonVal = v.jsonTree
 }

@@ -29,6 +29,7 @@ class DecodedJsonTokenizer(rs: Array[Char]) extends JsonTokenizer(rs) {
     } else {
       incl()
       if (pos <= length) {
+        if (chbuff.length <= len) glowArray(len)
         chbuff(len) = fromEscaping(rs(pos))
         incl()
         len + 1

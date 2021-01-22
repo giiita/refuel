@@ -17,6 +17,9 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
     }
 
     "Unicode type" in {
+      s"""{"title":"${(1 to 1 << 8).map(_ => "\\n").mkString}"}""".jsonTree shouldBe Json.obj(
+        "title" -> (1 to 1 << 8).map(_ => "\n").mkString
+      )
       s"""{"value":"test\uD83C\uDF0Ftest\uD83C\uDF0Ftest"}""".jsonTree shouldBe Json.obj(
         "value" -> s"""test🌏test🌏test"""
       )
@@ -95,7 +98,7 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
     "fail case - Syntax error" in {
       intercept[IllegalJsonFormat] {
         s"""{"value: "aaa"}""".jsonTree
-      }.getMessage shouldBe s"""Unspecified json value of key: #"value:"#"""
+      }.getMessage shouldBe s"""Unspecified json value of key: #"value: "#"""
     }
     "fail case - EOF position 2" in {
       intercept[IllegalJsonFormat] {

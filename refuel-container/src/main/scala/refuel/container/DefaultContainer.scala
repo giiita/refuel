@@ -129,7 +129,6 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
 
   private[refuel] override def shading: @@[Container, Types.Localized] = {
     DefaultContainer(
-      buffer = _buffer.snapshot(),
       lights = this.lights.:+(this)
     )
   }
