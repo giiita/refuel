@@ -1,17 +1,18 @@
 package refuel.store
 
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import org.scalatest.{Matchers, WordSpecLike}
 import refuel.injector.Injector
 import refuel.lang.ScalaTime
 import refuel.AkkaHttpWebContext.SessionId
 import InMemorySessionStorage.{DataRecord, ExpiryRecord}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import refuel.saml.SAMLAuthConfig
 
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 
-class InMemorySessionStorageTest extends WordSpecLike with Matchers with ScalatestRouteTest with Injector {
+class InMemorySessionStorageTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with Injector {
 
   implicit final def toSessionId(v: String): SessionId = SessionId(v)
   def mockedTimeStorage() =
@@ -24,8 +25,8 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
     "add a data and expiry record" in {
       val storage = mockedTimeStorage()
       storage.createOrReuseSession(SessionId("session")) shouldBe true
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
     }
 
     "return false when the session already existed" in {
@@ -37,12 +38,12 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
     "expire earlier sessions" in {
       val storage = mockedTimeStorage()
       storage.createOrReuseSession("session")
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
       storage.time = 2
       storage.createOrReuseSession("session2")
-      storage.expiryQueue shouldBe Set(ExpiryRecord(2, "session2"))
-      storage.sessionData shouldBe Map(SessionId("session2") -> DataRecord(2, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(2L, "session2"))
+      storage.sessionData shouldBe Map(SessionId("session2") -> DataRecord(2L, Map.empty))
     }
   }
 
@@ -61,8 +62,8 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
     "expire earlier sessions" in {
       val storage = mockedTimeStorage()
       storage.createOrReuseSession("session")
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
       storage.time = 2
       storage.sessionExists("session") shouldBe false
       storage.expiryQueue shouldBe Set()
@@ -92,8 +93,8 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
     "expire earlier sessions" in {
       val storage = mockedTimeStorage()
       storage.createOrReuseSession("session")
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
       storage.time = 2
       storage.getSessionValue("session", "mykey") shouldBe None
       storage.expiryQueue shouldBe Set()
@@ -145,8 +146,8 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
     "expire earlier sessions" in {
       val storage = mockedTimeStorage()
       storage.createOrReuseSession("session")
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
       storage.time = 2
       storage.setSessionValue("session", "mykey", "yoo") shouldBe true
       storage.expiryQueue shouldBe Set()
@@ -189,8 +190,8 @@ class InMemorySessionStorageTest extends WordSpecLike with Matchers with Scalate
       val storage = mockedTimeStorage
       storage.createOrReuseSession("session")
       storage.renewSession("session") shouldBe true
-      storage.expiryQueue shouldBe Set(ExpiryRecord(1, "session"))
-      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1, Map.empty))
+      storage.expiryQueue shouldBe Set(ExpiryRecord(1L, "session"))
+      storage.sessionData shouldBe Map(SessionId("session") -> DataRecord(1L, Map.empty))
     }
 
     "expire earlier sessions" in {

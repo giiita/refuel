@@ -69,6 +69,6 @@ case class JsString private (literal: String) extends JsVariable {
 }
 
 object JsString {
-  def apply(literal: String): JsString     = new JsString(literal.trim)
-  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString.trim)
+  def apply(literal: String): JsString     = new JsString(literal)
+  def apply(literal: JsonKeyRef): JsString = new JsString(literal.toString)
 }

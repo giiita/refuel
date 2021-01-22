@@ -5,15 +5,20 @@ releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.4")
 scalaVersion in Scope.Global := "2.13.4"
 
-lazy val akkaVersion     = "2.6.10"
-lazy val akkaHttpVersion = "10.2.2"
-lazy val pac4jVersion    = "4.1.0"
+lazy val akkaVersion           = "2.6.11"
+lazy val akkaHttpVersion       = "10.2.3"
+lazy val pac4jVersion          = "4.1.0"
+lazy val pureconfigVersion     = "0.14.0"
+lazy val scalacheckVersion     = "1.15.2"
+lazy val scalamockVersion      = "5.1.0"
+lazy val scalaLoggingVersion   = "3.9.2"
+lazy val typesafeConfigVersion = "1.4.1"
 
 libraryDependencies in Scope.Global ++= {
-  Seq("org.scalatest" %% "scalatest" % "3.1.0" % Test)
+  Seq("org.scalatest" %% "scalatest" % "3.2.3" % Test)
 }
 libraryDependencies in Scope.Global ++= scl213(
-  Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+  Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.0")
 ).value
 
 lazy val asemble = Seq(
@@ -81,7 +86,7 @@ lazy val `macro` = (project in file("refuel-macro"))
     libraryDependencies ++= {
       Seq(
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-        "com.typesafe"   % "config"        % "1.3.4"
+        "com.typesafe"   % "config"        % typesafeConfigVersion
       )
     },
     scalacOptions += "-language:experimental.macros"
@@ -95,7 +100,7 @@ lazy val container = (project in file("refuel-container"))
     parallelExecution in Test := false,
     libraryDependencies ++= Seq(
         "org.scala-lang"             % "scala-reflect"  % scalaVersion.value,
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
+        "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion
       ),
     scalacOptions in Global ++= Seq(
 //            "-Ydebug",
@@ -169,8 +174,8 @@ lazy val auth = (project in file("refuel-auth-provider"))
         "com.typesafe.akka"     %% "akka-stream"         % akkaVersion,
         "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion,
         "org.pac4j"             % "pac4j-saml"           % pac4jVersion,
-        "com.github.pureconfig" %% "pureconfig"          % "0.12.3",
-        "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,
+        "com.github.pureconfig" %% "pureconfig"          % pureconfigVersion,
+        "org.scalacheck"        %% "scalacheck"          % scalacheckVersion % Test,
         "com.typesafe.akka"     %% "akka-http-testkit"   % akkaHttpVersion % Test,
         "com.typesafe.akka"     %% "akka-stream-testkit" % akkaVersion % Test
       )
@@ -184,9 +189,9 @@ lazy val oauth = (project in file("refuel-oauth-provider"))
     libraryDependencies ++= Seq(
         "com.typesafe.akka"     %% "akka-stream"         % akkaVersion,
         "com.typesafe.akka"     %% "akka-http"           % akkaHttpVersion,
-        "com.github.pureconfig" %% "pureconfig"          % "0.12.3",
-        "org.scalacheck"        %% "scalacheck"          % "1.14.3" % Test,
-        "org.scalamock"         %% "scalamock"           % "4.4.0" % Test,
+        "com.github.pureconfig" %% "pureconfig"          % pureconfigVersion,
+        "org.scalacheck"        %% "scalacheck"          % scalacheckVersion % Test,
+        "org.scalamock"         %% "scalamock"           % scalamockVersion % Test,
         "com.typesafe.akka"     %% "akka-http-testkit"   % akkaHttpVersion % Test,
         "com.typesafe.akka"     %% "akka-stream-testkit" % akkaVersion % Test
       )
