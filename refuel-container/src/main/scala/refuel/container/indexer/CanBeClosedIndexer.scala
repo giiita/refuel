@@ -36,6 +36,7 @@ class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) ext
     */
   def accept[X](x: X): Indexer[T] = new NarrowInstanceIndexer(
     AcceptedFromInstanceSymbol(
+      scope.key,
       scope.value,
       scope.priority,
       scope.tag,
@@ -54,6 +55,7 @@ class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) ext
     */
   def accept[X: ClassTag]: Indexer[T] = new NarrowTypeIndexer(
     AcceptedFromTypeSymbol(
+      scope.key,
       scope.value,
       scope.priority,
       scope.tag,

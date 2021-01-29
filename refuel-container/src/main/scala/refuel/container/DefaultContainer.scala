@@ -124,7 +124,7 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
       x: T,
       priority: InjectionPriority
   ): IndexedSymbol[T] = {
-    CanBeRestrictedSymbol[T](x, priority, weakTypeTag[T].tpe, this)
+    CanBeRestrictedSymbol[T](ContainerIndexedKey[T], x, priority, weakTypeTag[T].tpe, this)
   }
 
   private[refuel] override def shading: @@[Container, Types.Localized] = {

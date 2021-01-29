@@ -14,11 +14,11 @@ scmInfo := Some(
 )
 developers := List(
   Developer(
-    id="giiita",
-    name="Giita",
-    email="r.takagi4263@gmail.com",
-    url=url("https://github.com/giiita")
+    id = "giiita",
+    name = "Giita",
+    email = "r.takagi4263@gmail.com",
+    url = url("https://github.com/giiita")
   )
 )
 
-publishMavenStyle := true
+publishMavenStyle := false

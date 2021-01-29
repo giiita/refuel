@@ -1,7 +1,7 @@
 ## refuel-akka-oauth-provider
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-oauth-provider" % "1.4.7"
+libraryDependencies += "com.phylage" %% "refuel-oauth-provider" % "1.4.8"
 ```
 
 It provides an authorization process directive that follows the standard features of OAuth 2.0 / 2.1.

@@ -1,7 +1,7 @@
 ## refuel-util
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-util" % "1.4.7"
+libraryDependencies += "com.phylage" %% "refuel-util" % "1.4.8"
 ```
 
 ## Usage

@@ -9,7 +9,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.saml.SAMLAuthConfig
 
-import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 
 class InMemorySessionStorageTest extends AsyncWordSpec with Matchers with ScalatestRouteTest with Injector {
