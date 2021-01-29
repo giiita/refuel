@@ -13,6 +13,7 @@ class DecodedJsonTokenizer(rs: Array[Char]) extends JsonTokenizer(rs) {
       case 'f'   => '\f'
       case 'b'   => '\b'
       case 't'   => '\t'
+      case '/'   => '/'
       case '\\'  => '\\'
       case '"'   => '"'
       case other => throw new IllegalJsonFormat(s"Illegal json format: \\$other")

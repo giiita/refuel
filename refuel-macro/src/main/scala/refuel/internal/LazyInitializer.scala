@@ -1,6 +1,6 @@
 package refuel.internal
 
-import refuel.container.Container
+import refuel.container.{Container, ContainerIndexedKey}
 import refuel.exception.InjectDefinitionException
 import refuel.injector.InjectionPool
 import refuel.injector.InjectionPool.LazyConstruction
@@ -54,7 +54,15 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
         val rankingEvaluation  = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
         reify {
           mayBeInjection.splice getOrElse {
-            c.Expr[Container](ctn).splice.createIndexer[T](rankingEvaluation.splice, priority.splice).indexing().value
+            ContainerIndexedKey.apply[T].synchronized {
+              mayBeInjection.splice getOrElse {
+                c.Expr[Container](ctn)
+                  .splice
+                  .createIndexer[T](rankingEvaluation.splice, priority.splice)
+                  .indexing()
+                  .value
+              }
+            }
           }
         }
       case x: ExcludingRuntime[c.type] =>
@@ -63,7 +71,11 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
           mayBeInjection.splice getOrElse {
             applymentFunction[T](ctn, ip).splice match {
               case (p, f) if f.size == 1 =>
-                c.Expr[Container](ctn).splice.createIndexer[T](f.head(p).value, p).indexing().value
+                ContainerIndexedKey.apply[T].synchronized {
+                  mayBeInjection.splice getOrElse {
+                    c.Expr[Container](ctn).splice.createIndexer[T](f.head(p).value, p).indexing().value
+                  }
+                }
               case (p, f) =>
                 val x = f.map(_.apply(p).tag)
                 throw new InjectDefinitionException(

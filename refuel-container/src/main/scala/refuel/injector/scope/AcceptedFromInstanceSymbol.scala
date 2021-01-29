@@ -15,6 +15,7 @@ import scala.reflect.runtime.universe._
   * @tparam T Injection object type
   */
 private[refuel] case class AcceptedFromInstanceSymbol[T](
+    key: scala.Symbol,
     value: T,
     priority: InjectionPriority,
     x: Type,

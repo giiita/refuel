@@ -12,6 +12,7 @@ import scala.reflect.runtime.universe._
   * @tparam T injectable object type
   */
 trait IndexedSymbol[T] {
+  val key: scala.Symbol
   val value: T
   val priority: InjectionPriority
   val tag: Type
