@@ -21,4 +21,4 @@ developers := List(
   )
 )
 
-publishMavenStyle := false
+publishMavenStyle := true
