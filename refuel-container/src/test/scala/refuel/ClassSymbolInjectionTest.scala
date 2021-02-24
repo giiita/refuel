@@ -350,7 +350,7 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       val pre = inject[H]._provide
       pre shouldBe inject[H]._provide
 
-      shade { implicit c => pre should not be inject[H]._provide }
+      shade { implicit c => pre shouldBe inject[H]._provide }
 
       pre shouldBe inject[H]._provide
     }

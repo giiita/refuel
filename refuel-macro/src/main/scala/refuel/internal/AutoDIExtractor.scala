@@ -13,10 +13,6 @@ import scala.reflect.macros.blackbox
 object AutoDIExtractor {
   private[this] var buffer: Option[AutoInjectableSymbols[_]] = None
 
-  def all[C <: blackbox.Context]: InjectionCands[C] = {
-    getList[C]
-  }
-
   /**
     * Returns a list of dependencies found at compile time.
     * If a @RecognizedDynamicInjection is found in the search property,

@@ -81,7 +81,7 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     * @return
     */
   def find[T: WeakTypeTag, A: TypedAcceptContext](requestFrom: A): Option[T] = {
-    find[T, A](implicitly[WeakTypeTag[T]].tpe, requestFrom).orElse(lights.lastOption.map(_.find[T, A](requestFrom)))
+    find[T, A](implicitly[WeakTypeTag[T]].tpe, requestFrom).orElse(lights.lastOption.flatMap(_.find[T, A](requestFrom)))
   }
 
   /**
