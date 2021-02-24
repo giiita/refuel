@@ -61,7 +61,7 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     * @tparam T return object type
     * @return
     */
-  def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
+  private def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
     _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
       case None => None
       case Some(r) =>
@@ -81,7 +81,7 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     * @return
     */
   def find[T: WeakTypeTag, A: TypedAcceptContext](requestFrom: A): Option[T] = {
-    find[T, A](implicitly[WeakTypeTag[T]].tpe, requestFrom)
+    find[T, A](implicitly[WeakTypeTag[T]].tpe, requestFrom).orElse(lights.lastOption.map(_.find[T, A](requestFrom)))
   }
 
   /**

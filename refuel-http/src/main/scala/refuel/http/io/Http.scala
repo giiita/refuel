@@ -89,7 +89,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
                   .flatMap { res =>
                     if (logging.enabled) {
                       logger.info(
-                        s"Http request completed. ${(System
+                        s"Http request completed ${res.status.intValue()}. ${(System
                           .currentTimeMillis() - from).toFloat / 1000} sec [ ${request.method.value}: ${request.uri.toString()} ]"
                       )
                     }
