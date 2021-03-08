@@ -20,7 +20,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
       q"""
          (ctn: refuel.container.Container) => ${injection[T](q"ctn", ip, access)} match {
            case x: refuel.injector.Injector =>
-             x._cntMutation = ctn
+             x._cntRef = ctn
              x
            case x => x
          }

@@ -13,7 +13,7 @@ class AESCipherTest extends AsyncWordSpec with Matchers with Diagrams with Injec
 
   "(RAW) String => (ENC) String => (RAW) String" should {
     "Encrypt by GCM" in {
-      shade { implicit c =>
+      closed { implicit c =>
         val secret = AESKeyFactory.withGCMParam()
         new AES_GCM_NoPadding().index[CipherAlg[AES]]()
         val raw    = (1 to 1012).map(_ => "x").mkString
@@ -25,7 +25,7 @@ class AESCipherTest extends AsyncWordSpec with Matchers with Diagrams with Injec
       }
     }
     "Encrypt by CBC" in {
-      shade { implicit c =>
+      closed { implicit c =>
         val secret = AESKeyFactory.withIvParam()
         val raw    = (1 to 16).map(_ => "x").mkString
         val cipher = inject[CryptographyConverter[AES]]
@@ -36,7 +36,7 @@ class AESCipherTest extends AsyncWordSpec with Matchers with Diagrams with Injec
       }
     }
     "Failure not 16 bytes encryption by CBC" in {
-      shade { implicit c =>
+      closed { implicit c =>
         intercept[IllegalBlockSizeException] {
           val secret = AESKeyFactory.withIvParam()
           val raw    = (1 to 17).map(_ => "x").mkString

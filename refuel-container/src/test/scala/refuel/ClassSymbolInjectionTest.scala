@@ -6,7 +6,7 @@ import org.scalatest.wordspec.AsyncWordSpec
 import refuel.ClassSymbolInjectionTest.TEST_N.{Inner, N1, N2}
 import refuel.container.anno.{Effective, RecognizedDynamicInjection}
 import refuel.domination.Inject
-import refuel.domination.InjectionPriority.{Overwrite, Primary, Secondary}
+import refuel.domination.InjectionPriority.{Finally, Overwrite, Primary, Secondary}
 import refuel.injector.{AutoInject, Injector}
 import refuel.internal.di.Effect
 import refuel.provider.Lazy
@@ -244,6 +244,21 @@ object ClassSymbolInjectionTest {
     class N2(val n1: Lazy[N1])  extends AutoInject
   }
 
+  object TEST_O {
+    trait O
+
+    @Inject(Finally)
+    class OImpl1 extends O with AutoInject
+    class OImpl2 extends O
+  }
+
+  object TEST_P {
+    trait P
+
+    @Inject(Finally)
+    class PImpl1 extends P with AutoInject
+    class PImpl2 extends P
+  }
 }
 
 class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
@@ -353,6 +368,40 @@ class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams
       shade { implicit c => pre shouldBe inject[H]._provide }
 
       pre shouldBe inject[H]._provide
+    }
+
+    "Unpropagate indexing on shading containers" in {
+      import refuel.ClassSymbolInjectionTest.TEST_O._
+      val pre = inject[O]._provide
+      pre shouldBe inject[O]._provide
+
+      shade { implicit c =>
+        pre shouldBe inject[O]._provide
+        new OImpl2().index[O](Primary)
+        c.fully[O].size shouldBe 1
+        _cntRef.fully[O].size shouldBe 1
+        pre shouldNot be(inject[O]._provide)
+      }
+
+      _cntRef.fully[O].size shouldBe 1
+      pre shouldBe inject[O]._provide
+    }
+
+    "Closed new container scope verification." in {
+      import refuel.ClassSymbolInjectionTest.TEST_P._
+      val pre = inject[P]._provide
+      pre shouldBe inject[P]._provide
+
+      closed { implicit c =>
+        pre shouldNot be(inject[P]._provide)
+        new PImpl2().index[P](Primary)
+        c.fully[P].size shouldBe 2
+        _cntRef.fully[P].size shouldBe 1
+        pre shouldNot be(inject[P]._provide)
+      }
+
+      _cntRef.fully[P].size shouldBe 1
+      pre shouldBe inject[P]._provide
     }
   }
 }

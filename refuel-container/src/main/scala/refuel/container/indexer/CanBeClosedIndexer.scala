@@ -40,8 +40,7 @@ class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) ext
       scope.value,
       scope.priority,
       scope.tag,
-      Vector(x),
-      scope.c
+      Vector(x)
     ),
     cnt
   )
@@ -59,8 +58,7 @@ class CanBeClosedIndexer[T](scope: IndexedSymbol[T], cnt: Vector[Container]) ext
       scope.value,
       scope.priority,
       scope.tag,
-      Vector(classTag[X].runtimeClass),
-      scope.c
+      Vector(classTag[X].runtimeClass)
     ),
     cnt
   )

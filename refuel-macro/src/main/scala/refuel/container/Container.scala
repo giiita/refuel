@@ -28,6 +28,14 @@ trait Container {
     * @param requestFrom Inject caller.
     * @return
     */
+  def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T]
+
+  /**
+    * May return an injectable object.
+    *
+    * @param requestFrom Inject caller.
+    * @return
+    */
   def find[T: WeakTypeTag, A: TypedAcceptContext](requestFrom: A): Option[T]
 
   /**
@@ -62,4 +70,6 @@ trait Container {
   private[refuel] def createScope[T: WeakTypeTag](x: T, priority: InjectionPriority): IndexedSymbol[T]
 
   private[refuel] def shading: Container @@ Localized
+
+  private[refuel] def fully[T: WeakTypeTag]: Iterable[T]
 }
