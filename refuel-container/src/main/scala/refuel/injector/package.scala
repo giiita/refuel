@@ -11,5 +11,5 @@ package object injector {
 
   import scala.language.implicitConversions
 
-  implicit def _containerInheritance[T](x: HiddenContainerShade[T]): T = x.fx(x._cntMutation)
+  implicit def _containerInheritance[T](x: HiddenContainerShade[T]): T = x.fx(x._cntRef)
 }

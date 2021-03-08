@@ -18,7 +18,7 @@ class Macro(val c: blackbox.Context) {
           def _provide(implicit ctn: Container): T = c.Expr[T](q"""
                inject[${prType.dealias.typeArgs.head}] match {
                  case x: refuel.injector.Injector =>
-                   x._cntMutation = ctn
+                   x._cntRef = ctn
                    x
                  case x => x
                }

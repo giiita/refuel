@@ -1,6 +1,5 @@
 package refuel.injector.scope
 
-import refuel.container.Container
 import refuel.domination.InjectionPriority
 
 import scala.reflect.runtime.universe._
@@ -9,8 +8,7 @@ private[refuel] case class CanBeRestrictedSymbol[T](
     key: scala.Symbol,
     value: T,
     priority: InjectionPriority,
-    x: Type,
-    c: Container
+    x: Type
 ) extends IndexedTagSymbol[T](x) {
 
   /**

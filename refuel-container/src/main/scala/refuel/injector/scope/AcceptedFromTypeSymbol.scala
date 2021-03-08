@@ -1,6 +1,5 @@
 package refuel.injector.scope
 
-import refuel.container.Container
 import refuel.domination.InjectionPriority
 
 import scala.reflect.runtime.universe._
@@ -19,8 +18,7 @@ private[refuel] case class AcceptedFromTypeSymbol[T](
     value: T,
     priority: InjectionPriority,
     x: Type,
-    acceptedFrom: Vector[Class[_]],
-    c: Container
+    acceptedFrom: Vector[Class[_]]
 ) extends IndexedTagSymbol[T](x) {
 
   /**

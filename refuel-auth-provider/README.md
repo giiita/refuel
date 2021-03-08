@@ -1,7 +1,7 @@
 # refuel-saml-provider
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-auth-provider" % "1.4.10"
+libraryDependencies += "com.phylage" %% "refuel-auth-provider" % "1.4.11"
 ```
 
 Provides SAML 2.0 service provider support for Akka http. The refuel framework will be worked on to support Scala 3.

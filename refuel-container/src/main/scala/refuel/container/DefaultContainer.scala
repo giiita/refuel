@@ -61,11 +61,11 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     * @tparam T return object type
     * @return
     */
-  private def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
+  def find[T, A: TypedAcceptContext](tpe: universe.Type, requestFrom: A): Option[T] = {
     _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
       case None => None
       case Some(r) =>
-        r.filter(x => x.c == this && x.accepted(requestFrom))
+        r.filter(_.accepted(requestFrom))
           .toSeq
           .sortBy(_.priority)(InjectionPriority.Order)
           .headOption
@@ -124,12 +124,19 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
       x: T,
       priority: InjectionPriority
   ): IndexedSymbol[T] = {
-    CanBeRestrictedSymbol[T](ContainerIndexedKey[T], x, priority, weakTypeTag[T].tpe, this)
+    CanBeRestrictedSymbol[T](ContainerIndexedKey[T], x, priority, weakTypeTag[T].tpe)
   }
 
   private[refuel] override def shading: @@[Container, Types.Localized] = {
-    DefaultContainer(
+    new DefaultContainer(
       lights = this.lights.:+(this)
     )
+  }
+
+  override private[refuel] def fully[T: universe.WeakTypeTag]: Iterable[T] = {
+    _buffer.snapshot().get(ContainerIndexedKey(implicitly[WeakTypeTag[T]].tpe)) match {
+      case None    => None
+      case Some(r) => r.map(_.value.asInstanceOf[T])
+    }
   }
 }

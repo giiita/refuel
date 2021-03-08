@@ -30,7 +30,7 @@ object AutoDIExtractor {
     val runtimeClasspathInjectAcception = weakTypeOf[RecognizedDynamicInjection]
 
     val richSets              = new AutoInjectableSet[c.type](c)
-    val x                     = getList[C](c)
+    val x                     = getList[C, T](c)
     val compileTimeCandidates = richSets.filterModuleSymbols[T](x) ++ richSets.filterClassSymbol[T](x)
 
     val annos = weakTypeOf[T] match {
@@ -53,7 +53,7 @@ object AutoDIExtractor {
     }
   }
 
-  private[this] def getList[C <: blackbox.Context](c: C): AutoInjectableSymbols[c.type] = {
+  private[this] def getList[C <: blackbox.Context, T: c.WeakTypeTag](c: C): AutoInjectableSymbols[c.type] = {
     buffer match {
       case None =>
         new AutoDIExtractor[c.type](c).run() match {

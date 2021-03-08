@@ -8,7 +8,7 @@ import scala.language.implicitConversions
 trait CanBeContainer[C <: Container] {
   me =>
   /* Container instance */
-  implicit var _cntMutation: C
+  implicit var _cntRef: C
 
   /**
     * This refers to itself.

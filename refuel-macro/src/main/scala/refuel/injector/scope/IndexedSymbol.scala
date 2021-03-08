@@ -16,7 +16,6 @@ trait IndexedSymbol[T] {
   val value: T
   val priority: InjectionPriority
   val tag: Type
-  val c: Container
 
   /**
     * Determines if this object can be injected from any accessor.

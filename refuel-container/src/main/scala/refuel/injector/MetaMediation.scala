@@ -48,7 +48,7 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     *   class C(b: B)
     *   class D(c: C)
     *   shade { implicit c =>
-    *     new BStub().index()
+    *     new BStub().index[B]()
     *     inject[D].run // Use BStub in C in D
     *   }
     *   inject[D].run // Use A in B in C in D
@@ -59,7 +59,10 @@ private[refuel] trait MetaMediation[C <: Container] extends CanBeContainer[C] {
     * @return
     */
   def shade[T](ctx: LocalizedContainer => T): T =
-    new HiddenContainerShade(ctx)(_cntMutation.shading)
+    new HiddenContainerShade(ctx)(_cntRef.shading)
+
+  def closed[T](ctx: LocalizedContainer => T): T =
+    new HiddenContainerShade(ctx)(DefaultContainer())
 
   /**
     * Gets an indexer for registering new dependencies.
