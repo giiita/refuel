@@ -32,7 +32,7 @@ object ClassSymbolInjectionTest {
     }
 
     case object A_EFF_C extends Effect with Injector {
-      override def activate: Boolean = inject[A].bool
+      override def activate: Boolean = !inject[A].bool
     }
 
     trait A_EFFECTIVE_IF
@@ -53,15 +53,15 @@ object ClassSymbolInjectionTest {
     }
 
     @Effective(A_EFF_A)
-    @Inject(Primary)
+    @Inject[Primary]
     class A_EFFECTIVE4 extends A_EFFECTIVE_IF with AutoInject {
-      val v: String = "A"
+      val v: String = "AA"
     }
 
     @Effective(A_EFF_B)
-    @Inject(Primary)
+    @Inject[Primary]
     class A_EFFECTIVE5 extends A_EFFECTIVE_IF with AutoInject {
-      val v: String = "B"
+      val v: String = "BB"
     }
 
   }
@@ -247,7 +247,7 @@ object ClassSymbolInjectionTest {
   object TEST_O {
     trait O
 
-    @Inject(Finally)
+    @Inject[Finally]
     class OImpl1 extends O with AutoInject
     class OImpl2 extends O
   }
@@ -255,7 +255,7 @@ object ClassSymbolInjectionTest {
   object TEST_P {
     trait P
 
-    @Inject(Finally)
+    @Inject[Finally]
     class PImpl1 extends P with AutoInject
     class PImpl2 extends P
   }
@@ -264,8 +264,10 @@ object ClassSymbolInjectionTest {
 class ClassSymbolInjectionTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   "inject" should {
     "Effective injection vs Modify injection priority" in {
-      import refuel.ClassSymbolInjectionTest.TEST_A._
-      inject[A_EFFECTIVE_IF]._provide.isInstanceOf[A_EFFECTIVE4] shouldBe true
+      closed { implicit c =>
+        import refuel.ClassSymbolInjectionTest.TEST_A._
+        inject[A_EFFECTIVE_IF]._provide.isInstanceOf[A_EFFECTIVE4] shouldBe true
+      }
     }
     "Reserved type injection" in {
       overwrite(Seq(11))

@@ -14,7 +14,7 @@ package refuel.injector
   *
   * class B extends A with AutoInjectable // This is treated as priority "Default"
   *
-  * @Inject(Finally)
+  * @Inject[Finally]
   * class C extends A with AutoInjectable
   *
   * @Inject(Primary)

@@ -116,7 +116,10 @@ private[codecs] trait AnyValCodecs {
     def parse(bf: JsonVal): String = bf.pure
   }
 
-  implicit def ZonedDateTimeCdc(implicit st: ScalaTime, strategy: DateTimeParserStrategy): Codec[ZonedDateTime] =
+  implicit def ZonedDateTimeCdc(
+      implicit st: ScalaTime,
+      strategy: DateTimeParserStrategy = DateTimeParserStrategy.Formatter
+  ): Codec[ZonedDateTime] =
     new Codec[ZonedDateTime] {
 
       override def serialize(t: ZonedDateTime): JsonVal = strategy.serialize(t)

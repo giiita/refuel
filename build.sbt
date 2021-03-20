@@ -34,6 +34,7 @@ lazy val asemble = Seq(
       "-Ywarn-numeric-widen",
       "-Ywarn-value-discard",
       "-language:higherKinds",
+//      "-Ymacro-debug-verbose",
       "-language:implicitConversions"
     ),
   licenses += ("Apache-2.0", url(

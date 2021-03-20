@@ -4,7 +4,6 @@ import refuel.container.anno.Effective
 import refuel.domination.InjectionPriority.Default
 import refuel.domination.{Inject, InjectionPriority}
 import refuel.effect.EffectLike
-import refuel.exception.InjectDefinitionException
 import refuel.injector.InjectionPool.LazyConstruction
 import refuel.injector.scope.IndexedSymbol
 import refuel.internal.di.Effect
@@ -17,7 +16,7 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
   /* Effective type symbol */
   private[this] lazy val EFFECTIVE_ANNO_TYPE = u.weakTypeOf[Effective]
   /* Injection priority config type tag */
-  private[this] lazy val InjectionPriorityConfigType = u.weakTypeOf[Inject]
+  private[this] lazy val InjectionPriorityConfigType = u.weakTypeOf[Inject[_]]
   /* Reflector */
   private[this] lazy val reflector = implicitly[InjectionReflector]
   /* An injectable buffer that has not yet been initialized */
@@ -49,13 +48,18 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
   }
 
   private[this] def extractInjectionPriorityWithDefault(x: u.Symbol): InjectionPriority = {
-    x.annotations
-      .find(_.tree.tpe =:= InjectionPriorityConfigType)
-      .flatMap(_.tree.children.tail.headOption)
-      .fold[InjectionPriority](Default) {
-        case x if x.symbol.isModule => reflector.embody[InjectionPriority](x.symbol.asModule)
-        case _                      => throw new InjectDefinitionException("The injection priority setting must be a static module.")
-      }
+    {
+      x.annotations
+        .find(_.tree.tpe =:= InjectionPriorityConfigType)
+        .flatMap[u.Type](_.tree.tpe.typeArgs.headOption)
+        .map(_.typeSymbol)
+        .getOrElse(
+          u.weakTypeOf[Default].dealias.typeSymbol
+        )
+    } match {
+      case x if x.isModule => reflector.embody[InjectionPriority](x.asModule)
+      case x               => reflector.embody[InjectionPriority](x.companion.asModule)
+    }
   }
 
   private[this] def mayBeExtractEffectType(x: u.Symbol): Option[u.Tree] = {
@@ -96,8 +100,12 @@ object RuntimeInjectionPool extends refuel.injector.InjectionPool {
       )(reflector.reflectClass[T](clazz, this)(c))(c)
     }
 
-    result.groupBy(_._1).toSeq.sortBy(_._1)(InjectionPriority.Order).headOption.map {
-      case (p, fs) => p -> fs.map(_._2)
+    result.groupBy(_._1).toSeq match {
+      case Nil => None
+      case x =>
+        Some(x.minBy(_._1.v)).map {
+          case (p, fs) => p -> fs.map(_._2)
+        }
     }
   }
 

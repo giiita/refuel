@@ -39,7 +39,7 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_3
 
-    @Inject(Finally)
+    @Inject[Finally]
     object TestIFImpl_3_RECOVER extends TestIF_3 with AutoInject
 
     object TestIFImpl_3_AUTO extends TestIF_3 with AutoInject
@@ -50,10 +50,10 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_4
 
-    @Inject(Finally)
+    @Inject[Finally]
     object TestIFImpl_4_RECOVER extends TestIF_4 with AutoInject
 
-    @Inject(Overwrite)
+    @Inject[Overwrite]
     object TestIFImpl_4_CUSTOM extends AutoInject with TestIF_4
 
   }
@@ -62,10 +62,10 @@ object ModuleSymbolInjectionTest {
 
     trait TestIF_5
 
-    @Inject(Finally)
+    @Inject[Finally]
     object TestIFImpl_5_RECOVER extends TestIF_5 with AutoInject
 
-    @Inject(Default)
+    @Inject[Default]
     object TestIFImpl_5_CUSTOM extends AutoInject with TestIF_5
 
   }
@@ -76,7 +76,7 @@ object ModuleSymbolInjectionTest {
 
     object TestIFImpl_7_AUTO extends TestIF_7 with AutoInject
 
-    @Inject(Default)
+    @Inject[Default]
     object TestIFImpl_7_CUSTOM extends AutoInject with TestIF_7
 
   }
@@ -87,7 +87,7 @@ object ModuleSymbolInjectionTest {
 
     object TestIFImpl_8_AUTO extends TestIF_8 with AutoInject
 
-    @Inject(Overwrite)
+    @Inject[Overwrite]
     object TestIFImpl_8_CUSTOM extends AutoInject with TestIF_8
 
   }

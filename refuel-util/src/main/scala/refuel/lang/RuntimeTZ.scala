@@ -11,7 +11,7 @@ import refuel.injector.AutoInject
 /**
   * TimeZone used by default.
   */
-@Inject(Finally)
+@Inject[Finally]
 object RuntimeTZ extends RuntimeTZ with AutoInject {
   override val TIME_ZONE: TimeZone     = TimeZone.getDefault
   override val ZONE_ID: ZoneId         = java.time.ZoneId.systemDefault()

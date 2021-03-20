@@ -41,7 +41,7 @@ object HttpSetting {
     def setProtocol: HttpRequest = request.withProtocol(HttpProtocols.`HTTP/1.1`)
   }
 
-  @Inject(Finally)
+  @Inject[Finally]
   class RecoveredHttpSetting() extends HttpSetting() with AutoInject
 
 }

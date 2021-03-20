@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
-@Inject(Finally)
+@Inject[Finally]
 object Http
     extends Http(new Lazy[HttpSetting] {
       override def _provide(implicit ctn: Container): HttpSetting = new RecoveredHttpSetting
@@ -32,7 +32,7 @@ object Http
   * }
   * }}}
   */
-@Inject(Finally)
+@Inject[Finally]
 class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform with AutoInject with LazyLogging {
 
   implicit def __setting: HttpSetting = setting

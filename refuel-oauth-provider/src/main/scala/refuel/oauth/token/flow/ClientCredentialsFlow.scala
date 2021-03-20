@@ -12,7 +12,7 @@ import refuel.oauth.token.GrantRequest.ClientCredentialsGrantRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Inject(Finally)
+@Inject[Finally]
 class ClientCredentialsFlow(override val actionHandler: OAuth2ActionHandler)(implicit ec: ExecutionContext)
     extends GrantFlow[Future, ClientCredentialsGrantRequest]
     with Directives {

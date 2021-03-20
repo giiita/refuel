@@ -12,7 +12,7 @@ import refuel.oauth.token.GrantRequest.PasswordGrantRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Inject(Finally)
+@Inject[Finally]
 @deprecated("Since OAuth2.1, this specification seems to disappear.")
 class PasswordCredentialsFlow(override val actionHandler: OAuth2ActionHandler)(implicit ec: ExecutionContext)
     extends GrantFlow[Future, PasswordGrantRequest]

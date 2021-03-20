@@ -31,7 +31,7 @@ object RSAPrivateKey {
   private[this] def build(str: String): PrivateKey =
     KEY.RSAKeyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder.decode(str)))
 
-  @Inject(Finally)
+  @Inject[Finally]
   class ConfigResourceDefPrivateKey() extends RSAPrivateKey with AutoInject {
     override val key: PrivateKey = build(
       ConfigFactory.load().getString(ConfigPath)

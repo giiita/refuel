@@ -20,7 +20,7 @@ object InMemorySessionStorage {
   *
   * @param st Specified system clock.
   */
-@Inject(Finally)
+@Inject[Finally]
 class InMemorySessionStorage(st: ScalaTime, conf: SAMLAuthConfig) extends SessionStorage with AutoInject {
 
   import InMemorySessionStorage._
