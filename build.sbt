@@ -2,11 +2,11 @@ import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.4")
-scalaVersion in Scope.Global := "2.13.4"
+crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.5")
+scalaVersion in Scope.Global := "2.13.5"
 
-lazy val akkaVersion           = "2.6.11"
-lazy val akkaHttpVersion       = "10.2.3"
+lazy val akkaVersion           = "2.6.13"
+lazy val akkaHttpVersion       = "10.2.4"
 lazy val pac4jVersion          = "4.1.0"
 lazy val pureconfigVersion     = "0.14.0"
 lazy val scalacheckVersion     = "1.15.2"

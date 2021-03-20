@@ -6,7 +6,10 @@ libraryDependencies += "com.phylage" %% "refuel-container" % "1.5.1"
 
 ## Features
 
-In most cases, refuel-container injections are inspected at compile time. If no dependency is found, Compile will fail. However, there is an injection option to switch to Runtime injection. In this case, the error can be avoided even if the dependency is not found at compile time.<br/>
+In standard use, dependencies are resolved at compile time.
+If the dependency definition is invalid, Compile will fail.
+
+Runtime injection can also be specified. In this case, even if the dependency is not found at compile time, the error can be avoided.<br/>
 In layered architectures, for example, primary constructor injection is recommended in order to avoid having dependency decisions made in submodules.
 
 In sub module.
@@ -24,12 +27,17 @@ class Main extends AutoInject with Injector {
   inject[MyService].run
 }
 ```
-This will prevent dependencies from being determined at build time for modules containing MyService.</br>
-However, in the case of constructor injections, the dependencies injected during initialization are fixed and fixed.</br>
-There may be cases where you want to override a dependency in some operations, for example, with container mirroring.</br>
-In this case, the dependency can be wrapped in Lazy to change it to an always-on evaluation instead of an initialization evaluation.
+
+This ensures that dependencies are not determined at build time for modules containing MyService. </BR>.
+Dependency resolution is always done at the time of the `inject[T]` call, within the current compile time classpath.
+
+However, the dependency is not always determined at the compile time.
+Since refuel-container is a container based injection, before assigning the generated value, it searches for an instance with the same characteristics among the container instances that can be referenced at that time.
+
+If you want to always search for the latest dependency from the functions that the instance has, you can wrap the constructor parameter with `Lazy[T]` to always search for T. However, this is a process that is done only once when the primary constructor is applied. (This does not create much overhead).
 
 ```scala
+// myRepository will be searched in the container each time it is used.
 class MyService(myRepository: Lazy[MyRepository], myClient: MyClient) extends AutoInject {
   def run = {
     myRepository.find().map(myClient.post)
@@ -39,21 +47,64 @@ class MyService(myRepository: Lazy[MyRepository], myClient: MyClient) extends Au
 class MyRepositoryImpl extends MyRepository
 ```
 
+# Container mirroring
+
+`shade` and `closed` can be used to mirror the current scope.
+
+### `shade[T](func: Container => T)`
+
+shade creates a duplicate of the container in the current scope.
+The purpose of using this function is to define a temporary dependency.
+
+Normally, dynamic dependency registration may be used for other uninitialized injections.
+If you want to inject a higher priority instance than usual only in the temporary scope, you can register it in the shade function to define the dependency without affecting the container in the public scope.
+
 ```scala
 class MyRepositoryOverrides extends MyRepository
 
 class AAA(myService: MyService) extends AutoInject {
-  myService.run // It will used MyRepositoryImpl
+  myService.run // Outside the shade scope, myService would inject MyRepositoryImpl in its constructor
   
-  shade { implicit container =>
+  shade { implicit c =>
+    // However, if it is in the shade function scope, it will be registered
+    // in a temporarily duplicated container and will not be registered in
+    // the public scope container.
+
+    // If MyService#MyRepository is not wrapped in Lazy, MyRepository will
+    // be fixed in MyRepositoryImpl by applying constructor, so be careful 
+    // with "the same inject root". 
     new MyRepositoryOverrides().index(Overwrite)
     myService.run // It will used MyRepositoryOverrides
   }
 }
 ```
 
-shade can work as many times as you want, but only one declaration can be made in the same implicit scope.
+Note that shade is only a function scope that supports dynamic overrides, and dependency registrations resolved by refuel will propagate to the public scope container.
 
+
+### `closed[T](func: Container => T)`
+
+The usage of closed is the same, but the treatment of containers changes. closed, as the name implies, is a declaration that uses a container that has been completely denied blood.
+
+In shade, only dynamic dependency registration is a separate action, and all other searches from automatic index/container are propagated to the public scope container.
+
+This can be very useful when running many test cases in parallel.
+In the case of parallelism, you don't know when and which dependencies will be registered in the public scope container, so the test results may change depending on the timing of execution, and the dependencies to be injected may change.
+
+Since closed can prevent this from happening, it is recommended to use it whenever you implement tests.
+
+```scala
+class MyRepositoryOverrides extends MyRepository
+
+class AAA(myService: MyService) extends AutoInject {
+  myService.run // Outside the shade scope, myService would inject MyRepositoryImpl in its constructor
+  
+  closed { implicit c =>
+    new MyRepositoryOverrides().index(Overwrite)
+    myService.run // It will used MyRepositoryOverrides
+  }
+}
+```
 # Usage
 
 The general DI method only inherits `AutoInject` to the target object.<br/>
@@ -97,7 +148,7 @@ The priority is set by `@Inject` annotation. If you don't set it, it will be def
 
 ```scala
 trait X
-
+// This is the lowest priority
 @Inject[Finally]
 object A extends X with AutoInject
 
@@ -105,13 +156,14 @@ object A extends X with AutoInject
 object B extends X with AutoInject
 
 // This is the highest priority
-@Inject(Primary)
+@Inject[Primary]
 object C extends X with AutoInject
-
 ```
 
-
 If you want to control multiple overlapping dependencies, there are several approaches.
+
+For a list of InjectionPriorities, see object InjectionPriority.
+
 
 ### case 1. Tagging injection
 

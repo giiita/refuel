@@ -13,17 +13,17 @@
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider)
 
-Refuel is a simple and lightweight DI framework<br/>
-Provides DI, utility, JSON parser, HTTPClient, etc. suitable for layered architecture.<br/>
-You can replace second or third party injections from anywhere and easily handle multi-project configuration dependencies.
-
+Refuel is a powerful DI based framework<br/>
 
 
 ## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container)
 
-> DI container provides powerful injection with macro.<br/>
-> Just by Mixining a specific trait, it will be loaded automatically into DI container.<br/>
-> It is also possible to easily change dependencies from test cases or allow access only from arbitrary scopes.<br/>
+> Powerful DI framework with macros.
+>
+> It is very simple and does not require a large number of components files or explicit dependency/scope declarations. You will be able to focus on the work you need to do.
+> It is very compatible with DDD / hexagonal architecture, and supports application development and open source library development with excellent reference transparency.
+> 
+> All other refuel modules are based on refuel-container and will be ready to use.
 
 ## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util)
 
