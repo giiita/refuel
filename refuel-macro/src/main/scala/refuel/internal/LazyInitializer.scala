@@ -50,10 +50,8 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
 
     AutoDIExtractor.searchInjectionCands[c.type, T](c) match {
       case x: InjectionCands[c.type] if !x.runtime =>
-        val from               = System.currentTimeMillis()
         val (priority, ranked) = x.rankingEvaluation
-        c.echo(c.enclosingPosition, s"#################################### ${System.currentTimeMillis() - from}")
-        val rankingEvaluation = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
+        val rankingEvaluation  = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
         reify {
           mayBeInjection.splice getOrElse {
             ContainerIndexedKey.apply[T].synchronized {
