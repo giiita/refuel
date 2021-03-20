@@ -20,7 +20,7 @@ object ScalaTime extends ScalaTime(RuntimeTZ)
   * By default, the system default TimeZone is used.
   * I would override it as needed and refer to it by mixing in the AutoInject.
   */
-@Inject(Finally)
+@Inject[Finally]
 class ScalaTimeImpl(TZ: RuntimeTZ) extends ScalaTime(TZ) with AutoInject
 
 abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {

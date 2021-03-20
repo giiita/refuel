@@ -29,7 +29,7 @@ object RSAPublicKey {
     }
   }
 
-  @Inject(Finally)
+  @Inject[Finally]
   class ConfigResourceDefPublicKey() extends RSAPublicKey with AutoInject {
     override val key: PublicKey = build(
       ConfigFactory.load().getString(ConfigPath)

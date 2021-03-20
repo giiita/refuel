@@ -65,7 +65,7 @@ trait GrantFlowDispatcher[F[_]] extends AutoInject {
   }
 }
 
-@Inject(Finally)
+@Inject[Finally]
 class DefaultGrantFlowDispatcher(
     override val authorizationCodeFlow: GrantFlow[Future, AuthorizeCodeGrantRequest],
     override val refreshTokenFlow: GrantFlow[Future, RefreshTokenGrantRequest],

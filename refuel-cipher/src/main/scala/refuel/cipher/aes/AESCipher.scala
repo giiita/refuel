@@ -9,7 +9,7 @@ import refuel.injector.AutoInject
 
 import scala.util.Try
 
-@Inject(Finally)
+@Inject[Finally]
 class AESCipher(override val bytesTranscoder: BytesTranscoder, override val mode: CipherAlg[AES])
     extends CryptographyConverter[AES]
     with AutoInject {

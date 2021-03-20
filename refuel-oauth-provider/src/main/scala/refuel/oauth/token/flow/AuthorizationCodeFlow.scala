@@ -14,7 +14,7 @@ import refuel.oauth.token.GrantRequest.AuthorizeCodeGrantRequest
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
-@Inject(Finally)
+@Inject[Finally]
 class AuthorizationCodeFlow(override val actionHandler: OAuth2ActionHandler)(implicit ec: ExecutionContext)
     extends GrantFlow[Future, AuthorizeCodeGrantRequest]
     with Directives {

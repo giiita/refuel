@@ -7,6 +7,10 @@ import refuel.json.entry.JsEmpty
 import refuel.json.error.{IllegalJsonFormat, StreamIndeterminate}
 import refuel.json.model.TestJson.JString
 
+object JsonTransformTest extends CodecDef {
+  case class ProjectName(projectName: String)
+  val ProjectReads = CaseClassCodec.from[ProjectName]
+}
 class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
   "Json tree build" should {
     "Empty input" in {
@@ -115,6 +119,14 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
         case Right(r) => fail(r.toString)
       }
     }
+    "many array" in {
+      import JsonTransformTest._
+      val b =
+        """{"projectName":"[\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\"]"}"""
+      println(b.jsonTree.to(ProjectReads))
+      succeed
+    }
+
     "Nested array tree" in {
       val json = s"""
          |{

@@ -50,7 +50,7 @@ object AESKey {
       )
   private[this] lazy final val conf: Config = ConfigFactory.load()
 
-  @Inject(Finally)
+  @Inject[Finally]
   class ConfigResourceDefPublicKey() extends AESKey(key, paramSpec) with AutoInject {}
 
 }

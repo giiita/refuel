@@ -4,7 +4,7 @@ import refuel.container.{Container, ContainerIndexedKey}
 import refuel.exception.InjectDefinitionException
 import refuel.injector.InjectionPool
 import refuel.injector.InjectionPool.LazyConstruction
-import refuel.internal.di.{ConfirmedCands, ExcludingRuntime, SymbolExprGenerator}
+import refuel.internal.di.{InjectionCands, SymbolExprGenerator}
 import refuel.provider.{Accessor, Lazy}
 
 import scala.reflect.macros.blackbox
@@ -49,9 +49,11 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
     }
 
     AutoDIExtractor.searchInjectionCands[c.type, T](c) match {
-      case x: ConfirmedCands[c.type] =>
+      case x: InjectionCands[c.type] if !x.runtime =>
+        val from               = System.currentTimeMillis()
         val (priority, ranked) = x.rankingEvaluation
-        val rankingEvaluation  = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
+        c.echo(c.enclosingPosition, s"#################################### ${System.currentTimeMillis() - from}")
+        val rankingEvaluation = new SymbolExprGenerator[c.type](c).generateExpr[T](ranked)
         reify {
           mayBeInjection.splice getOrElse {
             ContainerIndexedKey.apply[T].synchronized {
@@ -65,7 +67,7 @@ class LazyInitializer[C <: blackbox.Context](val c: C) {
             }
           }
         }
-      case x: ExcludingRuntime[c.type] =>
+      case x: InjectionCands[c.type] =>
         c.echo(c.enclosingPosition, s"Ranking from [${x.cands.map(_.name).mkString(",")}] and runtime classpath.")
         reify {
           mayBeInjection.splice getOrElse {

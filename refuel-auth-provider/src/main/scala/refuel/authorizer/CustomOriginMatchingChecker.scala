@@ -26,7 +26,7 @@ import refuel.saml.SAMLAuthConfig
 
 import scala.collection.JavaConverters.{asScalaBufferConverter, mapAsScalaMapConverter}
 
-@Inject(Finally)
+@Inject[Finally]
 class CustomOriginMatchingChecker(samlConfig: SAMLAuthConfig) extends MatchingChecker with AutoInject {
   private[this] lazy final val GET_MATCHER: Matcher    = new HttpMethodMatcher(HttpConstants.HTTP_METHOD.GET)
   private[this] lazy final val POST_MATCHER: Matcher   = new HttpMethodMatcher(HttpConstants.HTTP_METHOD.POST)

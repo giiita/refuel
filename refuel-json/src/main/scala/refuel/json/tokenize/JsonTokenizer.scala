@@ -35,6 +35,7 @@ abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) {
   private[this] final def detectLiteral(len: Int): Int = {
     if (pos >= length) beEOF
     (rs(pos): @switch) match {
+      case 0x0000 => beEOF
       case '\\' =>
         detectLiteral(encodedLiteralHandle(len))
       case '"' =>

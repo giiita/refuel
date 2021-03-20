@@ -5,7 +5,7 @@ import refuel.Config.AdditionalPackage
 import refuel.container.Container
 import refuel.container.anno.RecognizedDynamicInjection
 import refuel.injector.AutoInject
-import refuel.internal.di.{ConfirmedCands, ExcludingRuntime, InjectionCands}
+import refuel.internal.di.{InjectionCands}
 
 import scala.annotation.tailrec
 import scala.reflect.macros.blackbox
@@ -40,7 +40,7 @@ object AutoDIExtractor {
 
     if (annos.exists(_.tree.tpe.=:=(runtimeClasspathInjectAcception))) {
       // If a @RecognizedDynamicInjection had been granted
-      ExcludingRuntime(c)(compileTimeCandidates)
+      InjectionCands(c)(compileTimeCandidates, runtime = true)
     } else if (compileTimeCandidates.isEmpty) {
       // If a @RecognizedDynamicInjection had not been granted and no candidate is found
       c.abort(
@@ -49,7 +49,7 @@ object AutoDIExtractor {
       )
     } else {
       // If a @RecognizedDynamicInjection had not been granted and a candidate is found
-      ConfirmedCands(c)(compileTimeCandidates)
+      InjectionCands(c)(compileTimeCandidates)
     }
   }
 

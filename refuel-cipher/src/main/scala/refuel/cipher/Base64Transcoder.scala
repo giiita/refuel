@@ -6,7 +6,7 @@ import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.injector.AutoInject
 
-@Inject(Finally)
+@Inject[Finally]
 class Base64Transcoder extends BytesTranscoder with AutoInject {
   def encodeToBytes(bytes: Array[Byte]): Array[Byte] = Base64.getEncoder.encode(bytes)
 

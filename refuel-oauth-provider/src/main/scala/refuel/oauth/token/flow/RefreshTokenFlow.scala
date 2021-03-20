@@ -12,7 +12,7 @@ import refuel.oauth.token.GrantRequest.RefreshTokenGrantRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Inject(Finally)
+@Inject[Finally]
 class RefreshTokenFlow(override val actionHandler: OAuth2ActionHandler)(implicit ec: ExecutionContext)
     extends GrantFlow[Future, RefreshTokenGrantRequest]
     with Directives {

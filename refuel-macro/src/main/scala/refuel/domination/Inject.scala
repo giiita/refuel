@@ -1,8 +1,8 @@
 package refuel.domination
 
-import java.lang.annotation.{ElementType, Retention, RetentionPolicy, Target}
+import java.lang.annotation.{Retention, RetentionPolicy}
 
 import scala.annotation.StaticAnnotation
 
 @Retention(RetentionPolicy.RUNTIME)
-class Inject(value: InjectionPriority) extends StaticAnnotation
+class Inject[+T <: InjectionPriority] extends StaticAnnotation

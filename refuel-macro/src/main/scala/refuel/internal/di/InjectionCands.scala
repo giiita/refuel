@@ -1,53 +1,37 @@
 package refuel.internal.di
 
-import refuel.domination.InjectionPriority.Default
+import refuel.domination.InjectionPriority.{Default, Overwrite}
 import refuel.domination.{Inject, InjectionPriority}
 
 import scala.reflect.macros.blackbox
 
-sealed abstract class InjectionCands[C <: blackbox.Context](val c: C)(val cands: Vector[C#Symbol]) {
+case class InjectionCands[C <: blackbox.Context](c: C)(val cands: Vector[C#Symbol], val runtime: Boolean = false) {
+
+  import c.universe._
 
   /* Injection priority config type tag */
-  private[this] lazy val InjectionPriorityConfigType = c.weakTypeOf[Inject]
+  private[this] lazy val InjectionPriorityConfigType = c.weakTypeOf[Inject[_]]
+  private[this] lazy val DefaultType                 = c.weakTypeOf[Default]
 
-  private[this] type DepWithPriority = (C#Expr[InjectionPriority], C#Symbol)
-
-  def rankingEvaluation: (c.Expr[InjectionPriority], Seq[C#Symbol]) = {
+  def rankingEvaluation: (Expr[InjectionPriority], Seq[C#Symbol]) = {
     cands match {
-      case _c if _c.size == 1 => c.universe.reify[InjectionPriority](Default) -> _c
       case _ =>
-        cands
+        val candsPs: Vector[(C#Type, C#Symbol)] = cands
           .map { sm =>
             val ip = sm.annotations
-              .find(_.tree.tpe =:= InjectionPriorityConfigType)
-              .flatMap(_.tree.children.tail.headOption)
-              .fold[c.Expr[InjectionPriority]](
-                c.Expr[InjectionPriority](c.parse("refuel.domination.InjectionPriority.Default"))
-              ) {
-                case x if x.symbol.isModule =>
-                  c.Expr[InjectionPriority](c.parse(x.symbol.fullName))
-                case _ =>
-                  c.abort(
-                    c.enclosingPosition,
-                    s"The injection priority setting must be a static module. From [ ${sm.fullName} ]"
-                  )
-              }
+              .find(_.tree.tpe <:< InjectionPriorityConfigType)
+              .flatMap(_.tree.tpe.typeArgs.headOption.asInstanceOf[Option[C#Type]])
+              .getOrElse(
+                DefaultType.dealias.typeSymbol.typeSignature.asInstanceOf[C#Type]
+              )
             ip -> sm
           }
-          .groupBy(x => c.eval(x._1))
-          .toSeq
-          .minBy(_._1)(InjectionPriority.Order)
-          ._2
-          .toList match {
-          case x if x.isEmpty => c.universe.reify(Default) -> x.map(_._2)
-          case all @ x :: _   => x._1                      -> all.map(_._2)
+        val higher = candsPs.groupBy(_._1).reduce { (a, b) =>
+          val maybe = a._1.baseType(b._1.typeSymbol).orElse(b._1.baseType(a._1.typeSymbol))
+          if (maybe =:= a._1) a else b
         }
+
+        c.Expr[InjectionPriority](c.parse(higher._1.typeSymbol.fullName)) -> higher._2.map(_._2)
     }
   }
 }
-
-case class ConfirmedCands[C <: blackbox.Context](override val c: C)(cands: Vector[C#Symbol])
-    extends InjectionCands[C](c)(cands)
-
-case class ExcludingRuntime[C <: blackbox.Context](override val c: C)(cands: Vector[C#Symbol])
-    extends InjectionCands[C](c)(cands)

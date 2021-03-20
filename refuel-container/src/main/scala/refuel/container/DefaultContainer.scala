@@ -65,11 +65,10 @@ private[refuel] class DefaultContainer private (val lights: Vector[Container] = 
     _buffer.snapshot().get(ContainerIndexedKey(tpe)) match {
       case None => None
       case Some(r) =>
-        r.filter(_.accepted(requestFrom))
-          .toSeq
-          .sortBy(_.priority)(InjectionPriority.Order)
-          .headOption
-          .map(_.value.asInstanceOf[T])
+        r.filter(_.accepted(requestFrom)).toSeq match {
+          case Nil => None
+          case x   => Some(x.minBy(_.priority.v)).map(_.value.asInstanceOf[T])
+        }
     }
   }
 

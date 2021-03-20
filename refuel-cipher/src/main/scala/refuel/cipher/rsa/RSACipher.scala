@@ -9,7 +9,7 @@ import refuel.injector.AutoInject
 
 import scala.util.Try
 
-@Inject(Finally)
+@Inject[Finally]
 class RSACipher(override val bytesTranscoder: BytesTranscoder, override val mode: CipherAlg[RSA])
     extends CryptographyConverter[RSA]
     with AutoInject {

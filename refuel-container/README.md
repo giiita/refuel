@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "1.4.11"
+libraryDependencies += "com.phylage" %% "refuel-container" % "1.5.0"
 ````
 
 ## Features
@@ -98,7 +98,7 @@ The priority is set by `@Inject` annotation. If you don't set it, it will be def
 ```scala
 trait X
 
-@Inject(Finally)
+@Inject[Finally]
 object A extends X with AutoInject
 
 // This is the default priority

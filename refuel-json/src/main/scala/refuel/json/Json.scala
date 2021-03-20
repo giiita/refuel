@@ -8,4 +8,5 @@ object Json {
   def any(row: Any): JsonVal                 = JsAnyVal(row.toString)
   def str(row: String): JsonVal              = JsString(row)
   def Null: JsonVal                          = JsNull
+  def Empty: JsonVal                         = JsEmpty
 }

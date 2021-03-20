@@ -13,7 +13,7 @@ trait CipherAlg[T <: CryptType] extends Serializable {
 }
 
 object CipherAlg {
-  @Inject(Finally)
+  @Inject[Finally]
   class RSA_ECB_PKCS1Padding extends CipherAlg[RSA] with AutoInject {
     override final def mode: String = "RSA/ECB/PKCS1Padding"
   }
@@ -24,7 +24,7 @@ object CipherAlg {
     override final def mode: String = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
   }
 
-  @Inject(Finally)
+  @Inject[Finally]
   class AES_CBC_NoPadding extends CipherAlg[AES] with AutoInject {
     override final def mode: String = "AES/CBC/NoPadding"
   }
