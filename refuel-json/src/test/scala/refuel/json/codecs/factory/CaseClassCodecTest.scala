@@ -3,12 +3,10 @@ package refuel.json.codecs.factory
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.codecs.All
-import refuel.json.codecs.factory.CaseClassCodecTest._
 import refuel.json.entry.{JsAnyVal, JsObject, JsString}
 import refuel.json.{Codec, CodecDef, JsonTransform, JsonVal}
 
-object CaseClassCodecTest {
+object CaseClassCodecTest extends CodecDef {
 
   case class BBBB(id: Long, value: String)
 
@@ -35,7 +33,7 @@ object CaseClassCodecTest {
     }
   }
 
-  case class CCC(cccId: Long, bbbs: Seq[BBB])
+  case class CCC(cccId: Long, bbbs: Option[Seq[BBB]] = None)
 
   case class DDD(dddId: Long, ccc: CCC)
 
@@ -46,6 +44,8 @@ object CaseClassCodecTest {
 }
 
 class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
+
+  import refuel.json.codecs.factory.CaseClassCodecTest._
 
   implicit val aLocalCodec: Codec[A] = CaseClassCodec.from[A]
   implicit val bLocalCodec: Codec[B] = CaseClassCodec.from[B]
@@ -94,8 +94,8 @@ class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with 
       r.eeeId shouldBe 1
       r.ddd.dddId shouldBe 2
       r.ddd.ccc.cccId shouldBe 3
-      r.ddd.ccc.bbbs.map(_.bbbId) shouldBe Seq(4, 5, 6)
-      r.ddd.ccc.bbbs.map(_.aaa) shouldBe Seq(None, Some(AAA(7, 8)), None)
+      r.ddd.ccc.bbbs.get.map(_.bbbId) shouldBe Seq(4, 5, 6)
+      r.ddd.ccc.bbbs.get.map(_.aaa) shouldBe Seq(None, Some(AAA(7, 8)), None)
     }
 
     "implicit override codec" in {
@@ -106,13 +106,13 @@ class CaseClassCodecTest extends AsyncWordSpec with Matchers with Diagrams with 
         override def serialize(t: DDD): JsonVal = ???
 
         override def deserialize(bf: JsonVal): DDD =
-          DDD(2, CCC(3, bbbs))
+          DDD(2, CCC(3, Some(bbbs)))
       }
 
       s"""{"eeeId":1,"ddd":{"overwrite":"insertion value"}}""".as(
         CaseClassCodec.from[EEE]
       ) shouldBe Right {
-        EEE(1, DDD(2, CCC(3, bbbs)))
+        EEE(1, DDD(2, CCC(3, Some(bbbs))))
       }
     }
 

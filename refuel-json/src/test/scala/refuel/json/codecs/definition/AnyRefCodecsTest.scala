@@ -106,14 +106,14 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
     }
     "Either without switch condition deserialize when succeed" in {
       s"""{"success": true, "value": "foo"}""".as(
-        either(UnitCdc, ReadWith[String]("value"))
+        eitherR(UnitCdc, ReadWith[String]("value"))
       ) shouldBe Right(
         Right("foo")
       )
     }
     "Either without switch condition deserialize when failed" in {
       s"""{"success": true, "error": "foo"}""".as(
-        either(ReadWith[String]("error"), ReadWith[String]("value"))
+        eitherR(ReadWith[String]("error"), ReadWith[String]("value"))
       ) shouldBe Right(
         Left("foo")
       )
@@ -122,7 +122,7 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
       assert(
         s"""{"success": true, "foo": "bar"}"""
           .as(
-            either(ReadWith[String]("error"), ReadWith[String]("value"))
+            eitherR(ReadWith[String]("error"), ReadWith[String]("value"))
           )
           .isLeft
       )
@@ -209,12 +209,12 @@ class AnyRefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with Js
 
     "Either without switch condition serialize when succeed" in {
       Right("foo").toJString(
-        either(UnitCdc, WriteWith[String]("value"))
+        eitherW(UnitCdc, WriteWith[String]("value"))
       ) shouldBe s"""{"value":"foo"}"""
     }
     "Either without switch condition serialize when failed" in {
       Left("foo").toJString(
-        either(WriteWith[String]("error"), UnitCdc)
+        eitherW(WriteWith[String]("error"), UnitCdc)
       ) shouldBe s"""{"error":"foo"}"""
     }
   }

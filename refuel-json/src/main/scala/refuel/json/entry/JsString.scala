@@ -44,28 +44,6 @@ case class JsString private (literal: String) extends JsVariable {
   override def ++(js: JsonVal): JsonVal = throw IllegalJsonSyntaxTreeBuilding("Cannot add element to JsLiteral.")
 
   override def named(key: String): JsonVal = throw CannotAccessJsonKey(s"Cannot access key : $key of $toString")
-
-  override def writeToBufferString(b: StringBuffer): Unit = {
-    b.append('"')
-    var processIndex = 0
-    val maxIndex     = literal.length - 1
-
-    @tailrec
-    def detect(i: Int): Unit = {
-      if (i <= maxIndex) {
-        val x = literal(processIndex)
-        if (x == '"' || x == '\\') {
-          b.append('\\')
-        }
-        b.append(x)
-        processIndex += 1
-        detect(i + 1)
-      }
-    }
-
-    detect(0)
-    b.append('"')
-  }
 }
 
 object JsString {

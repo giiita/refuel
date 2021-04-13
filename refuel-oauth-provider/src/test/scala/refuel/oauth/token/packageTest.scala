@@ -58,12 +58,10 @@ class packageTest
         )
       ) match {
         case x =>
-          x shouldBe Query(
-            "token_type" -> "Bearer",
-            "token"      -> "aaa",
-            "scope"      -> "ccc ddd",
-            "expire_in"  -> x.get("expire_in").get
-          )
+          x.get("token_type").get shouldBe "Bearer"
+          x.get("token").get shouldBe "aaa"
+          x.get("scope").get shouldBe "ccc ddd"
+          x.get("expire_in").get shouldBe "86400"
       }
     }
   }

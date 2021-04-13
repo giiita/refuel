@@ -3,20 +3,7 @@ package refuel.json.entry
 import refuel.json.JsonVal
 import refuel.json.error.{IllegalJsonSyntaxTreeBuilding, UnsupportedOperation}
 
-case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVariable {
-
-  override def writeToBufferString(buf: StringBuffer): Unit = {
-    var unempty = false
-    buf.append('{')
-    bf.foreach { x =>
-      if (unempty) buf.append(",")
-      x._1.writeToBufferString(buf)
-      buf.append(':')
-      x._2.writeToBufferString(buf)
-      if (!unempty) unempty = true
-    }
-    buf.append('}')
-  }
+case class JsObject private[entry] (bf: Set[(JsString, JsonVal)]) extends JsVariable {
 
   def encode(b: StringBuffer): Unit = {
     var unempty = false
@@ -36,7 +23,7 @@ case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVari
       case JsNull | null => this
       case x: JsObject =>
         new JsObject(
-          (bf ++ x.bf).groupBy(_._1).mapValues(x => x.map(_._2).reduce(_ ++ _)).toSeq
+          (bf ++ x.bf).groupBy(_._1).mapValues(x => x.map(_._2).reduce(_ ++ _)).toSet
         )
       case JsEmpty => this
       case x       => throw UnsupportedOperation(s"Cannot add raw variable element to JsObject. $toString + $x")
@@ -54,7 +41,7 @@ case class JsObject private[entry] (bf: Seq[(JsString, JsonVal)]) extends JsVari
 
 object JsObject {
 
-  def fromNullableArray(nullableEntries: Seq[(JsString, JsonVal)]): JsonVal = {
+  def fromNullableArray(nullableEntries: Set[(JsString, JsonVal)]): JsonVal = {
     new JsObject(
       nullableEntries.filter {
         case null | (_, JsEmpty) => false
@@ -77,13 +64,13 @@ object JsObject {
         }
         .groupBy(_._1)
         .mapValues(x => x.map(_._2).reduce(_ ++ _))
-        .toSeq
+        .toSet
     )
   }
 
   def apply(req: (String, JsonVal)*): JsonVal = {
     new JsObject(
-      req.withFilter(_._2 != JsEmpty).map {
+      req.toSet.withFilter(_._2 != JsEmpty).map {
         case (x, y) => JsString(x) -> y
       }
     )

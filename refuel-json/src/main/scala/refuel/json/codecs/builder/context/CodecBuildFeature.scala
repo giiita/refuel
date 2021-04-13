@@ -1,6 +1,6 @@
 package refuel.json.codecs.builder.context
 
-import refuel.json.{Codec, JsonVal}
+import refuel.json.JsonVal
 import refuel.json.codecs.builder.DeserializeConcatenation
 import refuel.json.codecs.builder.context.keylit.NatureKeyRef
 import refuel.json.codecs.builder.context.translation.{
@@ -41,6 +41,6 @@ trait CodecBuildFeature
     @deprecated("Use `ser` instead of `to` to avoid the possibility of function name duplication.")
     def to[T >: V](implicit wr: Write[T]): JsonVal = wr.serialize(value)
 
-    def ser[T >: V](implicit wr: Write[T]): JsonVal = wr.serialize(value)
+    implicit def ser[T >: V](implicit wr: Write[T]): JsonVal = wr.serialize(value)
   }
 }

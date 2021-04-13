@@ -79,17 +79,17 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
       s"""{"value":"foo\nbar"}""".jsonTree shouldBe Json.obj("value"  -> "foo\nbar")
       s"""{"value":"foo\\nbar"}""".jsonTree shouldBe Json.obj("value" -> "foo\nbar")
 
-      s"""{"value":"foo\nbar"}""".as[String] shouldBe Right(s"""{"value":"foo\nbar"}""")
-      s"""{"value":"foo\\nbar"}""".as[String] shouldBe Right(s"""{"value":"foo\nbar"}""")
+      s"""{"value":"foo\nbar"}""".as[String] shouldBe Right(s"""{"value":"foo\\nbar"}""")
+      s"""{"value":"foo\\nbar"}""".as[String] shouldBe Right(s"""{"value":"foo\\nbar"}""")
 
       s"""{"value":"foo\nbar"}""".jsonTree.encodedStr shouldBe s"""{"value":"foo\\nbar"}"""
       s"""{"value":"foo\\nbar"}""".jsonTree.encodedStr shouldBe s"""{"value":"foo\\nbar"}"""
 
-      s"""{"value":"foo\nbar"}""".jsonTree.toString shouldBe s"""{"value":"foo\nbar"}"""
-      s"""{"value":"foo\\nbar"}""".jsonTree.toString shouldBe s"""{"value":"foo\nbar"}"""
+      s"""{"value":"foo\nbar"}""".jsonTree.toString shouldBe s"""{"value":"foo\\nbar"}"""
+      s"""{"value":"foo\\nbar"}""".jsonTree.toString shouldBe s"""{"value":"foo\\nbar"}"""
 
-      s"""{"value":"foo\nbar"}""".jsonTree.des[String] shouldBe s"""{"value":"foo\nbar"}"""
-      s"""{"value":"foo\\nbar"}""".jsonTree.des[String] shouldBe s"""{"value":"foo\nbar"}"""
+      s"""{"value":"foo\nbar"}""".jsonTree.des[String] shouldBe s"""{"value":"foo\\nbar"}"""
+      s"""{"value":"foo\\nbar"}""".jsonTree.des[String] shouldBe s"""{"value":"foo\\nbar"}"""
     }
     "fail case - EOF position" in {
       intercept[IllegalJsonFormat] {
@@ -123,7 +123,7 @@ class JsonTransformTest extends AsyncWordSpec with Matchers with Diagrams with J
       import JsonTransformTest._
       val b =
         """{"projectName":"[\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\",\"SC_210310_25\"]"}"""
-      println(b.jsonTree.to(ProjectReads))
+      println(b.jsonTree.des(ProjectReads))
       succeed
     }
 

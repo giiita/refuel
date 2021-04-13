@@ -95,6 +95,7 @@ class CaseCodecFactory(val c: blackbox.Context) extends PropertyDebugModeEnabler
 
     val to = appliedType(weakTypeOf[Codec[_]], tpe)
 
+    // Ex. Find this.(Codec[String] => Codec[Seq[String]]) implicit view.
     val implicitExistence = c.inferImplicitView(q"this", childrenTup, to)
 
     debuglog(c)(s"""
@@ -112,7 +113,7 @@ class CaseCodecFactory(val c: blackbox.Context) extends PropertyDebugModeEnabler
   private[this] def inferImplicitCodecFactory(
       tpe: c.Type
   ): (List[c.Type], c.Tree) = {
-    tpe match {
+    tpe.dealias match {
       case PolyType(x, _) =>
         x.map(_.typeSignature) -> inferRequireFunctionFactory(
           tpe,

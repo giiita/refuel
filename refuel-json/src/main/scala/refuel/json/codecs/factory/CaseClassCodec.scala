@@ -23,5 +23,6 @@ import refuel.json.Codec
   * In the future, the codec will be indexed into the DI container and will be handled by the injection priority as before.
   */
 private[json] object CaseClassCodec {
+  def apply[T]: Codec[T] = macro CaseCodecFactory.fromCaseClass[T]
   def from[T]: Codec[T] = macro CaseCodecFactory.fromCaseClass[T]
 }

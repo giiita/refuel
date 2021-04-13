@@ -1,6 +1,6 @@
 package refuel.json.tokenize.strategy
 
-import refuel.json.JsonVal
+import refuel.json.{Codec, JsonVal}
 import refuel.json.codecs.Read
 import refuel.json.error.{DeserializeFailPropagation, DeserializeFailed}
 import refuel.json.logging.{JsonConvertLogEnabled, JsonLoggingStrategy}

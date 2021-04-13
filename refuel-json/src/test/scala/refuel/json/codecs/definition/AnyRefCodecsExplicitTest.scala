@@ -3,8 +3,6 @@ package refuel.json.codecs.definition
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.json.codecs.{Read, Write}
-import refuel.json.error.UnsupportedOperation
 import refuel.json.{Codec, CodecDef, Json, JsonTransform}
 
 class AnyRefCodecsExplicitTest extends AsyncWordSpec with Matchers with Diagrams with JsonTransform with CodecDef {
@@ -15,7 +13,7 @@ class AnyRefCodecsExplicitTest extends AsyncWordSpec with Matchers with Diagrams
     }
 
     "read auto inferred before deserialize" in {
-      seqR(implicitly[Read[Seq[String]]]).deserialize(
+      seq[Seq[String]].deserialize(
         Json.arr(
           Json.arr("foo", "bar")
         )
@@ -23,7 +21,7 @@ class AnyRefCodecsExplicitTest extends AsyncWordSpec with Matchers with Diagrams
     }
 
     "write auto inferred before serialize" in {
-      seq(implicitly[Write[Seq[String]]]).serialize(Seq(Seq("foo", "bar"))) shouldBe Json.arr(
+      seq[Seq[String]].serialize(Seq(Seq("foo", "bar"))) shouldBe Json.arr(
         Json.arr("foo", "bar")
       )
     }

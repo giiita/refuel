@@ -1,6 +1,6 @@
 package refuel.json
 
-import refuel.json.codecs.All
+import refuel.json.codecs.{All, Read, Write}
 import refuel.json.codecs.builder.context.CodecBuildFeature
 
 /**

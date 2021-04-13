@@ -54,9 +54,7 @@ trait JsonTransform extends JsonLoggingStrategy {
       * @return
       **/
     def encodedStr[X >: T](implicit ct: Write[X]): String = {
-      val buf = new StringBuffer()
-      toJson[X].encode(buf)
-      buf.toString
+      toJson[X].toString
     }
 
     @deprecated

@@ -12,8 +12,8 @@ trait KeyLitParser extends JsonKeyRef {
     *
     * {{{
     *   (
-    *     ("depth1" / "depth2" / "depth3") -> CaseClassCodec.from[XXX] ++
-    *       ("depth1" / "depth2" / "depth4") -> CaseClassCodec.from[YYY]
+    *     ("depth1" @@ "depth2" @@ "depth3") -> CaseClassCodec.from[XXX] ++
+    *       ("depth1" @@ "depth2" @@ "depth4") -> CaseClassCodec.from[YYY]
     *   ).apply(ZZZ.apply)(ZZZ.unapply)
     * }}}
     * be equal

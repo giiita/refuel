@@ -1,6 +1,5 @@
 package refuel.json.entry
 
-import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.JsonVal
 
 case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
@@ -28,17 +27,6 @@ case class JsArray private (bf: Seq[JsonVal]) extends JsVariable {
         case _          => JsArray(bf :+ js)
       }
     }
-  }
-
-  override def writeToBufferString(buffer: StringBuffer): Unit = {
-    var unempty = false
-    buffer.append('[')
-    bf.foreach { x =>
-      if (unempty) buffer.append(',')
-      x.writeToBufferString(buffer)
-      if (!unempty) unempty = true
-    }
-    buffer.append(']')
   }
 }
 
