@@ -8,6 +8,7 @@ import refuel.json.{Codec, JsonVal}
   * @tparam T Readable json type by this codec.
   */
 trait Read[T] { me =>
+  def join[W >: T](write: Write[W]): Codec[W] = Codec.both(deserialize, write.serialize)
 
   /**
     * Deserialize Json to T format.

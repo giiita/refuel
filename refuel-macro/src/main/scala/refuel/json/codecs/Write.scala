@@ -9,6 +9,8 @@ import refuel.json.{Codec, JsonVal}
   */
 trait Write[-T] { me =>
 
+  def join[W <: T](read: Read[W]): Codec[W] = Codec.both(read.deserialize, serialize)
+
   /** Write union codec.
     *
     * {{{
