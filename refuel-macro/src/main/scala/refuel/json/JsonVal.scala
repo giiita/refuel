@@ -5,8 +5,6 @@ import refuel.json.codecs.{Read, Write}
 
 trait JsonVal extends Serializable {
 
-  def writeToBufferString(buffer: StringBuffer): Unit
-
   /** Determines that the target JSON syntax tree does not exist or is a null symbol.
     * Empty arrays and empty objects are not considered to be empty.
     *
@@ -14,23 +12,7 @@ trait JsonVal extends Serializable {
     */
   def isEmpty: Boolean = false
 
-  def isNonEmptry: Boolean = true
-
-  /**
-    * Detects hooked binding syntax of Json literal.
-    * This detects syntax errors when joining Json objects.
-    * The argument receives a delimiter that is not directly related to the construction of Json.
-    *
-    * @param c delimiter
-    */
-  def approvalSyntax(c: Char): Unit
-
-  /**
-    * Convert to json literal.
-    *
-    * @return
-    */
-  def encode(b: StringBuffer): Unit
+  def isNonEmpty: Boolean = true
 
   /**
     * Synthesize Json object.
@@ -41,9 +23,7 @@ trait JsonVal extends Serializable {
     */
   def ++(js: JsonVal): JsonVal
 
-  @deprecated("Use `des` instead of `to` to avoid the possibility of function name duplication.")
-  def to[T](implicit c: Read[T]): T =
-    c.deserialize(this)
+  def typed[T: Read](key: JsonKeyRef): T = named(key).des
 
   def des[T](implicit c: Read[T]): T =
     c.deserialize(this)
@@ -58,12 +38,28 @@ trait JsonVal extends Serializable {
   def named(key: JsonKeyRef): JsonVal = key.dig(this)
 
   /**
+    * Detects hooked binding syntax of Json literal.
+    * This detects syntax errors when joining Json objects.
+    * The argument receives a delimiter that is not directly related to the construction of Json.
+    *
+    * @param c delimiter
+    */
+  private[refuel] def approvalSyntax(c: Char): Unit
+
+  /**
+    * Convert to json literal.
+    *
+    * @return
+    */
+  private[refuel] def encode(b: StringBuffer): Unit
+
+  /**
     * Squash the Json buffer under construction.
     * This will build a complete Json object.
     *
     * @return
     */
-  def squash: JsonVal = this
+  private[refuel] def squash: JsonVal = this
 
   /**
     * Indicates whether the object is squashable.
@@ -71,7 +67,7 @@ trait JsonVal extends Serializable {
     *
     * @return
     */
-  def isSquashable: Boolean = false
+  private[refuel] def isSquashable: Boolean = false
 
   private[refuel] def named(key: String): JsonVal
 
@@ -79,11 +75,12 @@ trait JsonVal extends Serializable {
 
   override def toString: String = {
     val buf = new StringBuffer()
-    writeToBufferString(buf)
+    encode(buf)
     buf.toString
   }
 }
 
 object JsonVal {
   implicit def __inferredAsWrite[V](v: V)(implicit c: Write[V]): JsonVal = c.serialize(v)
+  implicit def __inferredAsRead[V](v: JsonVal)(implicit c: Read[V]): V   = c.deserialize(v)
 }

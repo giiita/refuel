@@ -5,7 +5,7 @@ import refuel.json.codecs.Write
 import refuel.json.{CodecDef, Json}
 
 package object token extends CodecDef {
-  private[refuel] implicit lazy final val AccessTokenCodec: Write[AccessToken] = Serialize { token =>
+  private[refuel] implicit lazy final val AccessTokenCodec: Write[AccessToken] = Serialize[AccessToken] { token =>
     Json.obj(
       "token_type"    -> "Bearer",
       "token"         -> token.token,
@@ -17,5 +17,5 @@ package object token extends CodecDef {
 
   // Use from implicit grant.
   private[refuel] implicit final def TokenToQuery(accessToken: AccessToken): Query =
-    Query(accessToken.copy(refreshToken = None).ser.des[Map[String, String]])
+    Query(accessToken.copy(refreshToken = None).ser[AccessToken].des[Map[String, String]])
 }

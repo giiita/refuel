@@ -21,7 +21,4 @@ private[refuel] abstract class JsStack[T: ClassTag] private[entry] (bf: JsonVal)
   def ++(js: JsonVal): JsonVal
 
   override def isSquashable: Boolean = true
-
-  override def writeToBufferString(buffer: StringBuffer): Unit =
-    throw StreamIndeterminate(s"Cannot to be String. JsStack is an unclosed json stream.")
 }

@@ -1,13 +1,15 @@
 package refuel.json.codecs
 
-import refuel.json.{Codec, JsonVal, WriteOnly}
+import refuel.json.{Codec, JsonVal}
 
 /**
   * This is a writer of json syntax tree.
   *
   * @tparam T Writable json type by this codec.
   */
-trait Write[T] extends CodecRaiseable[T] { me =>
+trait Write[-T] { me =>
+
+  def join[W <: T](read: Read[W]): Codec[W] = Codec.both(read.deserialize, serialize)
 
   /** Write union codec.
     *
@@ -44,8 +46,8 @@ trait Write[T] extends CodecRaiseable[T] { me =>
     * @return
     */
   def serialize(t: T): JsonVal
+}
 
-  override def raise: Codec[T] = new Codec[T] with WriteOnly[T] {
-    override final def serialize(t: T): JsonVal = me.serialize(t)
-  }
+object Write {
+//  implicit def __writeRef[T](implicit _c: Codec[T]): Write[T] = _c
 }

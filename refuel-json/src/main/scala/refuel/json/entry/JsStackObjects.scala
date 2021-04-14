@@ -19,7 +19,7 @@ private[refuel] case class JsStackObjects(bf: JsonVal) extends JsStack[(JsString
 
   override def squash: JsonVal = {
     if (standBy.nonEmpty || coloned == 1) illegalJsonFormat(standBy.get)
-    bf ++ JsObject.fromNullableArray(stack)
+    bf ++ JsObject.fromNullableArray(stack.toSet)
   }
 
   private[this] final def requireAddJsStr(js: JsonVal): Unit = {

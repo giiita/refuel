@@ -18,4 +18,14 @@ trait DynamicCodecGenFeature {
   def BothWith[T](key: JsonKeyRef)(implicit codec: Codec[T]): Codec[T] = {
     implicitly[CodecTyper[Codec]].wrap(key)(codec)
   }
+
+  implicit class Fragment[X, T[X]](cf: T[X])(implicit ct: CodecTyper[T]) {
+    def raise: Codec[X] = new Codec[X] {
+      override def serialize(t: X): JsonVal    = ct.write[X](t)(cf)
+      override def deserialize(bf: JsonVal): X = ct.read(bf)(cf)
+    }
+  }
+
+  implicit def __readRef[T](implicit _c: Codec[T]): Read[T]   = _c
+  implicit def __writeRef[T](implicit _c: Codec[T]): Write[T] = _c
 }

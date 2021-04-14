@@ -1,13 +1,14 @@
 package refuel.json.codecs
 
-import refuel.json.{Codec, JsonVal, ReadOnly}
+import refuel.json.{Codec, JsonVal}
 
 /**
   * This is a reader of json syntax tree.
   *
   * @tparam T Readable json type by this codec.
   */
-trait Read[T] extends CodecRaiseable[T] { me =>
+trait Read[T] { me =>
+  def join[W >: T](write: Write[W]): Codec[W] = Codec.both(deserialize, write.serialize)
 
   /**
     * Deserialize Json to T format.
@@ -18,7 +19,19 @@ trait Read[T] extends CodecRaiseable[T] { me =>
     */
   def deserialize(bf: JsonVal): T
 
-  override def raise: Codec[T] = new Codec[T] with ReadOnly[T] {
-    override def deserialize(bf: JsonVal): T = me.deserialize(bf)
+  def |+|[A](that: Read[A]): Read[(T, A)] = new Read[(T, A)] {
+
+    /**
+      * Serialize Json to T format.
+      * Failure should continue and propagate up.
+      *
+      * @param t Serializable object.
+      * @return
+      */
+    override def deserialize(t: JsonVal): (T, A) = me.deserialize(t) -> that.deserialize(t)
   }
+}
+
+object Read {
+//  implicit def __readRef[T](implicit _c: Codec[T]): Read[T] = _c
 }

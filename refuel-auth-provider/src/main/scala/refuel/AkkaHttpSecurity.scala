@@ -27,7 +27,7 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
 import refuel.http.AkkaHttpActionAdapter
 import refuel.json.codecs.Read
-import refuel.json.{CodecDef, EncodedJsonTransform}
+import refuel.json.{CodecDef, JsonTransform}
 import AkkaHttpWebContext.ResponseChanges
 import org.pac4j.core.matching.checker.MatchingChecker
 import org.pac4j.core.matching.matcher.DefaultMatchers
@@ -39,7 +39,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
-object AkkaHttpSecurity extends EncodedJsonTransform with CodecDef with Directives {
+object AkkaHttpSecurity extends JsonTransform with CodecDef with Directives {
   type AkkaHttpSecurityLogic = SecurityLogic[Future[RouteResult], AkkaHttpWebContext]
   type AkkaHttpCallbackLogic = CallbackLogic[Future[RouteResult], AkkaHttpWebContext]
   type AkkaHttpLogoutLogic   = LogoutLogic[Future[RouteResult], AkkaHttpWebContext]

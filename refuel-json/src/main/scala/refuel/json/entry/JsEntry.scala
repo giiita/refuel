@@ -1,6 +1,5 @@
 package refuel.json.entry
 
-import refuel.internal.json.codec.builder.JsonKeyRef
 import refuel.json.JsonVal
 import refuel.json.error.UnsupportedOperation
 
@@ -13,8 +12,6 @@ import refuel.json.error.UnsupportedOperation
 case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
 
   override def toString: String = JsObject.fromEntry(this).toString
-
-  private[refuel] def asTuple: (JsString, JsonVal) = key -> value
 
   /**
     * Detects hooked binding syntax of Json literal.
@@ -57,5 +54,5 @@ case class JsEntry(key: JsString, value: JsonVal) extends JsonVal {
     } else JsNull
   }
 
-  override def writeToBufferString(buffer: StringBuffer): Unit = JsObject.fromEntry(this).writeToBufferString(buffer)
+  private[refuel] def asTuple: (JsString, JsonVal) = key -> value
 }

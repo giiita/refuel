@@ -58,7 +58,10 @@ class CodecDefTest extends AsyncWordSpec with Matchers with Diagrams with JsonTr
                     |    }
                     |  ]
                     |}""".stripMargin.jsonTree
-      ("entries" @@ "id").dig(json).des[Seq[String]] shouldBe Seq("aaa", "bbb")
+      val xx = ("entries" @@ "id")
+        .dig(json)
+        .des[Seq[String]]
+      xx shouldBe Seq("aaa", "bbb")
     }
     "cat" in {
       val input = Cat("cat", 10)

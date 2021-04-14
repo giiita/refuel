@@ -23,7 +23,9 @@ trait CodecDefinitionContext {
     }
 
     override def readOnly[T](_read: JsonVal => T): Read[T] =
-      build(_read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") })
+      build[T](
+        _read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") }: T => JsonVal
+      )
   }
   implicit case object WriteMapper extends CodecTyper[Write] { me =>
     def wrap[T](key: JsonKeyRef)(implicit codec: Write[T]): Write[T] = new Write[T] {
@@ -42,7 +44,9 @@ trait CodecDefinitionContext {
       override def serialize(t: T): JsonVal = _write(t)
     }
     override def readOnly[T](_read: JsonVal => T): Write[T] =
-      build(_read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") })
+      build(
+        _read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") }: T => JsonVal
+      )
   }
   implicit case object CodecMapper extends CodecTyper[Codec] {
     def wrap[T](key: JsonKeyRef)(implicit codec: Codec[T]): Codec[T] = new Codec[T] {
@@ -60,6 +64,8 @@ trait CodecDefinitionContext {
       override def serialize(t: T): JsonVal    = _write(t)
     }
     override def readOnly[T](_read: JsonVal => T): Codec[T] =
-      build(_read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") })
+      build(
+        _read, { t => throw UnsupportedOperation(s"I am deserialization only. Cannot serialize ${t.toString}") }: T => JsonVal
+      )
   }
 }
