@@ -35,3 +35,9 @@ trait HttpTask[T] { me =>
   def recoverWith[R >: T](f: PartialFunction[Throwable, HttpTask[R]]): HttpTask[R]
   def recoverF[R >: T](f: PartialFunction[Throwable, Future[R]]): HttpTask[R]
 }
+
+object HttpTask {
+  def apply[T](pure: ActorSystem => Future[T]): HttpTask[T] = new CombineTask[T]() {
+    override def run(implicit as: ActorSystem): Future[T] = pure(as)
+  }
+}

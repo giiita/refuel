@@ -19,10 +19,14 @@ private[refuel] class StrictTask(response: HttpResponse)(
     * @return
     */
   override def run(implicit as: ActorSystem): Future[String] = {
+    response.entity.discardBytes()
     response.entity
       .toStrict(timeout)
       .flatMap { x =>
-        setting.responseBuilder(x).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+        val result =
+          setting.responseBuilder(x).dataBytes.runFold(ByteString.empty)(_ ++ _).map(_.utf8String)(as.dispatcher)
+        response.entity.discardBytes()
+        result
       }(as.dispatcher)
   }
 }

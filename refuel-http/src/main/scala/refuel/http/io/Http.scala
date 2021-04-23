@@ -3,7 +3,6 @@ package refuel.http.io
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import com.typesafe.scalalogging.LazyLogging
-import refuel.container.Container
 import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
@@ -18,10 +17,7 @@ import scala.language.implicitConversions
 
 @deprecated("Instead, use dependency injection")
 @Inject[Finally]
-object Http
-    extends Http(new Lazy[HttpSetting] {
-      override def _provide(implicit ctn: Container): HttpSetting = new RecoveredHttpSetting
-    }) {}
+object Http extends Http(Lazy(new RecoveredHttpSetting)) {}
 
 /** {{{
   * class MyRepository(http: Http) extends AutoInject {
@@ -33,9 +29,11 @@ object Http
   * }}}
   */
 @Inject[Finally]
-class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform with AutoInject with LazyLogging {
+class Http(override val settings: Lazy[HttpSetting]) extends HttpClientFeature {}
 
-  implicit def __setting: HttpSetting = setting
+trait HttpClientFeature extends Injector with JsonTransform with AutoInject with LazyLogging {
+  val settings: Lazy[HttpSetting]
+  implicit def __settings: HttpSetting = settings
 
   implicit def toUri(uri: String): Uri = Uri(uri)
 
@@ -64,7 +62,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
       implicit logging: HttpClientLogEnabled = HttpClientLogEnabled.Default
   ): HttpRunner[HttpResponse] = {
     new HttpRunner[HttpResponse](
-      setting.requestBuilder(
+      settings.requestBuilder(
         HttpRequest(implicitly[MethodType[T]].method).withUri(uri)
       ),
       new HttpResultExecution[HttpResponse] {
@@ -82,7 +80,7 @@ class Http(val setting: Lazy[HttpSetting]) extends Injector with JsonTransform w
           ).map(_ => System.currentTimeMillis())
             .flatMap {
               from =>
-                HttpRetryRevolver(setting.retryThreshold)
+                HttpRetryRevolver(settings.retryThreshold)
                   .revolving() {
                     akka.http.scaladsl.Http().singleRequest(request)
                   }

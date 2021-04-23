@@ -3,7 +3,7 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq("2.12.12", "2.13.5")
-scalaVersion in Scope.Global := "2.13.5"
+scalaVersion in Scope.Global := "2.12.12"
 
 lazy val akkaVersion           = "2.6.13"
 lazy val akkaHttpVersion       = "10.2.4"

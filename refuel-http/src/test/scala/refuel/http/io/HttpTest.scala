@@ -217,7 +217,7 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
     implicit val _c1: Codec[Jokes]     = CaseClassCodec.from[Jokes]
     implicit val _c2: Read[ErrorJokes] = CaseClassCodec.from[ErrorJokes]
     implicit val _c3: Read[Errors]     = CaseClassCodec.from[Errors]
-    implicit val _c4: Read[Exception]  = Deserialize(x => new Exception(x.named("error").des[String]))
+    implicit val _c4: Read[Exception]  = Deserialize(x => new Exception(x.named("error").des[String](StringCdc)))
 
     "Success" in {
       http[GET]("http://localhost:3289/success")
@@ -268,8 +268,9 @@ class HttpTest extends AsyncWordSpec with Matchers with Diagrams with Injector w
         }
     }
     "Failed by either deserialization to right" in {
+      implicit val e2 = eitherR(_c2, IntCdc)
       http[GET]("http://localhost:3289/success")
-        .transform[Either[ErrorJokes, Int], Exception]
+        .transform[Either[ErrorJokes, Int], ErrorJokes]
         .run
         .map { x =>
           x.fold(
