@@ -19,7 +19,6 @@ private[refuel] class StrictTask(response: HttpResponse)(
     * @return
     */
   override def run(implicit as: ActorSystem): Future[String] = {
-    response.entity.discardBytes()
     response.entity
       .toStrict(timeout)
       .flatMap { x =>
