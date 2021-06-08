@@ -1,4 +1,4 @@
-# refuel-container
+# refuel-container _compatible with Scala3_
 
 ```
 libraryDependencies += "com.phylage" %% "refuel-container" % "1.5.2"
@@ -6,13 +6,14 @@ libraryDependencies += "com.phylage" %% "refuel-container" % "1.5.2"
 
 ## Features
 
-In standard use, dependencies are resolved at compile time.
+<p>
+Dependency injection using refuel container will expand dependencies at compile time.
 If the dependency definition is invalid, Compile will fail.
 
-Runtime injection can also be specified. In this case, even if the dependency is not found at compile time, the error can be avoided.<br/>
-In layered architectures, for example, primary constructor injection is recommended in order to avoid having dependency decisions made in submodules.
+In layered architectures, constructor injection may be used to avoid determining dependencies in submodules.
+</p>
 
-In sub module.
+##### sub module
 ```scala
 class MyService(myRepository: MyRepository, myClient: MyClient) extends AutoInject {
   def run = {
@@ -21,20 +22,20 @@ class MyService(myRepository: MyRepository, myClient: MyClient) extends AutoInje
 }
 ```
 
-In root module.
+##### root module.
 ```scala
-class Main extends AutoInject with Injector {
+class Main extends Injector {
   inject[MyService].run
 }
 ```
 
-This ensures that dependencies are not determined at build time for modules containing MyService. </BR>.
-Dependency resolution is always done at the time of the `inject[T]` call, within the current compile time classpath.
+<p>
+Dependency resolution is always done at the time of the inject[T] call, within the current compile time classpath.
 
-However, the dependency is not always determined at the compile time.
-Since refuel-container is a container based injection, before assigning the generated value, it searches for an instance with the same characteristics among the container instances that can be referenced at that time.
+However, the dependency is not always determined at the compile time. Since refuel-container is a container based injection, before assigning the generated value, it searches for an instance with the same characteristics among the container instances that can be referenced at that time.
 
-If you want to always search for the latest dependency from the functions that the instance has, you can wrap the constructor parameter with `Lazy[T]` to always search for T. However, this is a process that is done only once when the primary constructor is applied. (This does not create much overhead).
+If you want to always search for the latest dependency from the functions that the instance has, you can wrap the constructor parameter with Lazy[T] to always search for T. However, this is a process that is done only once when the primary constructor is applied. (This does not create much overhead).
+</p>
 
 ```scala
 // myRepository will be searched in the container each time it is used.
@@ -47,25 +48,32 @@ class MyService(myRepository: Lazy[MyRepository], myClient: MyClient) extends Au
 class MyRepositoryImpl extends MyRepository
 ```
 
+If the definition of a dependency is ambiguous, or if there are multiple dependencies, declare them in a way that takes them into account
+
+```scala
+class Server(controllers: Iterable[Controller], serverOption: Option[ServerConfig]) extends AutoInject
+val server = inject[Server]
+```
+
 # Container mirroring
 
-`shade` and `closed` can be used to mirror the current scope.
+`extended` and `closed` can be used to mirror the current scope.
 
-### `shade[T](func: Container => T)`
+### `extended[T](func: Container => T)`
 
-shade creates a duplicate of the container in the current scope.
+extended creates a duplicate of the container in the current scope.
 The purpose of using this function is to define a temporary dependency.
 
-Normally, dynamic dependency registration may be used for other uninitialized injections.
-If you want to inject a higher priority instance than usual only in the temporary scope, you can register it in the shade function to define the dependency without affecting the container in the public scope.
+Normally, dynamic dependency registration can be used for other uninitialized injections.
+If you want to inject an instance with a higher priority than usual into a temporary scope only, you can register it in the extended function to define the dependency without affecting the container in the public scope.
 
 ```scala
 class MyRepositoryOverrides extends MyRepository
 
-class AAA(myService: MyService) extends AutoInject {
+class AAA(myService: MyService) extends AutoInject with Injector {
   myService.run // Outside the shade scope, myService would inject MyRepositoryImpl in its constructor
   
-  shade { implicit c =>
+  extended { implicit c =>
     // However, if it is in the shade function scope, it will be registered
     // in a temporarily duplicated container and will not be registered in
     // the public scope container.
@@ -79,14 +87,14 @@ class AAA(myService: MyService) extends AutoInject {
 }
 ```
 
-Note that shade is only a function scope that supports dynamic overrides, and dependency registrations resolved by refuel will propagate to the public scope container.
+Note that extended is only a function scope that supports dynamic overrides, and dependency registrations resolved by refuel will propagate to the public scope container.
 
 
 ### `closed[T](func: Container => T)`
 
 The usage of closed is the same, but the treatment of containers changes. closed, as the name implies, is a declaration that uses a container that has been completely denied blood.
 
-In shade, only dynamic dependency registration is a separate action, and all other searches from automatic index/container are propagated to the public scope container.
+In extended, only dynamic dependency registration is a separate action, and all other searches from automatic index/container are propagated to the public scope container.
 
 This can be very useful when running many test cases in parallel.
 In the case of parallelism, you don't know when and which dependencies will be registered in the public scope container, so the test results may change depending on the timing of execution, and the dependencies to be injected may change.
@@ -121,8 +129,6 @@ object TestA extends Injector {
 }
 ```
 
-<br/>
-<br/>
 Dependencies determined by compiling are output to the compile log.
 The same is true for the automatic injection of constructors.
 
@@ -133,8 +139,6 @@ The same is true for the automatic injection of constructors.
 [info] <macro>:1:118: refuel.BarImpl will be used.
 [info] new refuel.FooImpl(inject[refuel.Bar]) with refuel.injector.Injector
 ```
-
-<br/><br/><br/>
 
 ## Dependency handling
 
@@ -203,52 +207,6 @@ object TestA extends Injector {
 }
 ```
 
-<br/><br/>
-
-## case 2. Effective injection
-
-If you want to switch dependencies according to your environment or other conditions, you can use Effective Injection.
-
-For example, load a different `Conf` for each `dev` / `stg` / `prd`. 
-
-```scala
-object Effects {
-  def getKind = sys.props.getOrElse("env", "dev")
-  
-  case object DEV extends refuel.effect.Effect {
-    def activate: Boolean = getKind == "dev"
-  }
-  case object STG extends refuel.effect.Effect {
-    def activate: Boolean = getKind == "stg"
-  }
-  case object PRD extends refuel.effect.Effect {
-    def activate: Boolean = getKind == "prd"
-  }
-}
-```
-
-```scala
-@Effective(DEV)
-object DevConf extends Conf with AutoInject
-
-@Effective(STG)
-object StgConf extends Conf with AutoInject
-
-@Effective(PRD)
-object PrdConf extends Conf with AutoInject
-```
-
-By this, an appropriate Conf is assigned to `inject[Conf]` for each environment.
-
-It is evaluated in order of injection priority > effect, so it injects the dependencies that have the highest priority and have a valid effect. If none of the dependencies has a valid effect, the non-effect dependencies will be assigned with the same priority as those dependencies. If it doesn't even exist, an exception will be thrown.
-
-###caution
-
-Effective injection is always sublimated to runtime injection.
-At the Macro expantion, it is not possible to evaluate the content of the Effect.
-
-<br/><br/>
-
 ## Injection of non-existent dependencies in the compilation classpath
 
 In a normal injection, if a candidate dependency is not found at the Macro expantion stage, you cannot compile it, but you may want to achieve it for the convenience of the software architecture.
@@ -312,37 +270,12 @@ println(UseInterface(inject[Interface]).exec)
 println(UseInterface(InterfaceImpl).exec)
 ```
 
-### Switch to RuntimeInjection
-
-By adding `@RecognizedDynamicInjection` to the type passed to the inject function, the injection for that class will be a Runtime injection.
-
-```scala
-@RecognizedDynamicInjection
-trait Interface {
-  val value: String
-}
-```
-
-
-However, in this way, the injection of `Interface` is always Runtime.
-Use `inject[T@RecognizedDynamicInjection]` if you want to switch to Runtime only for some calls.
-This can also be used for reserved type classes.
-
-```scala
-class UseInterface extends Injector {
-  def exec: String = inject[Interface@RecognizedDynamicInjection].value
-}
-```
-
-
-<br/>
-
 ### Testing
 
 When UnitTest parallel execution is enabled, overriding global scope dependencies such as `overwrite` in a test may result in unexpected overwrites between different threads.<br/>
 There are two cases for dealing with the problem.<br/>
 
-### case 1. Narrow indexing
+### case 1. Runtime indexing
 
 Call `narrow` to create Indexer, set access permission list and register to DI container.<br/>
 As a result, only TargetServiceImpl can inject MockA.<br/>
@@ -351,13 +284,13 @@ These can be registered multiple times, and in addition to objects, access from 
 
 ```scala
   val targetService = TargetServiceImpl
-  narrow[A](new MockA).accept(targetService).indexing()
+  new MockA().indexer().accept(targetService).indexing()
   targetService.exec() // MockA is used for A in targetService
 ```
 
-### case 2. Container shading
+### case 2. Container cloning
 
-Classes that inherit Injector can call the `shade` function.<br/>
+Classes that inherit Injector can call the `extended` function.<br/>
 Calling this will create a temporary mock container.<br/>
 In this closed area, global dependency registration (overwrite) does not affect the standard container.<br/>
 This eliminates the need to propagate overriding dependency overrides.<br/>
@@ -386,7 +319,7 @@ object Test extends App with Injector {
   println(inject[C].b.a.value) // Will be "I am AImpl"
   
   println(
-    shade { implicit c =>
+    closed { implicit c =>
       overwrite[A](
         new A {
           val value = "I am new A"
