@@ -3,13 +3,12 @@ package refuel.cipher.aes
 import java.security.Key
 import java.security.spec.AlgorithmParameterSpec
 import java.util.Base64
-
 import com.typesafe.config.{Config, ConfigFactory}
+
 import javax.crypto.spec.{GCMParameterSpec, IvParameterSpec, SecretKeySpec}
 import refuel.cipher.rsa.KEY
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 import scala.util.Try
 

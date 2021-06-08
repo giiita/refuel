@@ -2,7 +2,7 @@ package refuel.saml
 
 import org.opensaml.saml.common.xml.SAMLConstants
 import org.pac4j.core.util.Pac4jConstants
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 
 /** By default, it injects the configuration model with application.conf loaded.
   *

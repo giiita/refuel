@@ -1,7 +1,8 @@
 package refuel.test
 
 import refuel.container.anno.RecognizedDynamicInjection
-import refuel.injector.{AutoInject, Injector}
+import refuel.inject.AutoInject
+import refuel.injector.Injector
 
 object RootIF extends Injector {
 

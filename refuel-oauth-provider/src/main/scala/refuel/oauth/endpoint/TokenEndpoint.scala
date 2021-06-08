@@ -1,7 +1,7 @@
 package refuel.oauth.endpoint
 
 import akka.http.scaladsl.server.{Directive1, Directives}
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.oauth.authorize.AuthProfile
 import refuel.oauth.grant.GrantHandler
 

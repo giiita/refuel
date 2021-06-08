@@ -1,9 +1,8 @@
 package refuel.http.io.setting
 
 import akka.http.scaladsl.model.{HttpEntity, HttpProtocols, HttpRequest}
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 /**
   * Settings that are always reflected when making a request.

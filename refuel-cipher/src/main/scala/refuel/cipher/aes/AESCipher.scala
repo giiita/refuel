@@ -3,9 +3,8 @@ package refuel.cipher.aes
 import javax.crypto.Cipher
 import refuel.cipher.algorithm.CryptType.AES
 import refuel.cipher.{BytesTranscoder, CipherAlg, CryptographyConverter}
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 import scala.util.Try
 

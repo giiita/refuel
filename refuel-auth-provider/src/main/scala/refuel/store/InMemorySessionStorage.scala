@@ -1,11 +1,10 @@
 package refuel.store
 
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
 import refuel.lang.ScalaTime
 import refuel.AkkaHttpWebContext.SessionId
 import SessionStorage.ValueKey
+import refuel.inject.{AutoInject, Inject}
 import refuel.saml.SAMLAuthConfig
 
 import scala.collection.SortedSet

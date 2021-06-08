@@ -3,9 +3,8 @@ package refuel.cipher
 import javax.crypto.Cipher
 import refuel.cipher.algorithm.CryptType
 import refuel.cipher.algorithm.CryptType.{AES, RSA}
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 trait CipherAlg[T <: CryptType] extends Serializable {
   def mode: String
