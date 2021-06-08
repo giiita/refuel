@@ -3,11 +3,9 @@ package refuel.cipher.rsa
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
-
 import com.typesafe.config.ConfigFactory
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 trait RSAPublicKey extends KEY {
   override val key: PublicKey

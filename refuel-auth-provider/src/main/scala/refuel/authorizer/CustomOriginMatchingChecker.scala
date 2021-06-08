@@ -1,7 +1,6 @@
 package refuel.authorizer
 
 import java.util
-
 import org.pac4j.core.client.{Client, IndirectClient}
 import org.pac4j.core.context.{HttpConstants, WebContext}
 import org.pac4j.core.credentials.Credentials
@@ -19,9 +18,8 @@ import org.pac4j.core.matching.matcher.{
   XSSProtectionMatcher
 }
 import org.pac4j.core.util.{CommonHelper, Pac4jConstants}
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 import refuel.saml.SAMLAuthConfig
 
 import scala.collection.JavaConverters.{asScalaBufferConverter, mapAsScalaMapConverter}

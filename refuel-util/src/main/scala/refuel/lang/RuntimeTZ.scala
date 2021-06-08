@@ -3,10 +3,8 @@ package refuel.lang
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId, ZoneOffset}
 import java.util.TimeZone
-
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 /**
   * TimeZone used by default.

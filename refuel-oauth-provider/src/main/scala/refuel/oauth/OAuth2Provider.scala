@@ -2,7 +2,7 @@ package refuel.oauth
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.server.{Directive1, Directives}
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.oauth.authorize.{AuthProfile, AuthorizeCode, AuthorizeRequest}
 import refuel.oauth.endpoint.{AuthorizeEndpoint, TokenEndpoint}
 import refuel.oauth.grant.GrantHandler

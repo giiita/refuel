@@ -13,10 +13,15 @@
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider)
 
-Refuel is a powerful DI based framework<br/>
+<p>
+Refuel is a powerful DI based framework.
+
+Since there is only one maintainer, support for Scala3 will be phased in.
+At the moment, only refuel-container is supported for Scala3.
+</p>
 
 
-## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container)
+## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container) (Compatible with Scala3)
 
 > Powerful DI framework with macros.
 >

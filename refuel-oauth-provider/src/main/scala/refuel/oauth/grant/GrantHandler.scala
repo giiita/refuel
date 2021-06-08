@@ -1,6 +1,6 @@
 package refuel.oauth.grant
 
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.oauth.GrantScope
 import refuel.oauth.authorize.{AuthProfile, AuthorizeState}
 import refuel.oauth.client.AuthorizedApp

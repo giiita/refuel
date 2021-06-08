@@ -1,7 +1,7 @@
 package refuel.cipher
 
 import refuel.cipher.algorithm.CryptType
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 
 import scala.util.Try
 

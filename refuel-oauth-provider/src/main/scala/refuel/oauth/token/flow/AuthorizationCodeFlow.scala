@@ -1,8 +1,8 @@
 package refuel.oauth.token.flow
 
 import akka.http.scaladsl.server.{Directive1, Directives}
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
+import refuel.inject.Inject
 import refuel.oauth.action.{HttpAction, OAuth2ActionHandler}
 import refuel.oauth.authorize.{AuthProfile, AuthorizeState}
 import refuel.oauth.client.AuthorizedApp
