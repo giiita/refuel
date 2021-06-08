@@ -1,7 +1,7 @@
 package refuel.oauth.concurrent
 
 import akka.http.scaladsl.server.{Directive1, Directives}
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.oauth.action.{OAuth2ActionHandler, UnauthorizedAction}
 import refuel.oauth.authorize.AuthProfile
 import refuel.oauth.endpoint.ProtectionEndpoint

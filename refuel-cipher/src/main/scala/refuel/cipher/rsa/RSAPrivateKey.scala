@@ -3,11 +3,9 @@ package refuel.cipher.rsa
 import java.security.PrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Base64
-
 import com.typesafe.config.ConfigFactory
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 trait RSAPrivateKey extends KEY {
   val key: PrivateKey

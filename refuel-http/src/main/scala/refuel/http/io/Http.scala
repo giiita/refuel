@@ -3,14 +3,14 @@ package refuel.http.io
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import com.typesafe.scalalogging.LazyLogging
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
 import refuel.http.io.setting.HttpSetting.RecoveredHttpSetting
 import refuel.http.io.setting.{HttpClientLogEnabled, HttpSetting}
 import refuel.http.io.task.execution.HttpResultExecution
-import refuel.injector.{AutoInject, Injector}
+import refuel.inject.{AutoInject, Inject}
+import refuel.injector.Injector
 import refuel.json.JsonTransform
-import refuel.provider.Lazy
+import refuel.container.provider.Lazy
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions

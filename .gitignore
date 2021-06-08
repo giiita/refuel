@@ -5,3 +5,5 @@ target
 node_modules
 package-lock.json
 .bsp
+.metals
+.vscode

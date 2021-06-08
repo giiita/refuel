@@ -1,7 +1,6 @@
 package refuel.saml
 
 import java.security.Security
-
 import akka.actor.ActorSystem
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.pac4j.core.config.Config
@@ -9,7 +8,7 @@ import org.pac4j.core.matching.checker.MatchingChecker
 import org.pac4j.saml.client.SAML2Client
 import org.pac4j.saml.config.SAML2Configuration
 import refuel.AkkaHttpSecurity
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.session.SessionIDGenerator
 import refuel.store.SessionStorage
 

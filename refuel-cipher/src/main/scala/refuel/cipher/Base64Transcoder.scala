@@ -1,10 +1,8 @@
 package refuel.cipher
 
 import java.util.Base64
-
-import refuel.domination.Inject
 import refuel.domination.InjectionPriority.Finally
-import refuel.injector.AutoInject
+import refuel.inject.{AutoInject, Inject}
 
 @Inject[Finally]
 class Base64Transcoder extends BytesTranscoder with AutoInject {

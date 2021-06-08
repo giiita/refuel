@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.Location
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes, Uri}
 import akka.http.scaladsl.server.{Directive1, Directives}
-import refuel.injector.AutoInject
+import refuel.inject.AutoInject
 import refuel.oauth.action.{HttpAction, OAuth2ActionHandler}
 import refuel.oauth.authorize.AuthorizeRequest.{AuthorizationCodeRequest, ImplicitGrantRequest}
 import refuel.oauth.authorize.{AuthorizeCode, AuthorizeRequest, CodeChallenge, ResponseType}
