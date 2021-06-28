@@ -3,6 +3,7 @@ package refuel.container.macros.internal
 import refuel.container.Container
 import refuel.container.macros.internal.DependencyRankings.isDependencyPoolRef
 import refuel.container.macros.internal.tools.LowLevelAPIConversionAlias
+import refuel.container.provider.Accessor
 import refuel.inject.InjectionPriority.Default
 import refuel.inject.Types.LocalizedContainer
 import refuel.inject.{AutoInject, Inject, InjectableTag, InjectionPriority}
@@ -13,7 +14,7 @@ import scala.quoted._
 object DependencyRankings extends LowLevelAPIConversionAlias {
   /* Injection priority config type tag */
   private[this] def InjectionPriorityConfigType(using q: Quotes): q.reflect.TypeRepr = q.reflect.TypeRepr.of[Inject[?]]
-  private[this] def DefaultType(using q: Quotes): q.reflect.TypeRepr                 = q.reflect.TypeRepr.of[refuel.inject.InjectionPriority.Default.type]
+  private[this] def DefaultType(using q: Quotes): q.reflect.TypeRepr                 = q.reflect.TypeRepr.of[refuel.inject.InjectionPriority.Default]
 
   def apply(using q: Quotes)(cands: Iterable[q.reflect.TypeTree]): Option[(Expr[InjectionPriority], Iterable[q.reflect.TypeTree])] = {
     import q.reflect._
@@ -80,30 +81,50 @@ object DependencyRankings extends LowLevelAPIConversionAlias {
     }
   }
 
+  private[this] def constructInjectionTerm(using q: Quotes)(target: q.reflect.Symbol): q.reflect.Term = {
+    import q.reflect._
+    target.tree match {
+      case ValDef(_, tree, _) =>
+        Select.unique(
+          Select.unique(This(isDependencyPoolRef(q.reflect.Symbol.spliceOwner)), "inject").appliedToType(tree.tpe).asExpr.asTerm,
+          "_provide"
+        ).asExpr.asTerm
+    }
+  }
+
+  private[this] def implicitInjectionTerm(using q: Quotes)(target: q.reflect.Symbol): q.reflect.Term = {
+    import q.reflect._
+    target.tree match {
+      case ValDef(_, tree, _) =>
+        Implicits.search(tree.tpe) match {
+          case iss: ImplicitSearchSuccess => iss.tree.asExpr.asTerm
+          case _: ImplicitSearchFailure => report.throwError(s"No found implicit parameter ${tree.tpe}.")
+        }
+    }
+  }
+
   private[this] def build[T: Type](using q: Quotes)(target: q.reflect.Symbol): Expr[T] = {
     import q.reflect._
     if (target.flags.is(Flags.Module)) {
       This(target).asExpr.asExprOf[T]
-    } else if (target.isValDef || target.flags.is(Flags.Module)) {
+    } else if (target.isValDef) {
       ValDefModule_Expr(target).asExprOf[T]
     } else {
-      Select.overloaded(
+      val constructs = if (target.primaryConstructor.isDefDef) {
+        target.primaryConstructor.tree match {
+          case q.reflect.DefDef(a, b, c, d) =>
+            b.map {
+              case trc: TermParamClause if trc.isImplicit || trc.isGiven => trc.params.map(x => implicitInjectionTerm(x.symbol))
+              case trc => trc.params.map(x => constructInjectionTerm(x.symbol))
+            }
+        }
+      } else {
+        target.primaryConstructor.paramSymss.map(_.map(constructInjectionTerm))
+      }
+      Select.unique(
         New(TypeIdent(target)),
-        "<init>",
-        Nil,
-        target.primaryConstructor.paramSymss.flatMap(_.map { x =>
-          x.tree match {
-            case ValDef(_, tree, _) =>
-              tree.tpe.asType match {
-                case '[t] =>
-                  Select.unique(
-                    Select.unique(This(isDependencyPoolRef(q.reflect.Symbol.spliceOwner)), "inject").appliedToType(tree.tpe).asExpr.asTerm,
-                    "_provide"
-                  ).asExpr.asTerm
-              }
-          }
-        })
-      ).asExprOf[T]
+        "<init>"
+      ).appliedToArgss(constructs).asExprOf[T]
     }
   }
 }

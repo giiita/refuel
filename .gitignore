@@ -7,3 +7,4 @@ package-lock.json
 .bsp
 .metals
 .vscode
+.bloop

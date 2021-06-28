@@ -119,7 +119,7 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
 
         recursivePackageExplore(
           unloads,
-          packages,
+          packages.distinctBy(_.fullName),
           joinSymbolSet(injectableSymbols, recursiveModuleExplore(modules))
         )
 
@@ -130,16 +130,13 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
     var res: Boolean = false
     try {
       res = !isBrokenSymbol(x)
-        && {
-        !root || root && x.flags.show != ""
-      }
+        && ((isClass(x) && q.reflect.TypeIdent(x).tpe.<:<(InjectableTag().tpe)) || isModule(x))
         && !x.flags.is(q.reflect.Flags.JavaDefined)
         && !x.flags.is(q.reflect.Flags.Trait)
         && !x.flags.is(q.reflect.Flags.Abstract)
         && (x != x.moduleClass || q.reflect.This(x).tpe == Types.NoType)
         && !x.isAbstractType
         && !x.isNoSymbol
-        && (isClass(x) || isModule(x))
     } catch {
       case _: Throwable =>
     }
@@ -160,7 +157,7 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
     }
   }
 
-  private[this] def isClass(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isType && symbol.isClassDef
+  private[this] def isClass(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isType && symbol.isClassDef && symbol != symbol.moduleClass
 
   private[this] def isModule(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isTerm && symbol.isValDef
 

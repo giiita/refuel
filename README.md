@@ -30,7 +30,7 @@ At the moment, only refuel-container is supported for Scala3.
 > 
 > All other refuel modules are based on refuel-container and will be ready to use.
 
-## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util)
+## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util) (Compatible with Scala3)
 
 > Rich type class interfaces.<br/>
 > Provides extended functions such as date and time, period, and collection.

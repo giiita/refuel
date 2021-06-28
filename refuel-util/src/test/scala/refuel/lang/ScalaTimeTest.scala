@@ -4,7 +4,7 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import refuel.injector.Injector
+import refuel.inject.Injector
 
 import scala.util.{Failure, Try}
 
