@@ -6,7 +6,7 @@ object InjectableSymbolHandler {
   def filterSymbols(c: blackbox.Context)(
       symbols: Set[c.Symbol]
   )(wtt: c.Type): Vector[c.Symbol] = {
-    val r = symbols
+    symbols
       .filter {
         case x if x.isModule =>
           x.typeSignature <:< wtt
@@ -16,6 +16,5 @@ object InjectableSymbolHandler {
       }
       .toVector
       .sortBy[String](_.fullName)
-    r
   }
 }

@@ -14,7 +14,7 @@ import scala.quoted._
 object DependencyRankings extends LowLevelAPIConversionAlias {
   /* Injection priority config type tag */
   private[this] def InjectionPriorityConfigType(using q: Quotes): q.reflect.TypeRepr = q.reflect.TypeRepr.of[Inject[?]]
-  private[this] def DefaultType(using q: Quotes): q.reflect.TypeRepr                 = q.reflect.TypeRepr.of[refuel.inject.InjectionPriority.Default.type]
+  private[this] def DefaultType(using q: Quotes): q.reflect.TypeRepr                 = q.reflect.TypeRepr.of[refuel.inject.InjectionPriority.Default]
 
   def apply(using q: Quotes)(cands: Iterable[q.reflect.TypeTree]): Option[(Expr[InjectionPriority], Iterable[q.reflect.TypeTree])] = {
     import q.reflect._

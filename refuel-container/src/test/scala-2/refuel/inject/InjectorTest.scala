@@ -137,6 +137,33 @@ object ImplicitInjection {
   }
   class WithString(override val value: Dependency)(implicit override val ex: ImplicitlySymbol) extends RequireImplicitDependency with AutoInject
 }
+object FullPriorities {
+  trait PriorityCheck
+  @Inject[InjectionPriority._2]
+  class __2 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._3]
+  class __3 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._3]
+  class ___3 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._4]
+  class __4 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._1]
+  class __1 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._5]
+  class __5 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._5]
+  class ___5 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._6]
+  class __6 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._7]
+  class __7 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._8]
+  class __8 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._9]
+  class __9 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._10]
+  class __10 extends PriorityCheck with AutoInject
+}
 class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   "scopes" should {
     "Different instance in closed scope" in {
@@ -362,6 +389,12 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
     val result                        = inject[RequireImplicitDependency]
     assert(result.value.isInstanceOf[DependencyImpl])
     result.ex shouldBe ex
+  }
+  "Priority inspection" in closed { implicit c =>
+    import FullPriorities._
+
+    val result: PriorityCheck = inject[PriorityCheck]
+    assert(result.isInstanceOf[__1])
   }
 
   // concurrency

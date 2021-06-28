@@ -20,6 +20,7 @@ object DependencyRankings {
           }
         val higher = candsPs.groupBy(_._1).foldLeft[Option[(c.Type, Iterable[(c.Type, c.Symbol)])]](None) { (a, b) =>
           a.fold(Some(b)) { prev =>
+            // Exists super type
             val maybe = prev._1.baseType(b._1.typeSymbol).orElse(b._1.baseType(prev._1.typeSymbol))
             Some(if (maybe =:= prev._1) prev else b)
           }
@@ -31,7 +32,7 @@ object DependencyRankings {
   /* Injection priority config type tag */
   private[this] def InjectionPriorityConfigType(c: blackbox.Context) = c.weakTypeOf[Inject[_]]
 
-  private[this] def DefaultType(c: blackbox.Context) = c.weakTypeOf[refuel.inject.InjectionPriority.Default.type]
+  private[this] def DefaultType(c: blackbox.Context) = c.weakTypeOf[refuel.inject.InjectionPriority.Default]
 
   def generateExprOne(c: blackbox.Context)(samePriority: c.Symbol): c.Expr[_] = {
     c.info(c.enclosingPosition, s"${samePriority.fullName} will be used.", true)

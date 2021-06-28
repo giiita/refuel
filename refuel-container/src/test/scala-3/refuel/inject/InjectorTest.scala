@@ -3,8 +3,8 @@ package refuel.inject
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.inject.InjectionPriority.Overwrite
 import refuel.container.provider.Lazy
+import refuel.inject.InjectionPriority.Overwrite
 
 import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
@@ -15,52 +15,62 @@ object InjectionWithScopeDefinition {
   class DependencyImpl extends Dependency with AutoInject
 }
 object StandardInjectWithModule {
-  object Module extends ModuleBase with AutoInject
   trait ModuleBase
+
+  object Module extends ModuleBase with AutoInject
 }
 object StandardInjectWithClass {
-  class Clazz extends ClassBase with AutoInject
   trait ClassBase
+
+  class Clazz extends ClassBase with AutoInject
 }
 object FailedInjectWithAbstractClass {
-  abstract class AbstractClazz extends ClassBase with AutoInject
   trait Clazz                  extends ClassBase with AutoInject
+
   trait ClassBase
+
+  abstract class AbstractClazz extends ClassBase with AutoInject
 }
 object FailedInjectWithSamePrioritySymbols {
-  class Clazz1 extends ClassBase with AutoInject {
-    override val value: Int = 1
-  }
-  class Clazz2 extends ClassBase with AutoInject {
-    override val value: Int = 2
-  }
   trait ClassBase {
     val value: Int
   }
-}
-object InjectWithDifferentPrioritySymbols {
+
   class Clazz1 extends ClassBase with AutoInject {
     override val value: Int = 1
   }
+
+  class Clazz2 extends ClassBase with AutoInject {
+    override val value: Int = 2
+  }
+}
+object InjectWithDifferentPrioritySymbols {
+  trait ClassBase {
+    val value: Int
+  }
+
+  class Clazz1 extends ClassBase with AutoInject {
+    override val value: Int = 1
+  }
+
   @Inject[Overwrite]
   class Clazz2 extends ClassBase with AutoInject {
     override val value: Int = 2
   }
+}
+object InjectWithDifferentUnaliasedPrioritySymbols {
   trait ClassBase {
     val value: Int
   }
-}
-object InjectWithDifferentUnaliasedPrioritySymbols {
+
   @Inject[InjectionPriority._3]
   class Clazz1 extends ClassBase with AutoInject {
     override val value: Int = 1
   }
+
   @Inject[Overwrite]
   class Clazz2 extends ClassBase with AutoInject {
     override val value: Int = 2
-  }
-  trait ClassBase {
-    val value: Int
   }
 }
 object IterableTypesInjectUnionPriorities {
@@ -75,17 +85,19 @@ object IterableTypesInjectUnionPriorities {
 }
 object Nested1 {
   trait NestedDependency
+
+  class Nested2Class {
+    trait NestedDependencyInterface    extends NestedDependency with AutoInject
+    abstract class NestedDependencyAbs extends NestedDependency with AutoInject
+    class NestedDependencyClass        extends NestedDependency with AutoInject
+  }
+
   object Nested2 {
     object Nested3 {
       trait NestedDependencyInterface    extends NestedDependency with AutoInject
       abstract class NestedDependencyAbs extends NestedDependency with AutoInject
       class NestedDependencyClass        extends NestedDependency with AutoInject
     }
-  }
-  class Nested2Class {
-    trait NestedDependencyInterface    extends NestedDependency with AutoInject
-    abstract class NestedDependencyAbs extends NestedDependency with AutoInject
-    class NestedDependencyClass        extends NestedDependency with AutoInject
   }
 }
 object UninjectableConstructor {
@@ -94,14 +106,17 @@ object UninjectableConstructor {
 }
 object InjectableConstructor {
   trait InjectableConstructorDependency
-  class WithIndexedParam(val value: InjectableParamDependency1) extends InjectableConstructorDependency with AutoInject
 
   trait InjectableParamDependency1
+
+  trait InjectableParamDependency2
+
+  class WithIndexedParam(val value: InjectableParamDependency1) extends InjectableConstructorDependency with AutoInject
+
   case class InjectableParamDependency1Impl(p2: InjectableParamDependency2)
       extends InjectableParamDependency1
       with AutoInject
 
-  trait InjectableParamDependency2
   object InjectableParamDependency2Impl extends InjectableParamDependency2 with AutoInject
 }
 object KindInjection {
@@ -116,24 +131,55 @@ object KindInjection {
   }
 }
 object ImplicitInjection {
-  class ImplicitlySymbol()
   trait RequireImplicitDependency {
     val value: Dependency
     val ex: ImplicitlySymbol
   }
+
+  class ImplicitlySymbol()
+
   class ImplicitCallsite(override val value: Dependency)(implicit override val ex: ImplicitlySymbol)
     extends RequireImplicitDependency
       with AutoInject
 }
 object UsingInjection {
-  class ImplicitlySymbol()
   trait RequireImplicitDependency {
     val value: Dependency
     val ex: ImplicitlySymbol
   }
+
+  class ImplicitlySymbol()
+
   class ImplicitCallsite(override val value: Dependency)(using override val ex: ImplicitlySymbol)
     extends RequireImplicitDependency
       with AutoInject
+}
+object FullPriorities {
+  trait PriorityCheck
+  @Inject[InjectionPriority._2]
+  class __2 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._3]
+  class __3 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._3]
+  class ___3 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._4]
+  class __4 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._1]
+  class __1 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._5]
+  class __5 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._5]
+  class ___5 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._6]
+  class __6 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._7]
+  class __7 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._8]
+  class __8 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._9]
+  class __9 extends PriorityCheck with AutoInject
+  @Inject[InjectionPriority._10]
+  class __10 extends PriorityCheck with AutoInject
 }
 
 class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
@@ -360,8 +406,8 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
       assert(new DeniedScope().dependency.isInstanceOf[DependencyImpl])
     }
     "implicit injection" in closed {
-      import InjectionWithScopeDefinition._
       import ImplicitInjection._
+      import InjectionWithScopeDefinition._
 
       implicit val ex: ImplicitlySymbol = new ImplicitlySymbol()
       val result                        = inject[RequireImplicitDependency]
@@ -376,6 +422,12 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
       val result                        = inject[RequireImplicitDependency]
       assert(result.value.isInstanceOf[DependencyImpl])
       result.ex shouldBe ex
+    }
+    "Priority inspection" in closed {
+      import FullPriorities._
+
+      val result: PriorityCheck = inject[PriorityCheck]
+      assert(result.isInstanceOf[__1])
     }
   }
 }
