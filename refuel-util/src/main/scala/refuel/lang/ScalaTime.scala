@@ -2,12 +2,8 @@ package refuel.lang
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
-import refuel.domination.InjectionPriority.Finally
-import refuel.inject.{AutoInject, Inject}
-import refuel.injector.Injector
-
-@deprecated("Instead, use dependency injection")
-object ScalaTime extends ScalaTime(RuntimeTZ)
+import refuel.inject.{AutoInject, Inject, Injector}
+import refuel.inject.InjectionPriority.Finally
 
 /** Use DI as a starting point.
   * ```

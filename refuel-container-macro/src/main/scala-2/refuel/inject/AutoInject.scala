@@ -1,6 +1,7 @@
 package refuel.inject
 
 import refuel.container.{Container, DependencyPoolRef}
+import refuel.inject.Types.LocalizedContainer
 
 /**
   * [[AutoInject]] is subject to automatic loading by refuel.
@@ -25,4 +26,4 @@ import refuel.container.{Container, DependencyPoolRef}
   * This annotation is an attribute for automatic injection, so
   * it is not necessary when manually registering dependencies.
   */
-trait AutoInject extends DependencyPoolRef[Container]
+trait AutoInject extends DependencyPoolRef[LocalizedContainer]

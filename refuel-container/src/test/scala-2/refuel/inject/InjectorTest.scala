@@ -6,6 +6,8 @@ import org.scalatest.wordspec.AsyncWordSpec
 import refuel.container.provider.Lazy
 import refuel.inject.InjectionPriority.Overwrite
 
+import scala.concurrent.ExecutionContext
+
 trait NonDependency
 trait Dependency
 object InjectionWithScopeDefinition {
@@ -127,7 +129,14 @@ object KindInjection {
     val t: Int = 10
   }
 }
-
+object ImplicitInjection {
+  class ImplicitlySymbol()
+  trait RequireImplicitDependency {
+    val value: Dependency
+    val ex: ImplicitlySymbol
+  }
+  class WithString(override val value: Dependency)(implicit override val ex: ImplicitlySymbol) extends RequireImplicitDependency with AutoInject
+}
 class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   "scopes" should {
     "Different instance in closed scope" in {
@@ -344,6 +353,15 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
       assert(new AllowedScope().dependency.isInstanceOf[DependencyImpl])
       assert(new DeniedScope().dependency.isInstanceOf[DependencyImpl])
     }
+  }
+  "implicit injection" in closed { implicit c =>
+    import InjectionWithScopeDefinition._
+    import ImplicitInjection._
+
+    implicit val ex: ImplicitlySymbol = new ImplicitlySymbol()
+    val result                        = inject[RequireImplicitDependency]
+    assert(result.value.isInstanceOf[DependencyImpl])
+    result.ex shouldBe ex
   }
 
   // concurrency

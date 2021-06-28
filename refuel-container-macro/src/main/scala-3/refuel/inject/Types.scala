@@ -7,5 +7,5 @@ object Types {
 
   sealed trait Localized
 
-  type LocalizedContainer = Container @@ Localized
+  type LocalizedContainer = Container
 }

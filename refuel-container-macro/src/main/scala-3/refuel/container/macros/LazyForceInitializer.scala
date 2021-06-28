@@ -31,6 +31,7 @@ object LazyForceInitializer extends LowLevelAPIConversionAlias {
           case value: DependencyPoolRef[_] =>
             value.asInstanceOf[DependencyPoolRef[Container]].__refuel_cRef = Some(ctn)
           case _ =>
+          case null =>
         }
         __refuel_result
       }
@@ -52,7 +53,7 @@ object LazyForceInitializer extends LowLevelAPIConversionAlias {
     val candidates = StaticDependencyExtractor.searchInjectionCandidates[T]
     DependencyRankings(candidates).fold(
       report.throwError(
-        s"Can't find a dependency registration of ${q.reflect.TypeTree.of[T].symbol.fullName}. Injection from runtime classpath must be given @RecognizedDynamicInjection."
+        s"Can't find a dependency registration of ${q.reflect.TypeTree.of[T].symbol.fullName}."
       )
     ) {
       case (priority, ranked) if ranked.size > 1 =>

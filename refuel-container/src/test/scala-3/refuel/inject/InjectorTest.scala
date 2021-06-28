@@ -5,6 +5,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.inject.InjectionPriority.Overwrite
 import refuel.container.provider.Lazy
+
+import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
 
 trait NonDependency
@@ -112,6 +114,26 @@ object KindInjection {
   class TpInt extends TP[Int] with AutoInject {
     val t: Int = 10
   }
+}
+object ImplicitInjection {
+  class ImplicitlySymbol()
+  trait RequireImplicitDependency {
+    val value: Dependency
+    val ex: ImplicitlySymbol
+  }
+  class ImplicitCallsite(override val value: Dependency)(implicit override val ex: ImplicitlySymbol)
+    extends RequireImplicitDependency
+      with AutoInject
+}
+object UsingInjection {
+  class ImplicitlySymbol()
+  trait RequireImplicitDependency {
+    val value: Dependency
+    val ex: ImplicitlySymbol
+  }
+  class ImplicitCallsite(override val value: Dependency)(using override val ex: ImplicitlySymbol)
+    extends RequireImplicitDependency
+      with AutoInject
 }
 
 class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
@@ -336,6 +358,24 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
       allowed.dependency shouldBe another
       assert(new AllowedScope().dependency.isInstanceOf[DependencyImpl])
       assert(new DeniedScope().dependency.isInstanceOf[DependencyImpl])
+    }
+    "implicit injection" in closed {
+      import InjectionWithScopeDefinition._
+      import ImplicitInjection._
+
+      implicit val ex: ImplicitlySymbol = new ImplicitlySymbol()
+      val result                        = inject[RequireImplicitDependency]
+      assert(result.value.isInstanceOf[DependencyImpl])
+      result.ex shouldBe ex
+    }
+    "using injection" in closed {
+      import InjectionWithScopeDefinition._
+      import UsingInjection._
+
+      given ex: ImplicitlySymbol = new ImplicitlySymbol()
+      val result                        = inject[RequireImplicitDependency]
+      assert(result.value.isInstanceOf[DependencyImpl])
+      result.ex shouldBe ex
     }
   }
 }

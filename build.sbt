@@ -5,7 +5,7 @@ lazy val Scala2_12 = "2.12.14"
 lazy val Scala2_13 = "2.13.6"
 lazy val Scala3xx  = "3.0.1-RC1"
 
-scalaVersion in Scope.Global := Scala2_13
+scalaVersion in Scope.Global := Scala3xx
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq(Scala2_12, Scala2_13)
 
@@ -24,7 +24,7 @@ lazy val typesafeConfigVersion = "1.4.1"
 
 lazy val scala3PartialBuild = Def.settings(
   crossScalaVersions := Seq(Scala2_12, Scala2_13, Scala3xx),
-  libraryDependencies in Scope.Global ++= Seq("org.scalatest" %% "scalatest" % "3.2.9" % Test) ++ {
+  libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "3.2.9" % Test) ++ {
       CrossVersion
         .partialVersion(scalaVersion.value) match {
         case Some((2, y)) if y >= 13 =>
@@ -73,8 +73,8 @@ lazy val root = project
   .in(file("."))
   .aggregate(
     `containerMacro`,
-    container
-//    util,
+    container,
+    util
 //    json,
 //    http,
 //    auth,
@@ -149,13 +149,12 @@ lazy val container = (project in file("refuel-container"))
     ),
     Compile / unmanagedClasspath ++= (Compile / unmanagedResources).value
   )
-//lazy val util = (project in file("refuel-util"))
-//  .dependsOn(container)
-//  .settings(asemble)
-//  .settings(
-//    name := "refuel-util"
-//  )
-//  .enablePlugins(JavaAppPackaging)
+lazy val util = (project in file("refuel-util"))
+  .dependsOn(container)
+  .settings(asemble, scala3PartialBuild)
+  .settings(
+    name := "refuel-util"
+  )
 //lazy val json = (project in file("refuel-json"))
 //  .dependsOn(util)
 //  .settings(asemble)
