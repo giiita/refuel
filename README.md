@@ -4,7 +4,7 @@
 [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/phylage/refuel)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_2.12/badge.svg)](https://search.maven.org/artifact/com.phylage/refuel-container_2.12)
 
-[![Latest version of macro](https://index.scala-lang.org/giiita/refuel/refuel-macro/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-macro)
+[![Latest version of macro](https://index.scala-lang.org/giiita/refuel/refuel-container-macro/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container-macro)
 [![Latest version of container](https://index.scala-lang.org/giiita/refuel/refuel-container/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container)
 [![Latest version of util](https://index.scala-lang.org/giiita/refuel/refuel-util/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
