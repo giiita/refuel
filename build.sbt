@@ -36,6 +36,15 @@ lazy val scala3PartialBuild = Def.settings(
     }
 )
 
+val noPublish = Seq(
+  publishArtifact := false,
+  publish := {},
+  publishLocal := {},
+  // Explicitely skip the doc task because protobuf related Java files causes no type found error
+  Compile / doc / sources := Seq.empty,
+  Compile / packageDoc / publishArtifact := false
+)
+
 lazy val asemble = Seq(
   ThisProject / sonatypeBundleDirectory := (ThisProject / baseDirectory).value / target.value.getName / "sonatype-staging" / s"${version.value}",
   ThisProject / publishTo := sonatypePublishToBundle.value,
@@ -71,19 +80,7 @@ lazy val asemble = Seq(
 
 lazy val root = project
   .in(file("."))
-  .aggregate(
-    `containerMacro`,
-    container,
-    util
-//    json,
-//    http,
-//    auth,
-//    cipher,
-//    oauth,
-//    root_interfaces,
-//    interfaces_impl,
-//    call_interfaces
-  )
+  .settings(noPublish)
   .settings(
     ThisProject / releaseProcess := Nil,
     ThisProject / publishLocal := {},
@@ -91,6 +88,19 @@ lazy val root = project
     Compile / resourceDirectories += {
       (ThisProject / baseDirectory).value / "project" / "resources"
     }
+  )
+  .aggregate(
+    `containerMacro`,
+    container,
+    util
+    //    json,
+    //    http,
+    //    auth,
+    //    cipher,
+    //    oauth,
+    //    root_interfaces,
+    //    interfaces_impl,
+    //    call_interfaces
   )
 lazy val `containerMacro` = (project in file("refuel-container-macro"))
   .settings(asemble, scala3PartialBuild)

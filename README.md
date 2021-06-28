@@ -4,13 +4,20 @@
 [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/phylage/refuel)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_3/badge.svg)](https://search.maven.org/artifact/com.phylage/refuel-container_3)
 
-[![Latest version of macro](https://index.scala-lang.org/giiita/refuel/refuel-container-macro/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container-macro)
-[![Latest version of container](https://index.scala-lang.org/giiita/refuel/refuel-container/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container)
-[![Latest version of util](https://index.scala-lang.org/giiita/refuel/refuel-util/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
+[![refuel-container-macro Scala version support](https://index.scala-lang.org/giiita/refuel/refuel-container-macro/latest-by-scala-version.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container-macro)
+
+[![refuel-container Scala version support](https://index.scala-lang.org/giiita/refuel/refuel-container/latest-by-scala-version.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container)
+
+[![refuel-util Scala version support](https://index.scala-lang.org/giiita/refuel/refuel-util/latest-by-scala-version.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
+
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
+
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
+
 [![Latest version of auth](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider)
+
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
+
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider)
 
 <p>
