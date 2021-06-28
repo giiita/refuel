@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/giiita/refuel/tree/master.svg?style=svg)](https://circleci.com/gh/giiita/refuel/tree/master)
 [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/phylage/refuel)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_2.12/badge.svg)](https://search.maven.org/artifact/com.phylage/refuel-container_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.phylage/refuel-container_3/badge.svg)](https://search.maven.org/artifact/com.phylage/refuel-container_3)
 
 [![Latest version of macro](https://index.scala-lang.org/giiita/refuel/refuel-container-macro/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container-macro)
 [![Latest version of container](https://index.scala-lang.org/giiita/refuel/refuel-container/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-container)
