@@ -1,10 +1,12 @@
 package refuel.lang
 
+import com.typesafe.config.ConfigFactory
+import refuel.inject.InjectionPriority.Finally
+import refuel.inject.{AutoInject, Inject}
+
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId, ZoneOffset}
 import java.util.TimeZone
-import refuel.inject.{AutoInject, Inject}
-import refuel.inject.InjectionPriority.Finally
 
 /**
   * TimeZone used by default.
@@ -14,7 +16,7 @@ object RuntimeTZ extends RuntimeTZ with AutoInject {
   override val TIME_ZONE: TimeZone     = TimeZone.getDefault
   override val ZONE_ID: ZoneId         = java.time.ZoneId.systemDefault()
   override val ZONE_OFFSET: ZoneOffset = ZONE_ID.getRules.getOffset(Instant.now())
-  override val DEFAULT_FORMAT: String  = "yyyy/M/d H:m:s"
+  override val DEFAULT_FORMAT: String  = ConfigFactory.load().getString("datetime.default-format")
 }
 
 /**
@@ -42,6 +44,7 @@ class UtcTZ extends RuntimeTZ {
   * By first overwriting, you can change the TimeZone handled by ScalaTime.
   */
 trait RuntimeTZ { me =>
+  lazy val format: DateTimeFormatter = DateTimeFormatter.ofPattern(me.DEFAULT_FORMAT)
   /* Time zone */
   val TIME_ZONE: TimeZone
   /* Zone id */
@@ -50,8 +53,6 @@ trait RuntimeTZ { me =>
   val ZONE_OFFSET: ZoneOffset
   /* Default String format */
   val DEFAULT_FORMAT: String
-
-  lazy val format: DateTimeFormatter = DateTimeFormatter.ofPattern(me.DEFAULT_FORMAT)
 
   /**
     * Set the default time zone for this process.

@@ -62,14 +62,13 @@ class ScalaTimeTest extends AnyWordSpec with Matchers with Injector {
 
   "StringBs" should {
     "as default" in {
-      "2017/08/26 11:33:54".datetime.format() shouldBe "2017/8/26 11:33:54"
+      "2017/08/26 11:33:54".datetime.format() shouldBe "2017/08/26 11:33:54"
     }
     "as custom" in {
       "2017/08/26 11:33:54".datetime.formatTo("yyMd") shouldBe "17826"
     }
 
     "minToday" in {
-      println("2017/08/26 11:33:54".datetime.minToday)
       "2017/08/26 11:33:54".datetime.minToday shouldBe ZonedDateTime.of(2017, 8, 26, 0, 0, 0, 0, tz.ZONE_ID)
     }
 
@@ -116,7 +115,7 @@ class ScalaTimeTest extends AnyWordSpec with Matchers with Injector {
     "format" in {
       LocalDateTime
         .of(2017, 8, 26, 11, 33, 54)
-        .format() shouldBe "2017/8/26 11:33:54"
+        .format() shouldBe "2017/08/26 11:33:54"
     }
     "toZonedDateTime" in {
       LocalDateTime.of(2017, 8, 26, 11, 33, 54).toZonedDateTime shouldBe ZonedDateTime

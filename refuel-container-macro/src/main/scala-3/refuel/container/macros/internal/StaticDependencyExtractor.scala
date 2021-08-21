@@ -159,7 +159,7 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
 
   private[this] def isClass(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isType && symbol.isClassDef && symbol != symbol.moduleClass
 
-  private[this] def isModule(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isTerm && symbol.isValDef
+  private[this] def isModule(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isTerm
 
   @tailrec
   private[this] final def recursiveModuleExplore(using q: Quotes)(

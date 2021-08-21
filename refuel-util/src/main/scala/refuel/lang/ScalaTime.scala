@@ -1,9 +1,10 @@
 package refuel.lang
 
+import refuel.inject.InjectionPriority.Finally
+import refuel.inject.{AutoInject, Inject, Injector}
+
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, LocalTime, ZonedDateTime}
-import refuel.inject.{AutoInject, Inject, Injector}
-import refuel.inject.InjectionPriority.Finally
 
 /** Use DI as a starting point.
   * ```
@@ -16,9 +17,9 @@ import refuel.inject.InjectionPriority.Finally
   * I would override it as needed and refer to it by mixing in the AutoInject.
   */
 @Inject[Finally]
-class ScalaTimeImpl(TZ: RuntimeTZ) extends ScalaTime(TZ) with AutoInject
+class ScalaTimeImpl(TZ: RuntimeTZ, sts: ScalaTimeSupport) extends ScalaTime(TZ, sts) with AutoInject
 
-abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {
+abstract class ScalaTime(TZ: RuntimeTZ, sts: ScalaTimeSupport) extends Injector {
 
   /**
     * Get a current time.
@@ -55,19 +56,10 @@ abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {
       * @return
       */
     def datetime: ZonedDateTime = {
-      ScalaTimeSupport.DATE_TIME_PATTERN_SET
-        .find(x => value.matches(x.regex))
-        .fold {
-          throw new IllegalArgumentException(
-            s"Unexpected datetime format. $value"
-          )
-        } { x =>
-          ZonedDateTime.of(
-            LocalDateTime
-              .parse(x.normalize(value), ScalaTimeSupport.convertWith),
-            TZ.ZONE_ID
-          )
-        }
+      ZonedDateTime.of(
+        sts.toLocalDateTime(value),
+        TZ.ZONE_ID
+      )
     }
   }
 
@@ -96,18 +88,18 @@ abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {
       value.toZonedDateTime.minTohour.toLocalDateTime
 
     /**
-      * LocalDateTime to this day, 23:59:59.99999999
-      *
-      * @return
-      */
-    def maxToday: LocalDateTime = value.toZonedDateTime.maxToday.toLocalDateTime
-
-    /**
       * Convert to ZonedDateTime with default zone id.
       *
       * @return
       */
     def toZonedDateTime: ZonedDateTime = ZonedDateTime.of(value, TZ.ZONE_ID)
+
+    /**
+      * LocalDateTime to this day, 23:59:59.99999999
+      *
+      * @return
+      */
+    def maxToday: LocalDateTime = value.toZonedDateTime.maxToday.toLocalDateTime
 
     /**
       * LocalDateTime to this hour, HH:59:59.99999999
@@ -204,49 +196,85 @@ abstract class ScalaTime(TZ: RuntimeTZ) extends Injector {
 
 }
 
-object ScalaTimeSupport {
+@Inject[Finally]
+class ScalaTimeSupport(patterns: Iterable[DateFormattedPattern]) extends AutoInject {
+  val DATE_TIME_PATTERN_SET: Seq[DateFormattedPattern] = Seq(
+    ScalaTimeSupport.PatternWithinSymbol,
+    ScalaTimeSupport.PatternWithoutSymbol,
+    ScalaTimeSupport.PatternOnlyDateWithinSymbol,
+    ScalaTimeSupport.PatternOnlyDateWithoutSymbol,
+    ScalaTimeSupport.PatternUpToHourWithinSymbol
+  )
   val convertWith: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyy/M/d H:m:s")
 
-  val DATE_TIME_PATTERN_SET: Seq[DateFormattedPattern] = Seq(
-    PatternWithinSymbol,
-    PatternWithoutSymbol,
-    PatternOnlyDateWithinSymbol,
-    PatternOnlyDateWithoutSymbol,
-    PatternUpToHourWithinSymbol
-  )
+  private[refuel] def toLocalDateTime(value: String): LocalDateTime = {
+    println(patterns)
+    patterns
+      .foldLeft[Option[LocalDateTime]](None) { (result, next) =>
+        result.orElse {
+          next.toLocalDate(value)
+        }
+      }
+      .getOrElse {
+        throw new IllegalArgumentException(
+          s"Unexpected datetime format. $value"
+        )
+      }
+  }
+}
 
-  trait DateFormattedPattern {
+trait DateFormattedPattern {
+  def toLocalDate(value: String): Option[LocalDateTime]
+}
+
+object ScalaTimeSupport {
+
+  val convertWith: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy/M/d H:m:s")
+
+  trait RegexDateFormattedPattern extends DateFormattedPattern {
     val regex: String
     val normalize: String => String
+    def toLocalDate(value: String): Option[LocalDateTime] =
+      if (value.matches(regex)) {
+        Some(
+          LocalDateTime
+            .parse(normalize(value), convertWith)
+        )
+      } else None
   }
 
-  private case object PatternWithinSymbol extends DateFormattedPattern {
+  @Inject[Finally]
+  case object PatternWithinSymbol extends RegexDateFormattedPattern with AutoInject {
     val regex: String =
       s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2}):([\\d]{1,2}):([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:$5:$6")
   }
 
-  private case object PatternWithoutSymbol extends DateFormattedPattern {
+  @Inject[Finally]
+  case object PatternWithoutSymbol extends RegexDateFormattedPattern with AutoInject {
     val regex: String =
       "^([\\d]{4})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})([\\d]{2})$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:$5:$6")
   }
 
-  private case object PatternOnlyDateWithinSymbol extends DateFormattedPattern {
+  @Inject[Finally]
+  case object PatternOnlyDateWithinSymbol extends RegexDateFormattedPattern with AutoInject {
     val regex: String               = s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 
-  private case object PatternOnlyDateWithoutSymbol extends DateFormattedPattern {
+  @Inject[Finally]
+  case object PatternOnlyDateWithoutSymbol extends RegexDateFormattedPattern with AutoInject {
     val regex: String               = "^([\\d]{4})([\\d]{2})([\\d]{2})$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 00:00:00")
   }
 
-  private case object PatternUpToHourWithinSymbol extends DateFormattedPattern {
+  @Inject[Finally]
+  case object PatternUpToHourWithinSymbol extends RegexDateFormattedPattern with AutoInject {
     val regex: String =
       s"^([\\d]{4})[/|-]{1}([\\d]{1,2})[/|-]{1}([\\d]{1,2})\\s+([\\d]{1,2})$$"
     val normalize: String => String = _.replaceAll(regex, "$1/$2/$3 $4:00:00")
   }
-
 }
