@@ -10,6 +10,8 @@
 
 [![refuel-util Scala version support](https://index.scala-lang.org/giiita/refuel/refuel-util/latest-by-scala-version.svg)](https://index.scala-lang.org/giiita/refuel/refuel-util)
 
+[![refuel-json-macro Scala version support](https://index.scala-lang.org/giiita/refuel/refuel-json-macro/latest-by-scala-version.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json-macro)
+
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
 
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
@@ -31,11 +33,13 @@ At the moment, only refuel-container is supported for Scala3.
 ## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container) (Compatible with Scala3)
 
 > Powerful DI framework with macros.
->
-> It is very simple and does not require a large number of components files or explicit dependency/scope declarations. You will be able to focus on the work you need to do.
-> It is very compatible with DDD / hexagonal architecture, and supports application development and open source library development with excellent reference transparency.
 > 
-> All other refuel modules are based on refuel-container and will be ready to use.
+> It is very simple and does not require a large number of component files in the executable module or explicit dependency or scope declarations. Allows you to focus on the work that needs to be done.
+> It has a high affinity with DDD and layering. It is also highly flexible and testable, providing strong support for application development and open source library development.
+> 
+> All other refuel modules are based on refuel-container and can be used out-of-the-box.
+> 
+> Translated with www.DeepL.com/Translator (free version)
 
 ## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util) (Compatible with Scala3)
 

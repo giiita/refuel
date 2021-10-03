@@ -1,34 +1,52 @@
 package refuel.json.tokenize
 
-import java.util
-
 import refuel.json.JsonVal
-import refuel.json.entry._
-import refuel.json.error.IllegalJsonFormat
+import refuel.json.JsonVal.{JsAny, JsStackArray, JsStackObjects, JsString}
+import refuel.json.tokenize.Types.ResultBuff
 import refuel.json.tokenize.strategy.JTransformStrategy
 
 import scala.annotation.{switch, tailrec}
 
-abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) {
-
-  protected def encodedLiteralHandle(len: Int): Int
+abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) with GlowableBuffer {
 
   protected lazy final val Radix = 16
 
-  private[this] var closingSyntaxCheckEnable: Boolean = false
-
-  protected final def glowArray(addStrLen: Int): Unit = {
-    chbuff = util.Arrays.copyOf(chbuff, Integer.highestOneBit(addStrLen) << 1)
-  }
-
-  protected var chbuff = new Array[Char](1 << 7)
+  protected def encodedLiteralHandle(len: Int): Int
 
   protected def incl(x: Int = 1): Unit = {
     pos += x
   }
 
-  override def beEOF: Int = {
-    throw new IllegalJsonFormat(s"Unexpected EOF: ${rs.mkString}")
+  @tailrec
+  protected final def tokenize(rb: ResultBuff[JsonVal]): JsonVal = {
+    if (increOrFinish(_ > 32)) rb else {
+      val x = rs(pos)
+      (x: @switch) match {
+        case '"' =>
+          incl()
+          val len = detectLiteral(0)
+          tokenize(rb joinUnsafe JsString(new String(chbuff, 0, len)))
+        case ':' | ',' =>
+          incl()
+          rb.approvalSyntax(x)
+          tokenize(rb)
+        case '{' =>
+          processing = true
+          incl()
+          tokenize(JsStackObjects(rb))
+        case '[' =>
+          processing = true
+          incl()
+          tokenize(JsStackArray(rb))
+        case '}' | ']' =>
+          incl()
+          val skashed = rb.squash
+          if (skashed.isSquashable) tokenize(skashed) else skashed
+        case _ =>
+          val len = detectAnyVal(0)
+            tokenize(rb joinUnsafe JsAny.apply[String](new String(chbuff, 0, len)))
+      }
+    }
   }
 
   @tailrec
@@ -64,41 +82,6 @@ abstract class JsonTokenizer(rs: Array[Char]) extends JTransformStrategy(rs) {
           chbuff(len) = s
           detectAnyVal(lastLen)
       }
-    }
-  }
-
-  @tailrec
-  protected final def tokenize(rb: ResultBuff[JsonVal]): JsonVal = {
-    indexWhere(_ > 32)
-    val x = rs(pos)
-    (x: @switch) match {
-      case '"' =>
-        incl()
-        val len = detectLiteral(0)
-        if (closingSyntaxCheckEnable) {
-          tokenize(rb ++ JsString(new String(chbuff, 0, len)))
-        } else JsString(new String(chbuff, 0, len))
-      case ':' | ',' =>
-        incl()
-        rb.approvalSyntax(x)
-        tokenize(rb)
-      case '{' =>
-        closingSyntaxCheckEnable = true
-        incl()
-        tokenize(JsStackObjects(rb))
-      case '[' =>
-        closingSyntaxCheckEnable = true
-        incl()
-        tokenize(JsStackArray(rb))
-      case '}' | ']' =>
-        incl()
-        val skashed = rb.squash
-        if (skashed.isSquashable) tokenize(skashed) else skashed
-      case _ =>
-        val len = detectAnyVal(0)
-        if (closingSyntaxCheckEnable) {
-          tokenize(rb ++ JsAnyVal.apply[String](new String(chbuff, 0, len)))
-        } else JsAnyVal.apply[String](new String(chbuff, 0, len))
     }
   }
 }

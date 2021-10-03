@@ -1,5 +1,6 @@
 .idea
 project/target
+project/.bloop
 project/project
 target
 node_modules

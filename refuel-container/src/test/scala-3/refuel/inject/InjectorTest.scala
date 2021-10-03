@@ -54,7 +54,7 @@ object InjectWithDifferentPrioritySymbols {
   }
 
   @Inject[Overwrite]
-  class Clazz2 extends ClassBase with AutoInject {
+  case object Clazz2 extends ClassBase with AutoInject {
     override val value: Int = 2
   }
 }
