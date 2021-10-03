@@ -1,13 +1,12 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val Scala2_12 = "2.12.14"
-lazy val Scala2_13 = "2.13.6"
-lazy val Scala3xx  = "3.0.1-RC1"
+lazy val Scala2_13 = "2.13.5"
+lazy val Scala3xx  = "3.0.2"
 
-scalaVersion in Scope.Global := Scala3xx
+scalaVersion in Scope.Global := Scala2_13
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq(Scala2_12, Scala2_13)
+crossScalaVersions in Scope.Global := Seq(Scala2_13)
 
 val isScala3 = Def.setting(
   CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
@@ -23,7 +22,7 @@ lazy val scalaLoggingVersion   = "3.9.2"
 lazy val typesafeConfigVersion = "1.4.1"
 
 lazy val scala3PartialBuild = Def.settings(
-  crossScalaVersions := Seq(Scala2_12, Scala2_13, Scala3xx),
+  crossScalaVersions := Seq(Scala2_13, Scala3xx),
   libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "3.2.9" % Test) ++ {
       CrossVersion
         .partialVersion(scalaVersion.value) match {
@@ -92,8 +91,9 @@ lazy val root = project
   .aggregate(
     `containerMacro`,
     container,
-    util
-    //    json,
+    util,
+    jsonMacro,
+    json,
     //    http,
     //    auth,
     //    cipher,
@@ -107,6 +107,34 @@ lazy val `containerMacro` = (project in file("refuel-container-macro"))
   .settings(
     name := "refuel-container-macro",
     description := "Lightweight DI container Macro for Scala3.",
+    Def.settings(
+      libraryDependencies ++= {
+        if (isScala3.value) {
+          Seq(
+            "com.typesafe"   % "config"           % typesafeConfigVersion,
+            "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
+            "org.scala-lang" %% "scala3-staging"  % scalaVersion.value
+          )
+        } else {
+          Seq(
+            "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+            "com.typesafe"   % "config"        % typesafeConfigVersion
+          )
+        }
+      },
+      scalacOptions ++= {
+        if (!isScala3.value) {
+          Seq("-language:experimental.macros")
+        } else Nil
+      }
+    )
+  )
+lazy val `jsonMacro` = (project in file("refuel-json-macro"))
+  .dependsOn(container)
+  .settings(asemble, scala3PartialBuild)
+  .settings(
+    name := "refuel-json-macro",
+    description := "Refuel Json Macro for Scala3.",
     Def.settings(
       libraryDependencies ++= {
         if (isScala3.value) {
@@ -165,15 +193,18 @@ lazy val util = (project in file("refuel-util"))
   .settings(
     name := "refuel-util"
   )
-//lazy val json = (project in file("refuel-json"))
-//  .dependsOn(util)
-//  .settings(asemble)
-//  .settings(
-//    name := "refuel-json",
-//    description := "Various classes serializer / deserializer",
-//    Jmh / resourceDirectory := (Compile / resourceDirectory).value,
-//    Compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
-//  )
+lazy val json = (project in file("refuel-json"))
+  .dependsOn(jsonMacro, util)
+  .settings(asemble, scala3PartialBuild)
+  .settings(
+    name := "refuel-json",
+    description := "Various classes serializer / deserializer",
+    scalacOptions ++= Seq(
+      "-Xlog-implicits"
+    ),
+    Jmh / resourceDirectory := (Compile / resourceDirectory).value,
+    Compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+  )
 //  .enablePlugins(JavaAppPackaging, JmhPlugin)
 //lazy val cipher = (project in file("refuel-cipher"))
 //  .dependsOn(json)

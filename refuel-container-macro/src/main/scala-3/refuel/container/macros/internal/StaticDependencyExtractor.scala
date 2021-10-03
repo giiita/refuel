@@ -77,7 +77,6 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
     selfPackages: Vector[q.reflect.Symbol],
     injectableSymbols: Iterable[q.reflect.TypeTree] = None
   ): Iterable[q.reflect.TypeTree] = {
-//    println("\n \n")
     selfPackages.distinct match {
       case x if x.isEmpty => injectableSymbols
       case _ =>
@@ -85,11 +84,8 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
           val decls = self.declarations.distinct
 
           if (decls.exists(isBrokenSymbol)) None else {
-//            println(s"\n \n Self:::: $self")
             decls.collect {
-              // duplicated || blacklist cases
               case x if {
-//                println(s"${x.fullName} ${x}")
                 selfPackages.contains(x)
               } || unloads.contains(x.fullName) =>
                 None -> None

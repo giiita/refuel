@@ -1,25 +1,11 @@
 package refuel.json.tokenize.decoded
 
-import refuel.json.error.IllegalJsonFormat
+import refuel.json.exception.IllegalJsonFormatException
 import refuel.json.tokenize.JsonTokenizer
 
 import scala.annotation.switch
 
 class DecodedJsonTokenizer(rs: Array[Char]) extends JsonTokenizer(rs) {
-  private[this] final def fromEscaping(c: Char): Char = {
-    (c: @switch) match {
-      case 'r'   => '\r'
-      case 'n'   => '\n'
-      case 'f'   => '\f'
-      case 'b'   => '\b'
-      case 't'   => '\t'
-      case '/'   => '/'
-      case '\\'  => '\\'
-      case '"'   => '"'
-      case other => throw new IllegalJsonFormat(s"Illegal json format: \\$other")
-    }
-  }
-
   override protected def encodedLiteralHandle(len: Int): Int = {
     if (pos + 5 <= length && rs(pos + 1) == 'u') {
       incl(6)
@@ -35,6 +21,20 @@ class DecodedJsonTokenizer(rs: Array[Char]) extends JsonTokenizer(rs) {
         incl()
         len + 1
       } else beEOF
+    }
+  }
+
+  private[this] final def fromEscaping(c: Char): Char = {
+    (c: @switch) match {
+      case 'r'   => '\r'
+      case 'n'   => '\n'
+      case 'f'   => '\f'
+      case 'b'   => '\b'
+      case 't'   => '\t'
+      case '/'   => '/'
+      case '\\'  => '\\'
+      case '"'   => '"'
+      case other => throw IllegalJsonFormatException(s"Illegal json format: \\$other")
     }
   }
 }
