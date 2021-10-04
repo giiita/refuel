@@ -46,7 +46,7 @@ At the moment, only refuel-container is supported for Scala3.
 > Rich type class interfaces.<br/>
 > Provides extended functions such as date and time, period, and collection.
 
-## [refuel-json](https://github.com/giiita/refuel/tree/master/refuel-json)
+## [refuel-json](https://github.com/giiita/refuel/tree/master/refuel-json) (Compatible with Scala3)
 
 > You can handle JSON most easily with macro.
 > Even without warming up, the conversion works fast and requires little declaration of serialize / deserialize codecs.

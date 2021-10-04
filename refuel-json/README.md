@@ -5,33 +5,36 @@ libraryDependencies += "com.phylage" %% "refuel-json" % "2.0.0"
 ```
 
 refuel-json automatically generates codec and supports JSON mutual conversion fast and easy.
+https://github.com/yanns/scala-json-parsers-performance
 
 ```
-[info] Benchmark                      Mode  Cnt   Score    Error  Units
+Benchmark                      Mode  Cnt   Score    Error  Units
+Deserialize.runJson4sNative    avgt   10   0.947 ±  0.005  ms/op
+Deserialize.runJson4sJackson   avgt   10   0.814 ±  0.003  ms/op
+Deserialize.runArgonautJson    avgt   10   0.534 ±  0.007  ms/op
+Deserialize.runPlayJson        avgt   10   0.424 ±  0.007  ms/op
+Deserialize.runCirce           avgt   10   0.246 ±  0.002  ms/op
+Deserialize.runSprayJson       avgt   10   0.244 ±  0.002  ms/op
+Deserialize.runRefuelParsing   avgt   10   0.212 ±  0.004  ms/op <=
+Deserialize.runWeePickle       avgt   10   0.149 ±  0.001  ms/op
+Deserialize.runJacksonParsing  avgt   10   0.142 ±  0.001  ms/op
+Deserialize.runUPickle         avgt   10   0.138 ±  0.001  ms/op
+Deserialize.runBorer           avgt   10   0.104 ±  0.001  ms/op
+Deserialize.runJsoniter        avgt   10   0.057 ±  0.001  ms/op
 
-[info] Deserialize.runJson4sNative    avgt   10   1.276 ±  0.021  ms/op
-[info] Deserialize.runPlayJson        avgt   10   1.202 ±  0.017  ms/op
-[info] Deserialize.runJson4sJackson   avgt   10   1.181 ±  0.064  ms/op
-[info] Deserialize.runArgonautJson    avgt   10   0.846 ±  0.029  ms/op
-[info] Deserialize.runRefuelParsing   avgt   10   0.491 ±  0.017  ms/op <<
-[info] Deserialize.runCirce           avgt   10   0.339 ±  0.026  ms/op
-[info] Deserialize.runSphereJson      avgt   10   0.316 ±  0.008  ms/op
-[info] Deserialize.runUJson           avgt   10   0.293 ±  0.004  ms/op
-[info] Deserialize.runSprayJson       avgt   10   0.258 ±  0.004  ms/op
-[info] Deserialize.runJacksonParsing  avgt   10   0.182 ±  0.002  ms/op
-[info] Deserialize.runJsoniter        avgt   10   0.091 ±  0.001  ms/op
-
-[info] Serialize.runJson4sJackson     avgt   10   0.874 ±  0.021  ms/op
-[info] Serialize.runJson4sNative      avgt   10   0.798 ±  0.006  ms/op
-[info] Serialize.runArgonautJson      avgt   10   0.796 ±  0.051  ms/op
-[info] Serialize.runPlayJson          avgt   10   0.614 ±  0.020  ms/op
-[info] Serialize.runCirce             avgt   10   0.425 ±  0.030  ms/op
-[info] Serialize.runSprayJson         avgt   10   0.354 ±  0.006  ms/op
-[info] Serialize.runRefuelParsing     avgt   10   0.263 ±  0.009  ms/op <<
-[info] Serialize.runSphereJson        avgt   10   0.254 ±  0.003  ms/op
-[info] Serialize.runUJson             avgt   10   0.225 ±  0.002  ms/op
-[info] Serialize.runJacksonParsing    avgt   10   0.078 ±  0.001  ms/op
-[info] Serialize.runJsoniter          avgt   10   0.060 ±  0.004  ms/op
+Benchmark                      Mode  Cnt   Score    Error  Units
+Serialize.runJson4sNative      avgt   10   1.054 ±  0.006  ms/op
+Serialize.runJson4sJackson     avgt   10   0.842 ±  0.009  ms/op
+Serialize.runPlayJson          avgt   10   0.544 ±  0.033  ms/op
+Serialize.runArgonautJson      avgt   10   0.362 ±  0.001  ms/op
+Serialize.runRefuelParsing     avgt   10   0.273 ±  0.013  ms/op <=
+Serialize.runCirce             avgt   10   0.236 ±  0.002  ms/op
+Serialize.runSprayJson         avgt   10   0.235 ±  0.061  ms/op
+Serialize.runUPickle           avgt   10   0.144 ±  0.082  ms/op
+Serialize.runBorer             avgt   10   0.107 ±  0.001  ms/op
+Serialize.runWeePickle         avgt   10   0.103 ±  0.012  ms/op
+Serialize.runJacksonParsing    avgt   10   0.063 ±  0.001  ms/op
+Serialize.runJsoniter          avgt   10   0.043 ±  0.001  ms/op
 ```
 
 ## Usage
@@ -39,7 +42,8 @@ refuel-json automatically generates codec and supports JSON mutual conversion fa
 Most Codecs can be auto-derived.
 
 ```scala
-class Test extends JsonTransform {
+import JsonTransform._
+class Test  {
   // A and B codecs do not need to be declared
   jsonString.readAs(Derive[C])
   // Scala3
@@ -78,9 +82,11 @@ trait A {
 // In this case, B_CODEC is used internally.
 s"""{"id": "abcde", "value_number": 123}""".readAs(
   Deserialize[A] { json =>
-    new A {
-      val id = json.named("id").readAs[String]
-      val value = json.named("value_number").readAs[Int]
+    Try {
+      new A {
+        val id = json.named("id").readAs[String]
+        val value = json.named("value_number").readAs[Int]
+      }
     }
   }
 )
@@ -99,142 +105,4 @@ A(StringVal("foo"), LongVal(11)).writeAsString(Derive[A])
 
 // A(StringVal("foo"), LongVal(11))
 """{"str": "foo", "lng": 11}""".readAs(Derive[A])
-```
-
-## Codec build DSL
-
-It is possible to build arbitrary Codec by combining specific Codec.
-
-```
-{
-  "area1": {
-    "parent1": [
-      {
-        "childId": 1,
-        "props": ["xxx", "yyy"]
-      },
-      {
-        "childId": 2,
-        "props": ["aaa"],
-        "ability": ["???"]
-      }
-    ],
-    "parent3": [
-      {
-        "childId": 3,
-        "props": [],
-        "ability": ["???", "???", "???"]
-      },
-      {
-        "childId": 4,
-        "props": ["aaa"],
-      }
-    ]
-  }
-}
-```
-
-```scala
-  val parentsCodec = (
-    option("parent1".parsed(vector(ChildCodec))) ++
-    option("parent1".parsed(vector(ChildCodec))) ++
-    option("parent1".parsed(vector(ChildCodec)))
-  )(Parents.apply)(Parents.unapply)
-
-  val rootCodec = (
-    "area1".parsed(option(parentsCodec)) ++
-    "area2".parsed(option(parentsCodec)) ++
-    "area3".parsed(option(parentsCodec))
-  )(Root.apply)(Root.unapply)
-
-  val wrapExample = "root".extend(rootCodec)
-```
-
-In this way, codecs can be generated according to JsonFormat, domain model, etc.
-
-## Dynamic codec creation
-
-Codec by macro cannot be generated conditional on dynamic values.
-It will be inconvenient to consider polymorphism.
-
-```scala 
-sealed abstract class Animal
-case class Cat(name: String, beard: Int = 6) extends Animal
-case class Shark(name: String, filet: Int = 4) extends Animal
-
-// This cannot be compiled due to the nature of macro expansion
-def animalCodec(v: Animal): Codec[Animal] = v match {
-  case _: Cat   => ContsCodec.from(v.name)(x => Cat(v.name))(x => Some(x))
-  case _: Shark => ContsCodec.from(v.name)(x => Shark(v.name))(x => Some(x))
-}
-```
-
-To work around this, use dynamic codec creation.
-
-```scala
-trait AnimalCodec extends CodecDef {
-  sealed abstract class Animal(name: String)
-  case class Cat(name: String, beard: Int = 6) extends Animal(name)
-  case class Shark(name: String, filet: Int = 4) extends Animal(name)
-  
-  def animalDeserializer: Read[Animal] = Deserialize { json =>
-    json.named("name") match {
-      case JsString("cat") => Cat("cat", json.named("beard").to[Int])
-      case JsString("shark") => Shark("shark", json.named("filet").to[Int])
-    }
-  }
-  def animalSerializer: Write[Animal] = Serialize {
-    case Cat(a, b) => Json.obj(
-      "name" -> a,
-      "beard" -> b
-    )
-    case Shark(a, b) => Json.obj(
-      "name" -> a,
-      "filet" -> b
-    )
-  }
-  implicit def animalCodec: Codec[Animal] = Format(animalDeserializer)(animalSerializer)
-} 
-```
-
-In the case of deserlialize-only codecs, codecs can be synthesized by readMap.
-
-```scala
-Deserialize(_.named("name").des[String]).readMap {
-  case "cat" => Deserialize(_.named("beard").des[Int])
-  case "shark" => Deserialize(_.named("filet").des[Int])
-}
-```
-
-
-Reusing an existing codec and adding a specific json key.
-
-```scala
-val animalCodec: Codec[Animal] = ???
-
-val animalResponseWrites: Write[Animal] = WriteWith[Animal]("result")(animalCodec)
-
-// It will be
-// {
-//   "result": {
-//     ... (animalCodec serialization)
-//   }
-// }
-```
-
-Others are `ReadWith[T: Read]` and `BothWith[T: Codec]`.
-You can also specify a nested key.
-
-```scala
-WriteWith[Animal]("result" @@ "animal")(animalCodec)
-```
-
-```json
-{
-  "result": {
-    "animal": {
-      ...
-    }
-  }
-}
-```
+``````
