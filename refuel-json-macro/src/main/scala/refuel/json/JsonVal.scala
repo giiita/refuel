@@ -189,10 +189,11 @@ object JsonVal {
       * @param js join json objects.
       * @return
       */
-    override def joinUnsafe(js: JsonVal): JsonVal =
+    override def joinUnsafe(js: JsonVal): JsonVal = {
       throw UnexpectedJsonTreeException(
         "Operations other than composition are not allowed for incomplete Json entries."
       )
+    }
 
     /**
       * Get a json value with a specific json key from the json object.
@@ -229,11 +230,19 @@ object JsonVal {
       js match {
         case JsNull | null => this
         case x: JsObject =>
+          val keys = new util.HashSet[JsString]()
           val cloned = new util.LinkedHashMap[JsString, JsonVal]()
-          val keys = bf.keySet()
+          keys.addAll(bf.keySet())
           keys.addAll(x.bf.keySet())
           keys.iterator().forEachRemaining { key =>
-            bf.put(key, bf.getOrDefault(key, JsEmpty) joinUnsafe x.bf.getOrDefault(key, JsEmpty))
+            val prv = Option(bf.get(key))
+            val j = Option(x.bf.get(key))
+            cloned.put(
+              key,
+              if (j.isEmpty) {
+                prv.getOrElse(JsEmpty)
+              } else prv.fold(j.get)(_ joinUnsafe j.get)
+            )
           }
           new JsObject(cloned)
         case JsEmpty => this
@@ -255,7 +264,6 @@ object JsonVal {
     def encode(b: StringBuilder): Unit = {
       b.append('"')
 
-      val HC = JsString.sOutputEscapes128
       val maxIndex     = literal.length - 1
 
       @tailrec
@@ -429,9 +437,6 @@ object JsonVal {
   }
 
   object JsString {
-    def apply(literal: String): JsString      = new JsString(literal)
-    def apply(literal: JsonKeySpec): JsString = new JsString(literal.toString)
-
     private[refuel] final val sOutputEscapes128 = {
       val table = new Array[Int](128)
       for (i <- 0 until 32) {
@@ -446,5 +451,9 @@ object JsonVal {
       table(0x0D) = 'r'
       table
     }
+
+    def apply(literal: String): JsString      = new JsString(literal)
+
+    def apply(literal: JsonKeySpec): JsString = new JsString(literal.toString)
   }
 }
