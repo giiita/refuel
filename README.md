@@ -38,8 +38,6 @@ At the moment, only refuel-container is supported for Scala3.
 > It has a high affinity with DDD and layering. It is also highly flexible and testable, providing strong support for application development and open source library development.
 > 
 > All other refuel modules are based on refuel-container and can be used out-of-the-box.
-> 
-> Translated with www.DeepL.com/Translator (free version)
 
 ## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util) (Compatible with Scala3)
 
