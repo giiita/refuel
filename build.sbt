@@ -4,7 +4,7 @@ import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 lazy val Scala2_13 = "2.13.6"
 lazy val Scala3xx  = "3.0.2"
 
-scalaVersion in Scope.Global := Scala2_13
+scalaVersion in Scope.Global := Scala3xx
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq(Scala2_13)
 

@@ -3,7 +3,7 @@ package refuel.json
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import JsonTransform.*
+import JsonTransform.given
 
 class JsonValTest extends AsyncWordSpec with Matchers with Diagrams {
   "Json AST join" should {
