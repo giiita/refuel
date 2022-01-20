@@ -1,10 +1,11 @@
 package refuel.cipher
 
-import javax.crypto.Cipher
 import refuel.cipher.algorithm.CryptType
 import refuel.cipher.algorithm.CryptType.{AES, RSA}
-import refuel.domination.InjectionPriority.Finally
+import refuel.inject.InjectionPriority.Finally
 import refuel.inject.{AutoInject, Inject}
+
+import javax.crypto.Cipher
 
 trait CipherAlg[T <: CryptType] extends Serializable {
   def mode: String

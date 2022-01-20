@@ -1,7 +1,7 @@
 # refuel-container
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-cipher" % "1.5.2"
+libraryDependencies += "com.phylage" %% "refuel-cipher" % "2.0.2"
 ````
 
 ## Usage
@@ -58,4 +58,13 @@ object Main extends App {
 }
 ```
 
-### RSA 
+### RSA
+
+```scala
+object Main extends App {
+  val keyPair = RSAKeyFactory.generateAuto()
+  println(
+    keyPair.rsaPublicKey.serialize
+  )
+}
+```

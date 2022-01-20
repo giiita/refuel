@@ -1,7 +1,7 @@
 # refuel-container _compatible with Scala3_
 
 ```
-libraryDependencies += "com.phylage" %% "refuel-container" % "2.0.0"
+libraryDependencies += "com.phylage" %% "refuel-container" % "2.0.1"
 ````
 
 ## Features

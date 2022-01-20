@@ -3,8 +3,6 @@ package refuel.cipher
 class HexTranscoder extends BytesTranscoder {
   def encodeToBytes(bytes: Array[Byte]): Array[Byte] = byteToHex(bytes)
 
-  def decodeToBytes(hex: Array[Byte]): Array[Byte] = hexToByte(hex)
-
   /** Convert bytes to hex string.
     *
     * @param bytes Byte array
@@ -18,6 +16,8 @@ class HexTranscoder extends BytesTranscoder {
     }
     buf.toString().getBytes()
   }
+
+  def decodeToBytes(hex: Array[Byte]): Array[Byte] = hexToByte(hex)
 
   /** Convert hex string to byte array.
     *

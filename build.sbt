@@ -1,10 +1,11 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val Scala2_13 = "2.13.6"
-lazy val Scala3xx  = "3.0.2"
+lazy val Scala2_13 = "2.13.8"
+lazy val Scala3_0  = "3.0.2"
+lazy val Scala3_1  = "3.1.0"
 
-scalaVersion in Scope.Global := Scala3xx
+scalaVersion in Scope.Global := Scala3_0
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq(Scala2_13)
 
@@ -22,7 +23,7 @@ lazy val scalaLoggingVersion   = "3.9.2"
 lazy val typesafeConfigVersion = "1.4.1"
 
 lazy val scala3PartialBuild = Def.settings(
-  crossScalaVersions := Seq(Scala2_13, Scala3xx),
+  crossScalaVersions := Seq(Scala2_13, Scala3_0, Scala3_1),
   libraryDependencies ++= Seq("org.scalatest" %% "scalatest" % "3.2.9" % Test) ++ {
       CrossVersion
         .partialVersion(scalaVersion.value) match {
@@ -94,9 +95,9 @@ lazy val root = project
     util,
     jsonMacro,
     json,
+    cipher,
     //    http,
     //    auth,
-    //    cipher,
     //    oauth,
     //    root_interfaces,
     //    interfaces_impl,
@@ -203,18 +204,16 @@ lazy val json = (project in file("refuel-json"))
       "-Xlog-implicits"
     ),
     Jmh / resourceDirectory := (Compile / resourceDirectory).value,
-    Compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
   )
-//  .enablePlugins(JavaAppPackaging, JmhPlugin)
-//lazy val cipher = (project in file("refuel-cipher"))
-//  .dependsOn(json)
-//  .settings(asemble)
-//  .settings(
-//    name := "refuel-cipher",
-//    description := "Cipher module for Scala.",
-//    Test / unmanagedClasspath ++= (Compile / unmanagedResources).value
-//  )
-//  .enablePlugins(JavaAppPackaging)
+lazy val cipher = (project in file("refuel-cipher"))
+  .dependsOn(json)
+  .settings(asemble, scala3PartialBuild)
+  .settings(
+    name := "refuel-cipher",
+    description := "Cipher module for Scala.",
+    Test / unmanagedClasspath ++= (Compile / unmanagedResources).value
+  )
+  .enablePlugins(JavaAppPackaging)
 //lazy val http = (project in file("refuel-http"))
 //  .dependsOn(json)
 //  .settings(asemble)

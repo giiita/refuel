@@ -3,7 +3,7 @@ package refuel.cipher
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import refuel.injector.Injector
+import refuel.inject.Injector
 
 class HexTranscoderTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
   val plain     = "和えrbぱえrぼあけろhkまえおf、^=#,"

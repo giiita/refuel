@@ -1,13 +1,14 @@
 package refuel.cipher.aes
 
-import javax.crypto.IllegalBlockSizeException
 import org.scalatest.diagrams.Diagrams
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.cipher.CipherAlg.AES_GCM_NoPadding
 import refuel.cipher.algorithm.CryptType.AES
 import refuel.cipher.{CipherAlg, CryptographyConverter}
-import refuel.injector.Injector
+import refuel.inject.Injector
+
+import javax.crypto.IllegalBlockSizeException
 
 class AESCipherTest extends AsyncWordSpec with Matchers with Diagrams with Injector {
 

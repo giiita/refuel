@@ -14,11 +14,11 @@
 
 [![Latest version of json](https://index.scala-lang.org/giiita/refuel/refuel-json/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-json)
 
+[![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
+
 [![Latest version of http](https://index.scala-lang.org/giiita/refuel/refuel-http/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-http)
 
 [![Latest version of auth](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-auth-provider)
-
-[![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-cipher/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-cipher)
 
 [![Latest version of cipher](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider/latest.svg)](https://index.scala-lang.org/giiita/refuel/refuel-oauth-provider)
 
@@ -30,7 +30,7 @@ At the moment, only refuel-container is supported for Scala3.
 </p>
 
 
-## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container) (Compatible with Scala3)
+## [refuel-container](https://github.com/giiita/refuel/tree/master/refuel-container)
 
 > Powerful DI framework with macros.
 > 
@@ -39,31 +39,31 @@ At the moment, only refuel-container is supported for Scala3.
 > 
 > All other refuel modules are based on refuel-container and can be used out-of-the-box.
 
-## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util) (Compatible with Scala3)
+## [refuel-util](https://github.com/giiita/refuel/tree/master/refuel-util)
 
 > Rich type class interfaces.<br/>
 > Provides extended functions such as date and time, period, and collection.
 
-## [refuel-json](https://github.com/giiita/refuel/tree/master/refuel-json) (Compatible with Scala3)
-
-> You can handle JSON most easily with macro.
-> Even without warming up, the conversion works fast and requires little declaration of serialize / deserialize codecs.
-
-## [refuel-http](https://github.com/giiita/refuel/tree/master/refuel-http)
-
-> Http server client with Akka-HTTP.<br/>
-> In future, we plan to implement test stub control by dependency injection..<br/>
-
-## [refuel-auth-provider](https://github.com/giiita/refuel/tree/master/refuel-auth-provider)
+## [refuel-json](https://github.com/giiita/refuel/tree/master/refuel-json)
 
 > Can use a SAML service provider that supports akka http.<br/>
 > At this time, there is no Identity provider feature available.<br/>
 
 ## [refuel-cipher](https://github.com/giiita/refuel/tree/master/refuel-cipher)
 
+> You can handle JSON most easily with macro.
+> Even without warming up, the conversion works fast and requires little declaration of serialize / deserialize codecs.
+
+## [refuel-http](https://github.com/giiita/refuel/tree/master/refuel-http) (Unsupported Scala3)
+
+> Http server client with Akka-HTTP.<br/>
+> In future, we plan to implement test stub control by dependency injection..<br/>
+
+## [refuel-auth-provider](https://github.com/giiita/refuel/tree/master/refuel-auth-provider) (Unsupported Scala3)
+
 > The wrapper library that supports the interconversion of RSA / AES encryption methods.
 
-## [refuel-oauth-provider](https://github.com/giiita/refuel/tree/master/refuel-oauth-provider)
+## [refuel-oauth-provider](https://github.com/giiita/refuel/tree/master/refuel-oauth-provider) (Unsupported Scala3)
 
 > Supports building an OAuth authorization server for Akka HTTP.
 >

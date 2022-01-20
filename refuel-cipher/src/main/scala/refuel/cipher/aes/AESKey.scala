@@ -1,21 +1,27 @@
 package refuel.cipher.aes
 
+import com.typesafe.config.{Config, ConfigFactory}
+import refuel.cipher.KeyBundle
+import refuel.inject.InjectionPriority.Finally
+import refuel.inject.{AutoInject, Inject}
+
 import java.security.Key
 import java.security.spec.AlgorithmParameterSpec
 import java.util.Base64
-import com.typesafe.config.{Config, ConfigFactory}
-
 import javax.crypto.spec.{GCMParameterSpec, IvParameterSpec, SecretKeySpec}
-import refuel.cipher.rsa.KEY
-import refuel.domination.InjectionPriority.Finally
-import refuel.inject.{AutoInject, Inject}
-
+import javax.crypto.{Cipher, KeyGenerator}
 import scala.util.Try
 
-case class AESKey(key: Key, paramSpec: Option[AlgorithmParameterSpec]) extends KEY { me =>
+case class AESKey(key: Key, paramSpec: Option[AlgorithmParameterSpec]) extends KeyBundle { me =>
   def withIvParamSpec(_iv: IvParameterSpec): AESKey   = copy(paramSpec = Some(_iv))
   def withGCMParamSpec(gcm: GCMParameterSpec): AESKey = copy(paramSpec = Some(gcm))
 
+  override def encryptionInitiate(cipher: Cipher): Unit = {
+    paramSpec.fold(cipher.init(Cipher.ENCRYPT_MODE, key))(cipher.init(Cipher.ENCRYPT_MODE, key, _))
+  }
+  override def decryptionInitiate(cipher: Cipher): Unit = {
+    paramSpec.fold(cipher.init(Cipher.DECRYPT_MODE, key))(cipher.init(Cipher.DECRYPT_MODE, key, _))
+  }
   override def serialize: String =
     s"KEY: ${new String(Base64.getEncoder.encode(key.getEncoded))}\nSPEC: ${paramSpec
       .map {
@@ -26,7 +32,6 @@ case class AESKey(key: Key, paramSpec: Option[AlgorithmParameterSpec]) extends K
 }
 
 object AESKey {
-
   private[this] lazy final val KeyPath: String = "cipher.aes.key"
 
   private[this] lazy final val IvPath: String = "cipher.aes.iv"

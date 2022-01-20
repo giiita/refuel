@@ -5,7 +5,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import refuel.cipher.CryptographyConverter
 import refuel.cipher.algorithm.CryptType.RSA
-import refuel.injector.Injector
+import refuel.inject.Injector
 
 import scala.util.Try
 
