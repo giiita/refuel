@@ -160,16 +160,28 @@ object StaticDependencyExtractor {
     try {
       if (value.isModule) {
         c.typecheck(
-            c.parse(
-              value.fullName.replaceAll("(.+)\\$(.+)", "$1#$2")
-            ),
-            silent = true
-          )
+          c.parse(
+            value.fullName.replaceAll("(.+)\\$(.+)", "$1#$2")
+          ),
+          silent = true
+        )
           .nonEmpty
       } else {
+        val params = value.typeSignature.typeParams.map { x =>
+          x.typeSignature.typeParams
+        }
         c.typecheck(
             tree = c.parse(
-              s"type `${c.freshName()}` = ${value.fullName.replaceAll("(.+)\\$(.+)", "$1.$2")}"
+              s"type `${c.freshName()}`${
+                val args = params.zipWithIndex.map {
+                  case (p, i) if p.isEmpty => s"T$i"
+                  case (p, i) => s"T$i[${p.map(_ => "_").mkString(",")}]"
+                }.mkString(",")
+                if (args.isEmpty) "" else s"[$args]"
+              } = ${value.fullName.replaceAll("(.+)\\$(.+)", "$1.$2")}${
+                val binds = params.zipWithIndex.map { case (_, i) => s"T$i" }.mkString(",")
+                if (binds.isEmpty) "" else s"[${binds}]"
+              }"
             ),
             silent = true
           )

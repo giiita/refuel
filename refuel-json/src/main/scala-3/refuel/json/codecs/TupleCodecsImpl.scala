@@ -53,309 +53,1238 @@ private[refuel] trait TupleCodecsImpl {
     )
   }
 
-  given __tuple2[A, B, CP[_]: CodecTypeProjection](using a: CP[A], b: CP[B]): CP[(A, B)] = tup[(A, B), CP]
-  given __tuple3[A, B, C, CP[_]: CodecTypeProjection](using a: CP[A], b: CP[B], c: CP[C]): CP[(A, B, C)] = tup[(A, B, C), CP]
-  given __tuple4[A, B, C, D, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D]
-  ): CP[(A, B, C, D)] = tup[(A, B, C, D), CP]
+//  given __tuple2[A, B, CP[_] : CodecTypeProjection](using a: CP[A], b: CP[B]): CP[(A, B)] = tup[(A, B), CP]
+//  given __tuple3[A, B, C, CP[_]: CodecTypeProjection](using a: CP[A], b: CP[B], c: CP[C]): CP[(A, B, C)] = tup[(A, B, C), CP]
+//  given __tuple4[A, B, C, D, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D]
+//  ): CP[(A, B, C, D)] = tup[(A, B, C, D), CP]
+//
+//  given __tuple5[A, B, C, D, E, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E]
+//  ): CP[(A, B, C, D, E)] = tup[(A, B, C, D, E), CP]
+//
+//  given __tuple6[A, B, C, D, E, F, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F]
+//  ): CP[(A, B, C, D, E, F)] = tup[(A, B, C, D, E, F), CP]
+//
+//  given __tuple7[A, B, C, D, E, F, G, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G]
+//  ): CP[(A, B, C, D, E, F, G)] = tup[(A, B, C, D, E, F, G), CP]
+//
+//  given __tuple8[A, B, C, D, E, F, G, H, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H]
+//  ): CP[(A, B, C, D, E, F, G, H)] = tup[(A, B, C, D, E, F, G, H), CP]
+//
+//  given __tuple9[A, B, C, D, E, F, G, H, I, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I]
+//  ): CP[(A, B, C, D, E, F, G, H, I)] = tup[(A, B, C, D, E, F, G, H, I), CP]
+//
+//  given __tuple10[A, B, C, D, E, F, G, H, I, J, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J)] = tup[(A, B, C, D, E, F, G, H, I, J), CP]
+//
+//  given __tuple11[A, B, C, D, E, F, G, H, I, J, K, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K)] = tup[(A, B, C, D, E, F, G, H, I, J, K), CP]
+//
+//  given __tuple12[A, B, C, D, E, F, G, H, I, J, K, L, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L), CP]
+//
+//  given __tuple13[A, B, C, D, E, F, G, H, I, J, K, L, M, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M), CP]
+//
+//  given __tuple14[A, B, C, D, E, F, G, H, I, J, K, L, M, N, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), CP]
+//
+//  given __tuple15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), CP]
+//
+//  given __tuple16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), CP]
+//
+//  given __tuple17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), CP]
+//
+//  given __tuple18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q],
+//      r: CP[R]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), CP]
+//
+//  given __tuple19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q],
+//      r: CP[R],
+//      s: CP[S]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), CP]
+//
+//  given __tuple20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q],
+//      r: CP[R],
+//      s: CP[S],
+//      t: CP[T]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), CP]
+//
+//  given __tuple21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q],
+//      r: CP[R],
+//      s: CP[S],
+//      t: CP[T],
+//      u: CP[U]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), CP]
+//
+//  given __tuple22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, CP[_]: CodecTypeProjection](
+//      using a: CP[A],
+//      b: CP[B],
+//      c: CP[C],
+//      d: CP[D],
+//      e: CP[E],
+//      f: CP[F],
+//      g: CP[G],
+//      h: CP[H],
+//      i: CP[I],
+//      j: CP[J],
+//      k: CP[K],
+//      l: CP[L],
+//      m: CP[M],
+//      n: CP[N],
+//      o: CP[O],
+//      p: CP[P],
+//      q: CP[Q],
+//      r: CP[R],
+//      s: CP[S],
+//      t: CP[T],
+//      u: CP[U],
+//      v: CP[V]
+//  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V), CP]
+  
+  // Codec
+  given __tuple2Export[A, B](using a: Codec[A], b: Codec[B]): Codec[(A, B)] = tup[(A, B), Codec]
 
-  given __tuple5[A, B, C, D, E, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E]
-  ): CP[(A, B, C, D, E)] = tup[(A, B, C, D, E), CP]
+  given __tuple3Export[A, B, C](using a: Codec[A], b: Codec[B], c: Codec[C]): Codec[(A, B, C)] = tup[(A, B, C), Codec]
 
-  given __tuple6[A, B, C, D, E, F, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F]
-  ): CP[(A, B, C, D, E, F)] = tup[(A, B, C, D, E, F), CP]
+  given __tuple4Export[A, B, C, D](
+                                                           using a: Codec[A],
+                                                           b: Codec[B],
+                                                           c: Codec[C],
+                                                           d: Codec[D]
+                                                         ): Codec[(A, B, C, D)] = tup[(A, B, C, D), Codec]
 
-  given __tuple7[A, B, C, D, E, F, G, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G]
-  ): CP[(A, B, C, D, E, F, G)] = tup[(A, B, C, D, E, F, G), CP]
+  given __tuple5Export[A, B, C, D, E](
+                                                              using a: Codec[A],
+                                                              b: Codec[B],
+                                                              c: Codec[C],
+                                                              d: Codec[D],
+                                                              e: Codec[E]
+                                                            ): Codec[(A, B, C, D, E)] = tup[(A, B, C, D, E), Codec]
 
-  given __tuple8[A, B, C, D, E, F, G, H, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H]
-  ): CP[(A, B, C, D, E, F, G, H)] = tup[(A, B, C, D, E, F, G, H), CP]
+  given __tuple6Export[A, B, C, D, E, F](
+                                                                 using a: Codec[A],
+                                                                 b: Codec[B],
+                                                                 c: Codec[C],
+                                                                 d: Codec[D],
+                                                                 e: Codec[E],
+                                                                 f: Codec[F]
+                                                               ): Codec[(A, B, C, D, E, F)] = tup[(A, B, C, D, E, F), Codec]
 
-  given __tuple9[A, B, C, D, E, F, G, H, I, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I]
-  ): CP[(A, B, C, D, E, F, G, H, I)] = tup[(A, B, C, D, E, F, G, H, I), CP]
+  given __tuple7Export[A, B, C, D, E, F, G](
+                                                                    using a: Codec[A],
+                                                                    b: Codec[B],
+                                                                    c: Codec[C],
+                                                                    d: Codec[D],
+                                                                    e: Codec[E],
+                                                                    f: Codec[F],
+                                                                    g: Codec[G]
+                                                                  ): Codec[(A, B, C, D, E, F, G)] = tup[(A, B, C, D, E, F, G), Codec]
 
-  given __tuple10[A, B, C, D, E, F, G, H, I, J, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J]
-  ): CP[(A, B, C, D, E, F, G, H, I, J)] = tup[(A, B, C, D, E, F, G, H, I, J), CP]
+  given __tuple8Export[A, B, C, D, E, F, G, H](
+                                                                       using a: Codec[A],
+                                                                       b: Codec[B],
+                                                                       c: Codec[C],
+                                                                       d: Codec[D],
+                                                                       e: Codec[E],
+                                                                       f: Codec[F],
+                                                                       g: Codec[G],
+                                                                       h: Codec[H]
+                                                                     ): Codec[(A, B, C, D, E, F, G, H)] = tup[(A, B, C, D, E, F, G, H), Codec]
 
-  given __tuple11[A, B, C, D, E, F, G, H, I, J, K, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K)] = tup[(A, B, C, D, E, F, G, H, I, J, K), CP]
+  given __tuple9Export[A, B, C, D, E, F, G, H, I](
+                                                                          using a: Codec[A],
+                                                                          b: Codec[B],
+                                                                          c: Codec[C],
+                                                                          d: Codec[D],
+                                                                          e: Codec[E],
+                                                                          f: Codec[F],
+                                                                          g: Codec[G],
+                                                                          h: Codec[H],
+                                                                          i: Codec[I]
+                                                                        ): Codec[(A, B, C, D, E, F, G, H, I)] = tup[(A, B, C, D, E, F, G, H, I), Codec]
 
-  given __tuple12[A, B, C, D, E, F, G, H, I, J, K, L, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L), CP]
+  given __tuple10Export[A, B, C, D, E, F, G, H, I, J](
+                                                                              using a: Codec[A],
+                                                                              b: Codec[B],
+                                                                              c: Codec[C],
+                                                                              d: Codec[D],
+                                                                              e: Codec[E],
+                                                                              f: Codec[F],
+                                                                              g: Codec[G],
+                                                                              h: Codec[H],
+                                                                              i: Codec[I],
+                                                                              j: Codec[J]
+                                                                            ): Codec[(A, B, C, D, E, F, G, H, I, J)] = tup[(A, B, C, D, E, F, G, H, I, J), Codec]
 
-  given __tuple13[A, B, C, D, E, F, G, H, I, J, K, L, M, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M), CP]
+  given __tuple11Export[A, B, C, D, E, F, G, H, I, J, K](
+                                                                                 using a: Codec[A],
+                                                                                 b: Codec[B],
+                                                                                 c: Codec[C],
+                                                                                 d: Codec[D],
+                                                                                 e: Codec[E],
+                                                                                 f: Codec[F],
+                                                                                 g: Codec[G],
+                                                                                 h: Codec[H],
+                                                                                 i: Codec[I],
+                                                                                 j: Codec[J],
+                                                                                 k: Codec[K]
+                                                                               ): Codec[(A, B, C, D, E, F, G, H, I, J, K)] = tup[(A, B, C, D, E, F, G, H, I, J, K), Codec]
 
-  given __tuple14[A, B, C, D, E, F, G, H, I, J, K, L, M, N, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), CP]
+  given __tuple12Export[A, B, C, D, E, F, G, H, I, J, K, L](
+                                                                                    using a: Codec[A],
+                                                                                    b: Codec[B],
+                                                                                    c: Codec[C],
+                                                                                    d: Codec[D],
+                                                                                    e: Codec[E],
+                                                                                    f: Codec[F],
+                                                                                    g: Codec[G],
+                                                                                    h: Codec[H],
+                                                                                    i: Codec[I],
+                                                                                    j: Codec[J],
+                                                                                    k: Codec[K],
+                                                                                    l: Codec[L]
+                                                                                  ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L), Codec]
 
-  given __tuple15[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), CP]
+  given __tuple13Export[A, B, C, D, E, F, G, H, I, J, K, L, M](
+                                                                                       using a: Codec[A],
+                                                                                       b: Codec[B],
+                                                                                       c: Codec[C],
+                                                                                       d: Codec[D],
+                                                                                       e: Codec[E],
+                                                                                       f: Codec[F],
+                                                                                       g: Codec[G],
+                                                                                       h: Codec[H],
+                                                                                       i: Codec[I],
+                                                                                       j: Codec[J],
+                                                                                       k: Codec[K],
+                                                                                       l: Codec[L],
+                                                                                       m: Codec[M]
+                                                                                     ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M), Codec]
 
-  given __tuple16[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), CP]
+  given __tuple14Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
+                                                                                          using a: Codec[A],
+                                                                                          b: Codec[B],
+                                                                                          c: Codec[C],
+                                                                                          d: Codec[D],
+                                                                                          e: Codec[E],
+                                                                                          f: Codec[F],
+                                                                                          g: Codec[G],
+                                                                                          h: Codec[H],
+                                                                                          i: Codec[I],
+                                                                                          j: Codec[J],
+                                                                                          k: Codec[K],
+                                                                                          l: Codec[L],
+                                                                                          m: Codec[M],
+                                                                                          n: Codec[N]
+                                                                                        ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Codec]
 
-  given __tuple17[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), CP]
+  given __tuple15Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
+                                                                                             using a: Codec[A],
+                                                                                             b: Codec[B],
+                                                                                             c: Codec[C],
+                                                                                             d: Codec[D],
+                                                                                             e: Codec[E],
+                                                                                             f: Codec[F],
+                                                                                             g: Codec[G],
+                                                                                             h: Codec[H],
+                                                                                             i: Codec[I],
+                                                                                             j: Codec[J],
+                                                                                             k: Codec[K],
+                                                                                             l: Codec[L],
+                                                                                             m: Codec[M],
+                                                                                             n: Codec[N],
+                                                                                             o: Codec[O]
+                                                                                           ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), Codec]
 
-  given __tuple18[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q],
-      r: CP[R]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), CP]
+  given __tuple16Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
+                                                                                                using a: Codec[A],
+                                                                                                b: Codec[B],
+                                                                                                c: Codec[C],
+                                                                                                d: Codec[D],
+                                                                                                e: Codec[E],
+                                                                                                f: Codec[F],
+                                                                                                g: Codec[G],
+                                                                                                h: Codec[H],
+                                                                                                i: Codec[I],
+                                                                                                j: Codec[J],
+                                                                                                k: Codec[K],
+                                                                                                l: Codec[L],
+                                                                                                m: Codec[M],
+                                                                                                n: Codec[N],
+                                                                                                o: Codec[O],
+                                                                                                p: Codec[P]
+                                                                                              ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), Codec]
 
-  given __tuple19[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q],
-      r: CP[R],
-      s: CP[S]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), CP]
+  given __tuple17Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
+                                                                                                   using a: Codec[A],
+                                                                                                   b: Codec[B],
+                                                                                                   c: Codec[C],
+                                                                                                   d: Codec[D],
+                                                                                                   e: Codec[E],
+                                                                                                   f: Codec[F],
+                                                                                                   g: Codec[G],
+                                                                                                   h: Codec[H],
+                                                                                                   i: Codec[I],
+                                                                                                   j: Codec[J],
+                                                                                                   k: Codec[K],
+                                                                                                   l: Codec[L],
+                                                                                                   m: Codec[M],
+                                                                                                   n: Codec[N],
+                                                                                                   o: Codec[O],
+                                                                                                   p: Codec[P],
+                                                                                                   q: Codec[Q]
+                                                                                                 ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), Codec]
 
-  given __tuple20[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q],
-      r: CP[R],
-      s: CP[S],
-      t: CP[T]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), CP]
+  given __tuple18Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](
+                                                                                                      using a: Codec[A],
+                                                                                                      b: Codec[B],
+                                                                                                      c: Codec[C],
+                                                                                                      d: Codec[D],
+                                                                                                      e: Codec[E],
+                                                                                                      f: Codec[F],
+                                                                                                      g: Codec[G],
+                                                                                                      h: Codec[H],
+                                                                                                      i: Codec[I],
+                                                                                                      j: Codec[J],
+                                                                                                      k: Codec[K],
+                                                                                                      l: Codec[L],
+                                                                                                      m: Codec[M],
+                                                                                                      n: Codec[N],
+                                                                                                      o: Codec[O],
+                                                                                                      p: Codec[P],
+                                                                                                      q: Codec[Q],
+                                                                                                      r: Codec[R]
+                                                                                                    ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), Codec]
 
-  given __tuple21[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q],
-      r: CP[R],
-      s: CP[S],
-      t: CP[T],
-      u: CP[U]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), CP]
+  given __tuple19Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](
+                                                                                                         using a: Codec[A],
+                                                                                                         b: Codec[B],
+                                                                                                         c: Codec[C],
+                                                                                                         d: Codec[D],
+                                                                                                         e: Codec[E],
+                                                                                                         f: Codec[F],
+                                                                                                         g: Codec[G],
+                                                                                                         h: Codec[H],
+                                                                                                         i: Codec[I],
+                                                                                                         j: Codec[J],
+                                                                                                         k: Codec[K],
+                                                                                                         l: Codec[L],
+                                                                                                         m: Codec[M],
+                                                                                                         n: Codec[N],
+                                                                                                         o: Codec[O],
+                                                                                                         p: Codec[P],
+                                                                                                         q: Codec[Q],
+                                                                                                         r: Codec[R],
+                                                                                                         s: Codec[S]
+                                                                                                       ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), Codec]
 
-  given __tuple22[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, CP[_]: CodecTypeProjection](
-      using a: CP[A],
-      b: CP[B],
-      c: CP[C],
-      d: CP[D],
-      e: CP[E],
-      f: CP[F],
-      g: CP[G],
-      h: CP[H],
-      i: CP[I],
-      j: CP[J],
-      k: CP[K],
-      l: CP[L],
-      m: CP[M],
-      n: CP[N],
-      o: CP[O],
-      p: CP[P],
-      q: CP[Q],
-      r: CP[R],
-      s: CP[S],
-      t: CP[T],
-      u: CP[U],
-      v: CP[V]
-  ): CP[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V), CP]
+  given __tuple20Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](
+                                                                                                            using a: Codec[A],
+                                                                                                            b: Codec[B],
+                                                                                                            c: Codec[C],
+                                                                                                            d: Codec[D],
+                                                                                                            e: Codec[E],
+                                                                                                            f: Codec[F],
+                                                                                                            g: Codec[G],
+                                                                                                            h: Codec[H],
+                                                                                                            i: Codec[I],
+                                                                                                            j: Codec[J],
+                                                                                                            k: Codec[K],
+                                                                                                            l: Codec[L],
+                                                                                                            m: Codec[M],
+                                                                                                            n: Codec[N],
+                                                                                                            o: Codec[O],
+                                                                                                            p: Codec[P],
+                                                                                                            q: Codec[Q],
+                                                                                                            r: Codec[R],
+                                                                                                            s: Codec[S],
+                                                                                                            t: Codec[T]
+                                                                                                          ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), Codec]
+
+  given __tuple21Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](
+                                                                                                               using a: Codec[A],
+                                                                                                               b: Codec[B],
+                                                                                                               c: Codec[C],
+                                                                                                               d: Codec[D],
+                                                                                                               e: Codec[E],
+                                                                                                               f: Codec[F],
+                                                                                                               g: Codec[G],
+                                                                                                               h: Codec[H],
+                                                                                                               i: Codec[I],
+                                                                                                               j: Codec[J],
+                                                                                                               k: Codec[K],
+                                                                                                               l: Codec[L],
+                                                                                                               m: Codec[M],
+                                                                                                               n: Codec[N],
+                                                                                                               o: Codec[O],
+                                                                                                               p: Codec[P],
+                                                                                                               q: Codec[Q],
+                                                                                                               r: Codec[R],
+                                                                                                               s: Codec[S],
+                                                                                                               t: Codec[T],
+                                                                                                               u: Codec[U]
+                                                                                                             ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), Codec]
+
+  given __tuple22Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](
+                                                                                                                  using a: Codec[A],
+                                                                                                                  b: Codec[B],
+                                                                                                                  c: Codec[C],
+                                                                                                                  d: Codec[D],
+                                                                                                                  e: Codec[E],
+                                                                                                                  f: Codec[F],
+                                                                                                                  g: Codec[G],
+                                                                                                                  h: Codec[H],
+                                                                                                                  i: Codec[I],
+                                                                                                                  j: Codec[J],
+                                                                                                                  k: Codec[K],
+                                                                                                                  l: Codec[L],
+                                                                                                                  m: Codec[M],
+                                                                                                                  n: Codec[N],
+                                                                                                                  o: Codec[O],
+                                                                                                                  p: Codec[P],
+                                                                                                                  q: Codec[Q],
+                                                                                                                  r: Codec[R],
+                                                                                                                  s: Codec[S],
+                                                                                                                  t: Codec[T],
+                                                                                                                  u: Codec[U],
+                                                                                                                  v: Codec[V]
+                                                                                                                ): Codec[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V), Codec]
+
+
+  // Read
+  given __tuple2Export[A, B](using a: Read[A], b: Read[B]): Read[(A, B)] = tup[(A, B), Read]
+
+  given __tuple3Export[A, B, C](using a: Read[A], b: Read[B], c: Read[C]): Read[(A, B, C)] = tup[(A, B, C), Read]
+
+  given __tuple4Export[A, B, C, D](
+                              using a: Read[A],
+                              b: Read[B],
+                              c: Read[C],
+                              d: Read[D]
+                            ): Read[(A, B, C, D)] = tup[(A, B, C, D), Read]
+
+  given __tuple5Export[A, B, C, D, E](
+                                 using a: Read[A],
+                                 b: Read[B],
+                                 c: Read[C],
+                                 d: Read[D],
+                                 e: Read[E]
+                               ): Read[(A, B, C, D, E)] = tup[(A, B, C, D, E), Read]
+
+  given __tuple6Export[A, B, C, D, E, F](
+                                    using a: Read[A],
+                                    b: Read[B],
+                                    c: Read[C],
+                                    d: Read[D],
+                                    e: Read[E],
+                                    f: Read[F]
+                                  ): Read[(A, B, C, D, E, F)] = tup[(A, B, C, D, E, F), Read]
+
+  given __tuple7Export[A, B, C, D, E, F, G](
+                                       using a: Read[A],
+                                       b: Read[B],
+                                       c: Read[C],
+                                       d: Read[D],
+                                       e: Read[E],
+                                       f: Read[F],
+                                       g: Read[G]
+                                     ): Read[(A, B, C, D, E, F, G)] = tup[(A, B, C, D, E, F, G), Read]
+
+  given __tuple8Export[A, B, C, D, E, F, G, H](
+                                          using a: Read[A],
+                                          b: Read[B],
+                                          c: Read[C],
+                                          d: Read[D],
+                                          e: Read[E],
+                                          f: Read[F],
+                                          g: Read[G],
+                                          h: Read[H]
+                                        ): Read[(A, B, C, D, E, F, G, H)] = tup[(A, B, C, D, E, F, G, H), Read]
+
+  given __tuple9Export[A, B, C, D, E, F, G, H, I](
+                                             using a: Read[A],
+                                             b: Read[B],
+                                             c: Read[C],
+                                             d: Read[D],
+                                             e: Read[E],
+                                             f: Read[F],
+                                             g: Read[G],
+                                             h: Read[H],
+                                             i: Read[I]
+                                           ): Read[(A, B, C, D, E, F, G, H, I)] = tup[(A, B, C, D, E, F, G, H, I), Read]
+
+  given __tuple10Export[A, B, C, D, E, F, G, H, I, J](
+                                                 using a: Read[A],
+                                                 b: Read[B],
+                                                 c: Read[C],
+                                                 d: Read[D],
+                                                 e: Read[E],
+                                                 f: Read[F],
+                                                 g: Read[G],
+                                                 h: Read[H],
+                                                 i: Read[I],
+                                                 j: Read[J]
+                                               ): Read[(A, B, C, D, E, F, G, H, I, J)] = tup[(A, B, C, D, E, F, G, H, I, J), Read]
+
+  given __tuple11Export[A, B, C, D, E, F, G, H, I, J, K](
+                                                    using a: Read[A],
+                                                    b: Read[B],
+                                                    c: Read[C],
+                                                    d: Read[D],
+                                                    e: Read[E],
+                                                    f: Read[F],
+                                                    g: Read[G],
+                                                    h: Read[H],
+                                                    i: Read[I],
+                                                    j: Read[J],
+                                                    k: Read[K]
+                                                  ): Read[(A, B, C, D, E, F, G, H, I, J, K)] = tup[(A, B, C, D, E, F, G, H, I, J, K), Read]
+
+  given __tuple12Export[A, B, C, D, E, F, G, H, I, J, K, L](
+                                                       using a: Read[A],
+                                                       b: Read[B],
+                                                       c: Read[C],
+                                                       d: Read[D],
+                                                       e: Read[E],
+                                                       f: Read[F],
+                                                       g: Read[G],
+                                                       h: Read[H],
+                                                       i: Read[I],
+                                                       j: Read[J],
+                                                       k: Read[K],
+                                                       l: Read[L]
+                                                     ): Read[(A, B, C, D, E, F, G, H, I, J, K, L)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L), Read]
+
+  given __tuple13Export[A, B, C, D, E, F, G, H, I, J, K, L, M](
+                                                          using a: Read[A],
+                                                          b: Read[B],
+                                                          c: Read[C],
+                                                          d: Read[D],
+                                                          e: Read[E],
+                                                          f: Read[F],
+                                                          g: Read[G],
+                                                          h: Read[H],
+                                                          i: Read[I],
+                                                          j: Read[J],
+                                                          k: Read[K],
+                                                          l: Read[L],
+                                                          m: Read[M]
+                                                        ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M), Read]
+
+  given __tuple14Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
+                                                             using a: Read[A],
+                                                             b: Read[B],
+                                                             c: Read[C],
+                                                             d: Read[D],
+                                                             e: Read[E],
+                                                             f: Read[F],
+                                                             g: Read[G],
+                                                             h: Read[H],
+                                                             i: Read[I],
+                                                             j: Read[J],
+                                                             k: Read[K],
+                                                             l: Read[L],
+                                                             m: Read[M],
+                                                             n: Read[N]
+                                                           ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Read]
+
+  given __tuple15Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
+                                                                using a: Read[A],
+                                                                b: Read[B],
+                                                                c: Read[C],
+                                                                d: Read[D],
+                                                                e: Read[E],
+                                                                f: Read[F],
+                                                                g: Read[G],
+                                                                h: Read[H],
+                                                                i: Read[I],
+                                                                j: Read[J],
+                                                                k: Read[K],
+                                                                l: Read[L],
+                                                                m: Read[M],
+                                                                n: Read[N],
+                                                                o: Read[O]
+                                                              ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), Read]
+
+  given __tuple16Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
+                                                                   using a: Read[A],
+                                                                   b: Read[B],
+                                                                   c: Read[C],
+                                                                   d: Read[D],
+                                                                   e: Read[E],
+                                                                   f: Read[F],
+                                                                   g: Read[G],
+                                                                   h: Read[H],
+                                                                   i: Read[I],
+                                                                   j: Read[J],
+                                                                   k: Read[K],
+                                                                   l: Read[L],
+                                                                   m: Read[M],
+                                                                   n: Read[N],
+                                                                   o: Read[O],
+                                                                   p: Read[P]
+                                                                 ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), Read]
+
+  given __tuple17Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
+                                                                      using a: Read[A],
+                                                                      b: Read[B],
+                                                                      c: Read[C],
+                                                                      d: Read[D],
+                                                                      e: Read[E],
+                                                                      f: Read[F],
+                                                                      g: Read[G],
+                                                                      h: Read[H],
+                                                                      i: Read[I],
+                                                                      j: Read[J],
+                                                                      k: Read[K],
+                                                                      l: Read[L],
+                                                                      m: Read[M],
+                                                                      n: Read[N],
+                                                                      o: Read[O],
+                                                                      p: Read[P],
+                                                                      q: Read[Q]
+                                                                    ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), Read]
+
+  given __tuple18Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](
+                                                                         using a: Read[A],
+                                                                         b: Read[B],
+                                                                         c: Read[C],
+                                                                         d: Read[D],
+                                                                         e: Read[E],
+                                                                         f: Read[F],
+                                                                         g: Read[G],
+                                                                         h: Read[H],
+                                                                         i: Read[I],
+                                                                         j: Read[J],
+                                                                         k: Read[K],
+                                                                         l: Read[L],
+                                                                         m: Read[M],
+                                                                         n: Read[N],
+                                                                         o: Read[O],
+                                                                         p: Read[P],
+                                                                         q: Read[Q],
+                                                                         r: Read[R]
+                                                                       ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), Read]
+
+  given __tuple19Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](
+                                                                            using a: Read[A],
+                                                                            b: Read[B],
+                                                                            c: Read[C],
+                                                                            d: Read[D],
+                                                                            e: Read[E],
+                                                                            f: Read[F],
+                                                                            g: Read[G],
+                                                                            h: Read[H],
+                                                                            i: Read[I],
+                                                                            j: Read[J],
+                                                                            k: Read[K],
+                                                                            l: Read[L],
+                                                                            m: Read[M],
+                                                                            n: Read[N],
+                                                                            o: Read[O],
+                                                                            p: Read[P],
+                                                                            q: Read[Q],
+                                                                            r: Read[R],
+                                                                            s: Read[S]
+                                                                          ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), Read]
+
+  given __tuple20Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](
+                                                                               using a: Read[A],
+                                                                               b: Read[B],
+                                                                               c: Read[C],
+                                                                               d: Read[D],
+                                                                               e: Read[E],
+                                                                               f: Read[F],
+                                                                               g: Read[G],
+                                                                               h: Read[H],
+                                                                               i: Read[I],
+                                                                               j: Read[J],
+                                                                               k: Read[K],
+                                                                               l: Read[L],
+                                                                               m: Read[M],
+                                                                               n: Read[N],
+                                                                               o: Read[O],
+                                                                               p: Read[P],
+                                                                               q: Read[Q],
+                                                                               r: Read[R],
+                                                                               s: Read[S],
+                                                                               t: Read[T]
+                                                                             ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), Read]
+
+  given __tuple21Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](
+                                                                                  using a: Read[A],
+                                                                                  b: Read[B],
+                                                                                  c: Read[C],
+                                                                                  d: Read[D],
+                                                                                  e: Read[E],
+                                                                                  f: Read[F],
+                                                                                  g: Read[G],
+                                                                                  h: Read[H],
+                                                                                  i: Read[I],
+                                                                                  j: Read[J],
+                                                                                  k: Read[K],
+                                                                                  l: Read[L],
+                                                                                  m: Read[M],
+                                                                                  n: Read[N],
+                                                                                  o: Read[O],
+                                                                                  p: Read[P],
+                                                                                  q: Read[Q],
+                                                                                  r: Read[R],
+                                                                                  s: Read[S],
+                                                                                  t: Read[T],
+                                                                                  u: Read[U]
+                                                                                ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), Read]
+
+  given __tuple22Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](
+                                                                                     using a: Read[A],
+                                                                                     b: Read[B],
+                                                                                     c: Read[C],
+                                                                                     d: Read[D],
+                                                                                     e: Read[E],
+                                                                                     f: Read[F],
+                                                                                     g: Read[G],
+                                                                                     h: Read[H],
+                                                                                     i: Read[I],
+                                                                                     j: Read[J],
+                                                                                     k: Read[K],
+                                                                                     l: Read[L],
+                                                                                     m: Read[M],
+                                                                                     n: Read[N],
+                                                                                     o: Read[O],
+                                                                                     p: Read[P],
+                                                                                     q: Read[Q],
+                                                                                     r: Read[R],
+                                                                                     s: Read[S],
+                                                                                     t: Read[T],
+                                                                                     u: Read[U],
+                                                                                     v: Read[V]
+                                                                                   ): Read[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V), Read]
+
+
+  // Write
+  given __tuple2Export[A, B](using a: Write[A], b: Write[B]): Write[(A, B)] = tup[(A, B), Write]
+
+  given __tuple3Export[A, B, C](using a: Write[A], b: Write[B], c: Write[C]): Write[(A, B, C)] = tup[(A, B, C), Write]
+
+  given __tuple4Export[A, B, C, D](
+                              using a: Write[A],
+                              b: Write[B],
+                              c: Write[C],
+                              d: Write[D]
+                            ): Write[(A, B, C, D)] = tup[(A, B, C, D), Write]
+
+  given __tuple5Export[A, B, C, D, E](
+                                 using a: Write[A],
+                                 b: Write[B],
+                                 c: Write[C],
+                                 d: Write[D],
+                                 e: Write[E]
+                               ): Write[(A, B, C, D, E)] = tup[(A, B, C, D, E), Write]
+
+  given __tuple6Export[A, B, C, D, E, F](
+                                    using a: Write[A],
+                                    b: Write[B],
+                                    c: Write[C],
+                                    d: Write[D],
+                                    e: Write[E],
+                                    f: Write[F]
+                                  ): Write[(A, B, C, D, E, F)] = tup[(A, B, C, D, E, F), Write]
+
+  given __tuple7Export[A, B, C, D, E, F, G](
+                                       using a: Write[A],
+                                       b: Write[B],
+                                       c: Write[C],
+                                       d: Write[D],
+                                       e: Write[E],
+                                       f: Write[F],
+                                       g: Write[G]
+                                     ): Write[(A, B, C, D, E, F, G)] = tup[(A, B, C, D, E, F, G), Write]
+
+  given __tuple8Export[A, B, C, D, E, F, G, H](
+                                          using a: Write[A],
+                                          b: Write[B],
+                                          c: Write[C],
+                                          d: Write[D],
+                                          e: Write[E],
+                                          f: Write[F],
+                                          g: Write[G],
+                                          h: Write[H]
+                                        ): Write[(A, B, C, D, E, F, G, H)] = tup[(A, B, C, D, E, F, G, H), Write]
+
+  given __tuple9Export[A, B, C, D, E, F, G, H, I](
+                                             using a: Write[A],
+                                             b: Write[B],
+                                             c: Write[C],
+                                             d: Write[D],
+                                             e: Write[E],
+                                             f: Write[F],
+                                             g: Write[G],
+                                             h: Write[H],
+                                             i: Write[I]
+                                           ): Write[(A, B, C, D, E, F, G, H, I)] = tup[(A, B, C, D, E, F, G, H, I), Write]
+
+  given __tuple10Export[A, B, C, D, E, F, G, H, I, J](
+                                                 using a: Write[A],
+                                                 b: Write[B],
+                                                 c: Write[C],
+                                                 d: Write[D],
+                                                 e: Write[E],
+                                                 f: Write[F],
+                                                 g: Write[G],
+                                                 h: Write[H],
+                                                 i: Write[I],
+                                                 j: Write[J]
+                                               ): Write[(A, B, C, D, E, F, G, H, I, J)] = tup[(A, B, C, D, E, F, G, H, I, J), Write]
+
+  given __tuple11Export[A, B, C, D, E, F, G, H, I, J, K](
+                                                    using a: Write[A],
+                                                    b: Write[B],
+                                                    c: Write[C],
+                                                    d: Write[D],
+                                                    e: Write[E],
+                                                    f: Write[F],
+                                                    g: Write[G],
+                                                    h: Write[H],
+                                                    i: Write[I],
+                                                    j: Write[J],
+                                                    k: Write[K]
+                                                  ): Write[(A, B, C, D, E, F, G, H, I, J, K)] = tup[(A, B, C, D, E, F, G, H, I, J, K), Write]
+
+  given __tuple12Export[A, B, C, D, E, F, G, H, I, J, K, L](
+                                                       using a: Write[A],
+                                                       b: Write[B],
+                                                       c: Write[C],
+                                                       d: Write[D],
+                                                       e: Write[E],
+                                                       f: Write[F],
+                                                       g: Write[G],
+                                                       h: Write[H],
+                                                       i: Write[I],
+                                                       j: Write[J],
+                                                       k: Write[K],
+                                                       l: Write[L]
+                                                     ): Write[(A, B, C, D, E, F, G, H, I, J, K, L)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L), Write]
+
+  given __tuple13Export[A, B, C, D, E, F, G, H, I, J, K, L, M](
+                                                          using a: Write[A],
+                                                          b: Write[B],
+                                                          c: Write[C],
+                                                          d: Write[D],
+                                                          e: Write[E],
+                                                          f: Write[F],
+                                                          g: Write[G],
+                                                          h: Write[H],
+                                                          i: Write[I],
+                                                          j: Write[J],
+                                                          k: Write[K],
+                                                          l: Write[L],
+                                                          m: Write[M]
+                                                        ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M), Write]
+
+  given __tuple14Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N](
+                                                             using a: Write[A],
+                                                             b: Write[B],
+                                                             c: Write[C],
+                                                             d: Write[D],
+                                                             e: Write[E],
+                                                             f: Write[F],
+                                                             g: Write[G],
+                                                             h: Write[H],
+                                                             i: Write[I],
+                                                             j: Write[J],
+                                                             k: Write[K],
+                                                             l: Write[L],
+                                                             m: Write[M],
+                                                             n: Write[N]
+                                                           ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N), Write]
+
+  given __tuple15Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O](
+                                                                using a: Write[A],
+                                                                b: Write[B],
+                                                                c: Write[C],
+                                                                d: Write[D],
+                                                                e: Write[E],
+                                                                f: Write[F],
+                                                                g: Write[G],
+                                                                h: Write[H],
+                                                                i: Write[I],
+                                                                j: Write[J],
+                                                                k: Write[K],
+                                                                l: Write[L],
+                                                                m: Write[M],
+                                                                n: Write[N],
+                                                                o: Write[O]
+                                                              ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O), Write]
+
+  given __tuple16Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P](
+                                                                   using a: Write[A],
+                                                                   b: Write[B],
+                                                                   c: Write[C],
+                                                                   d: Write[D],
+                                                                   e: Write[E],
+                                                                   f: Write[F],
+                                                                   g: Write[G],
+                                                                   h: Write[H],
+                                                                   i: Write[I],
+                                                                   j: Write[J],
+                                                                   k: Write[K],
+                                                                   l: Write[L],
+                                                                   m: Write[M],
+                                                                   n: Write[N],
+                                                                   o: Write[O],
+                                                                   p: Write[P]
+                                                                 ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P), Write]
+
+  given __tuple17Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q](
+                                                                      using a: Write[A],
+                                                                      b: Write[B],
+                                                                      c: Write[C],
+                                                                      d: Write[D],
+                                                                      e: Write[E],
+                                                                      f: Write[F],
+                                                                      g: Write[G],
+                                                                      h: Write[H],
+                                                                      i: Write[I],
+                                                                      j: Write[J],
+                                                                      k: Write[K],
+                                                                      l: Write[L],
+                                                                      m: Write[M],
+                                                                      n: Write[N],
+                                                                      o: Write[O],
+                                                                      p: Write[P],
+                                                                      q: Write[Q]
+                                                                    ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q), Write]
+
+  given __tuple18Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R](
+                                                                         using a: Write[A],
+                                                                         b: Write[B],
+                                                                         c: Write[C],
+                                                                         d: Write[D],
+                                                                         e: Write[E],
+                                                                         f: Write[F],
+                                                                         g: Write[G],
+                                                                         h: Write[H],
+                                                                         i: Write[I],
+                                                                         j: Write[J],
+                                                                         k: Write[K],
+                                                                         l: Write[L],
+                                                                         m: Write[M],
+                                                                         n: Write[N],
+                                                                         o: Write[O],
+                                                                         p: Write[P],
+                                                                         q: Write[Q],
+                                                                         r: Write[R]
+                                                                       ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R), Write]
+
+  given __tuple19Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S](
+                                                                            using a: Write[A],
+                                                                            b: Write[B],
+                                                                            c: Write[C],
+                                                                            d: Write[D],
+                                                                            e: Write[E],
+                                                                            f: Write[F],
+                                                                            g: Write[G],
+                                                                            h: Write[H],
+                                                                            i: Write[I],
+                                                                            j: Write[J],
+                                                                            k: Write[K],
+                                                                            l: Write[L],
+                                                                            m: Write[M],
+                                                                            n: Write[N],
+                                                                            o: Write[O],
+                                                                            p: Write[P],
+                                                                            q: Write[Q],
+                                                                            r: Write[R],
+                                                                            s: Write[S]
+                                                                          ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S), Write]
+
+  given __tuple20Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T](
+                                                                               using a: Write[A],
+                                                                               b: Write[B],
+                                                                               c: Write[C],
+                                                                               d: Write[D],
+                                                                               e: Write[E],
+                                                                               f: Write[F],
+                                                                               g: Write[G],
+                                                                               h: Write[H],
+                                                                               i: Write[I],
+                                                                               j: Write[J],
+                                                                               k: Write[K],
+                                                                               l: Write[L],
+                                                                               m: Write[M],
+                                                                               n: Write[N],
+                                                                               o: Write[O],
+                                                                               p: Write[P],
+                                                                               q: Write[Q],
+                                                                               r: Write[R],
+                                                                               s: Write[S],
+                                                                               t: Write[T]
+                                                                             ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T), Write]
+
+  given __tuple21Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U](
+                                                                                  using a: Write[A],
+                                                                                  b: Write[B],
+                                                                                  c: Write[C],
+                                                                                  d: Write[D],
+                                                                                  e: Write[E],
+                                                                                  f: Write[F],
+                                                                                  g: Write[G],
+                                                                                  h: Write[H],
+                                                                                  i: Write[I],
+                                                                                  j: Write[J],
+                                                                                  k: Write[K],
+                                                                                  l: Write[L],
+                                                                                  m: Write[M],
+                                                                                  n: Write[N],
+                                                                                  o: Write[O],
+                                                                                  p: Write[P],
+                                                                                  q: Write[Q],
+                                                                                  r: Write[R],
+                                                                                  s: Write[S],
+                                                                                  t: Write[T],
+                                                                                  u: Write[U]
+                                                                                ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U), Write]
+
+  given __tuple22Export[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V](
+                                                                                     using a: Write[A],
+                                                                                     b: Write[B],
+                                                                                     c: Write[C],
+                                                                                     d: Write[D],
+                                                                                     e: Write[E],
+                                                                                     f: Write[F],
+                                                                                     g: Write[G],
+                                                                                     h: Write[H],
+                                                                                     i: Write[I],
+                                                                                     j: Write[J],
+                                                                                     k: Write[K],
+                                                                                     l: Write[L],
+                                                                                     m: Write[M],
+                                                                                     n: Write[N],
+                                                                                     o: Write[O],
+                                                                                     p: Write[P],
+                                                                                     q: Write[Q],
+                                                                                     r: Write[R],
+                                                                                     s: Write[S],
+                                                                                     t: Write[T],
+                                                                                     u: Write[U],
+                                                                                     v: Write[V]
+                                                                                   ): Write[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)] = tup[(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V), Write]
 }

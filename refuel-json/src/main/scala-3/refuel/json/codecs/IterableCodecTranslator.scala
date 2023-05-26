@@ -14,7 +14,6 @@ trait IterableCodecTranslator { this: JsonTransform =>
     final def array[T: ClassTag](using codec: C[T]): C[Array[T]]   = ArrayCodec[T, C].apply(codec)
     final def option[T](using codec: C[T]): C[Option[T]]   = OptionCodec[T, C].apply(codec)
     final def map[K, V](using codec: C[(K, V)]): C[Map[K, V]] = MapCodec[K, V, C].apply(codec)
-    final inline def tuple[T <: Tuple]: C[T] = tup[T, C]
   }
 
   /**
@@ -25,7 +24,9 @@ trait IterableCodecTranslator { this: JsonTransform =>
     * }
     * ```
     */
-  object ReadOf extends CodecDefTransferOperator[Read]
+  object ReadOf extends CodecDefTransferOperator[Read] {
+    final inline def tuple[T <: Tuple]: Read[T] = tup[T, Read]
+  }
 
   /**
     * Provides functions to extend the Serializer.
@@ -35,7 +36,9 @@ trait IterableCodecTranslator { this: JsonTransform =>
     * }
     * ```
     */
-  object WriteOf extends CodecDefTransferOperator[Write]
+  object WriteOf extends CodecDefTransferOperator[Write] {
+    final inline def tuple[T <: Tuple]: Write[T] = tup[T, Write]
+  }
 
   /**
     * Provides functions to extend the Codec.
@@ -45,5 +48,7 @@ trait IterableCodecTranslator { this: JsonTransform =>
     * }
     * ```
     */
-  object CodecOf extends CodecDefTransferOperator[Codec]
+  object CodecOf extends CodecDefTransferOperator[Codec] {
+    final inline def tuple[T <: Tuple]: Codec[T] = tup[T, Codec]
+  }
 }

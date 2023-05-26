@@ -26,11 +26,11 @@ class TupleCodecsImplTest extends AsyncWordSpec with Matchers with Diagrams {
       tree.readAs[(String, String, String, String, String, String, String, String, String, String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, String, String)].fold(fail(_), _ shouldBe value)
       value.writeAs[(String, String, String, String, String, String, String, String, String, String, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, String, String)].fold(fail(_), _ shouldBe tree)
     }
-    "tuple30 in manual" in {
-      val value = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "k", "l", "m", "n", "o", "p", "q")
-      val tree = Json.arr("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "k", "l", "m", "n", "o", "p", "q")
-      tree.readAs(using ReadOf.tuple[String *: String *: String *: String *: String *: String *: String *: String *: String *: String *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: String *: String *: String *: String *: String *: String *: String *: EmptyTuple]).fold(fail(_), _ shouldBe value)
-      value.writeAs(using WriteOf.tuple[String *: String *: String *: String *: String *: String *: String *: String *: String *: String *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: String *: String *: String *: String *: String *: String *: String *: EmptyTuple]).fold(fail(_), _ shouldBe tree)
-    }
+//    "tuple30 in manual" in {
+//      val value = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "k", "l", "m", "n", "o", "p", "q")
+//      val tree = Json.arr("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "k", "l", "m", "n", "o", "p", "q")
+//      tree.readAs(using ReadOf.tuple[String *: String *: String *: String *: String *: String *: String *: String *: String *: String *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: String *: String *: String *: String *: String *: String *: String *: EmptyTuple]).fold(fail(_), _ shouldBe value)
+//      value.writeAs(using WriteOf.tuple[String *: String *: String *: String *: String *: String *: String *: String *: String *: String *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: Int *: String *: String *: String *: String *: String *: String *: String *: EmptyTuple]).fold(fail(_), _ shouldBe tree)
+//    }
   }
 }

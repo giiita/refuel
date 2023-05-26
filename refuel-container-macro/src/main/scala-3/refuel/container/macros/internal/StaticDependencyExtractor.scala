@@ -157,6 +157,8 @@ object StaticDependencyExtractor extends LowLevelAPIConversionAlias {
 
   private[this] def isModule(using q: Quotes)(symbol: q.reflect.Symbol): Boolean = symbol.isTerm
 
+  private[this] def InjectionPriorityConfigType(using q: Quotes): q.reflect.TypeRepr = q.reflect.TypeRepr.of[Inject[?]]
+
   @tailrec
   private[this] final def recursiveModuleExplore(using q: Quotes)(
     n: Vector[q.reflect.Symbol],
