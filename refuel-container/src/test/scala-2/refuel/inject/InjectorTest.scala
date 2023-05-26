@@ -6,7 +6,8 @@ import org.scalatest.wordspec.AsyncWordSpec
 import refuel.container.provider.Lazy
 import refuel.inject.InjectionPriority.Overwrite
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 trait NonDependency
 trait Dependency
@@ -128,6 +129,23 @@ object KindInjection {
   class TpInt extends TP[Int] with AutoInject {
     val t: Int = 10
   }
+}
+object KindInjectionByImplicitType {
+  trait ContextType[T[_]] {
+    val value: String
+  }
+  trait ContextType2[R[_]] {
+    val value: Int
+  }
+
+  class CallSite[T1[_] : ContextType, T2[_] : ContextType2] extends AutoInject {
+    def value(): String = s"${implicitly[ContextType[T1]].value}..${implicitly[ContextType2[T2]].value.toString()}"
+  }
+
+  class CallSite2[T1[_], T2[_]] extends AutoInject {
+    def value(): String = ""
+  }
+
 }
 object ImplicitInjection {
   class ImplicitlySymbol()
@@ -290,6 +308,35 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
       all.size shouldBe 2
       assert(all.map(_.t).forall(x => x == "string" || x == 10))
     }
+
+    "kind injection resolved by implicit type" in closed { implicit c =>
+      import KindInjectionByImplicitType._
+      
+      implicit object ContextTypeForFuture extends ContextType[Future] {
+        val value: String = "future"
+      }
+      implicit object ContextTypeForTry extends ContextType[Try] {
+        val value: String = "try"
+      }
+      implicit object ContextTypeForLambda extends ContextType[({type Lambda[A] = Either[Throwable, A]})#Lambda] {
+        val value: String = "lambda"
+      }
+
+
+      implicit object ContextType2ForFuture extends ContextType2[Future] {
+        val value: Int = 1
+      }
+      implicit object ContextType2ForTry extends ContextType2[Try] {
+        val value: Int = 2
+      }
+      implicit object ContextType2ForLambda extends ContextType2[({type Lambda[A] = Either[Throwable, A]})#Lambda] {
+        val value: Int = 3
+      }
+
+      inject[CallSite[Try, Future]].value() shouldBe "try..1"
+      inject[CallSite[Future, Future]].value() shouldBe "future..1"
+      inject[CallSite[({type Lambda[A] = Either[Throwable, A]})#Lambda, Try]].value() shouldBe "lambda..2"
+    }
   }
 
   "index" should {
@@ -396,7 +443,4 @@ class InjectorTest extends AsyncWordSpec with Matchers with Diagrams with Inject
     val result: PriorityCheck = inject[PriorityCheck]
     assert(result.isInstanceOf[__1])
   }
-
-  // concurrency
-  // Scala3 addition types?
 }

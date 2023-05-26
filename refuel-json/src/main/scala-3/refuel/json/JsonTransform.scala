@@ -12,8 +12,10 @@ import refuel.json.tokenize.decoded.JsonRaw
 import scala.deriving.Mirror
 import scala.util.Try
 
-object JsonTransform extends JsonTransform
+object JsonTransform extends JsonTransform {
+}
 trait JsonTransform extends TupleCodecsImpl with IterableCodecTranslator with PredefCodecs with ImplicitCodecDefSupport with RwProjection {
+  export JsonTransform.given
 
   /** Refuel internal API.
     * Derives a list of codecs for elements of any tuple type.
@@ -79,7 +81,7 @@ trait JsonTransform extends TupleCodecsImpl with IterableCodecTranslator with Pr
 
   given JsonRowToEntry: scala.Conversion[String, JsonRowEntry] = new JsonRaw(_)
   
-  override implicit def codecTypeProjectionRead: CodecTypeProjection[Read] = new CodecTypeProjection[Read] { me =>
+  override given codecTypeProjectionRead: CodecTypeProjection[Read] = new CodecTypeProjection[Read] { me =>
     def wrap[T](key: JsonKeySpec)(implicit codec: Read[T]): Read[T] = new Read[T] {
       def deserialize(bf: JsonVal): T = codec.deserialize(key.dig(bf))
     }
@@ -96,7 +98,7 @@ trait JsonTransform extends TupleCodecsImpl with IterableCodecTranslator with Pr
     }
   }
 
-  override implicit def codecTypeProjectionWrite: CodecTypeProjection[Write] = new CodecTypeProjection[Write] { me =>
+  override given codecTypeProjectionWrite: CodecTypeProjection[Write] = new CodecTypeProjection[Write] { me =>
     def wrap[T](key: JsonKeySpec)(implicit codec: Write[T]): Write[T] = new Write[T] {
       def serialize(t: T): JsonVal = key(codec.serialize(t))
     }
