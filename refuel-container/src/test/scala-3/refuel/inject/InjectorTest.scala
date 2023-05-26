@@ -115,7 +115,6 @@ object InjectableConstructor {
 
  class WithIndexedParam(val value: InjectableParamDependency1) extends InjectableConstructorDependency with AutoInject
 
- @refuel.inject.annotation.AutoInject
  case class InjectableParamDependency1Impl(p2: InjectableParamDependency2)
      extends InjectableParamDependency1
      with AutoInject
