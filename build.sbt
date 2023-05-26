@@ -1,16 +1,21 @@
 import sbt.Keys.crossScalaVersions
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 
-lazy val Scala2_13 = "2.13.8"
+lazy val Scala2_13 = "2.13.10"
 lazy val Scala3_0  = "3.0.2"
-lazy val Scala3_1  = "3.1.0"
+lazy val Scala3_1  = "3.1.3"
+lazy val Scala3_2  = "3.2.2"
+// lazy val Scala3_3  = "3.3.0-RC6"
 
-scalaVersion in Scope.Global := Scala3_0
+scalaVersion in Scope.Global := Scala3_1
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq(Scala2_13)
+crossScalaVersions in Scope.Global := Seq(Scala2_13, Scala3_0, Scala3_1, Scala3_2/*, Scala3_3*/)
 
 val isScala3 = Def.setting(
   CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
+)
+val isScala3_0 = Def.setting(
+  CrossVersion.partialVersion(scalaVersion.value).contains((3, 0))
 )
 
 lazy val akkaVersion           = "2.6.13"
@@ -109,6 +114,13 @@ lazy val `containerMacro` = (project in file("refuel-container-macro"))
     name := "refuel-container-macro",
     description := "Lightweight DI container Macro for Scala3.",
     Def.settings(
+      Compile / unmanagedSourceDirectories ++= {
+        if (isScala3_0.value) {
+          Seq((ThisProject / baseDirectory).value / "src" / "main" / "scala-3.0")
+        } else if (isScala3.value) {
+          Seq((ThisProject / baseDirectory).value / "src" / "main" / "scala-3.x")
+        } else Nil
+      },
       libraryDependencies ++= {
         if (isScala3.value) {
           Seq(
@@ -126,6 +138,10 @@ lazy val `containerMacro` = (project in file("refuel-container-macro"))
       scalacOptions ++= {
         if (!isScala3.value) {
           Seq("-language:experimental.macros")
+        } else Nil
+      } ++ {
+        if (isScala3_0.value) {
+          Seq("-language:experimental")
         } else Nil
       }
     )

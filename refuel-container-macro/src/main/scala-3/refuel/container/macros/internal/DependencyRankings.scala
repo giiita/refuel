@@ -6,7 +6,7 @@ import refuel.container.macros.internal.tools.LowLevelAPIConversionAlias
 import refuel.container.provider.Accessor
 import refuel.inject.InjectionPriority.Default
 import refuel.inject.Types.LocalizedContainer
-import refuel.inject.{AutoInject, Inject, InjectableTag, InjectionPriority}
+import refuel.inject.{AutoInject, Inject, InjectableTag, InjectionPriority, InjectableSymbolHandler}
 
 import scala.annotation.tailrec
 import scala.quoted._
@@ -61,14 +61,14 @@ object DependencyRankings extends LowLevelAPIConversionAlias {
   def generateExprOne[T: Type](using q: Quotes)(samePriority: q.reflect.TypeTree): Expr[T] = {
     import q.reflect._
     report.info(s"${samePriority.symbol.fullName} will be used.")
-    build[T](samePriority.symbol)
+    build[T](samePriority)
   }
 
   def generateExpr[T: Type](using q: Quotes)(samePriorities: Iterable[q.reflect.TypeTree]): Expr[Iterable[T]] = {
     import q.reflect._
     report.info(s"${samePriorities.map(_.symbol.fullName).mkString(" & ")} will be used.")
     Expr.ofSeq(
-      samePriorities.map(x => build[T](x.symbol)).toSeq
+      samePriorities.map(build[T]).toSeq
     )
   }
 
@@ -92,39 +92,76 @@ object DependencyRankings extends LowLevelAPIConversionAlias {
     }
   }
 
-  private[this] def implicitInjectionTerm(using q: Quotes)(target: q.reflect.Symbol): q.reflect.Term = {
+  private[this] def implicitInjectionTerm(using q: Quotes)(target: q.reflect.TypeRepr, typeBound: Map[String, q.reflect.TypeRepr]): q.reflect.Term = {
     import q.reflect._
-    target.tree match {
-      case ValDef(_, tree, _) =>
-        Implicits.search(tree.tpe) match {
-          case iss: ImplicitSearchSuccess => iss.tree.asExpr.asTerm
-          case _: ImplicitSearchFailure => report.throwError(s"No found implicit parameter ${tree.tpe}.")
+    Implicits.search(
+      target match {
+        case AppliedType(ths, args) => {
+          ths.appliedTo(args.flatMap(x => typeBound.get(x.typeSymbol.name)))
         }
+        case e => {
+          e
+        }
+      }
+    ) match {
+      case iss: ImplicitSearchSuccess => iss.tree.asExpr.asTerm
+      case e: ImplicitSearchFailure => report.throwError(e.explanation)
     }
   }
 
-  private[this] def build[T: Type](using q: Quotes)(target: q.reflect.Symbol): Expr[T] = {
+  private[this] def build[T: Type](using q: Quotes)(target: q.reflect.TypeTree): Expr[T] = {
     import q.reflect._
-    if (target.flags.is(Flags.Module)) {
-      This(target).asExpr.asExprOf[T]
-    } else if (target.isValDef) {
-      ValDefModule_Expr(target).asExprOf[T]
+    val ts = target.symbol
+    if (ts.flags.is(Flags.Module)) {
+      This(ts).asExpr.asExprOf[T]
+    } else if (ts.isValDef) {
+      ValDefModule_Expr(ts).asExprOf[T]
     } else {
-      val constructs = if (target.primaryConstructor.isDefDef) {
-        target.primaryConstructor.tree match {
-          case q.reflect.DefDef(a, b, c, d) =>
-            b.map {
-              case trc: TermParamClause if trc.isImplicit || trc.isGiven => trc.params.map(x => implicitInjectionTerm(x.symbol))
-              case trc => trc.params.map(x => constructInjectionTerm(x.symbol))
+      val typeConcreteMap = InjectableSymbolHandler.typeConcreteMap[T]
+      val typeApplied = List.newBuilder[List[TypeRepr]]
+      val constructs = if (ts.primaryConstructor.isDefDef) {
+        ts.primaryConstructor.tree match {
+          case q.reflect.DefDef(a, b, c, d) => {
+            b.flatMap {
+              case trc: TypeParamClause => {
+                typeApplied.addOne(
+                  trc.params.flatMap { x =>
+                    typeConcreteMap.get(x.symbol.name)
+                  }
+                )
+                None
+              }
+              case trc: TermParamClause if trc.isImplicit || trc.isGiven => {
+                Some(
+                  trc.params.map { x =>
+                    implicitInjectionTerm(x.tpt.tpe, typeConcreteMap)
+                  }
+                )
+              }
+              case trc => Some(trc.params.map(x => constructInjectionTerm(x.symbol)))
             }
+          }
         }
       } else {
-        target.primaryConstructor.paramSymss.map(_.map(constructInjectionTerm))
+        ts.primaryConstructor.paramSymss.map(_.map(constructInjectionTerm))
       }
-      Select.unique(
-        New(TypeIdent(target)),
-        "<init>"
-      ).appliedToArgss(constructs).asExprOf[T]
+      val typeAppliedResult = typeApplied.result()
+      
+      if (typeAppliedResult.isEmpty) {
+        Select.unique(
+          New(TypeIdent(ts)),
+          "<init>"
+        ).appliedToArgss(constructs).asExprOf[T]
+      } else {
+        typeAppliedResult.foldLeft[Term](
+          Select.unique(
+            New(TypeIdent(ts)),
+            "<init>"
+          )
+        ) { case (a, b) =>
+          a.appliedToTypes(b)
+        }.appliedToArgss(constructs).asExprOf[T]
+      }
     }
   }
 }

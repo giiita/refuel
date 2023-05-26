@@ -30,8 +30,7 @@ object LazyForceInitializer extends LowLevelAPIConversionAlias {
         __refuel_result match {
           case value: DependencyPoolRef[_] =>
             value.asInstanceOf[DependencyPoolRef[Container]].__refuel_cRef = Some(ctn)
-          case _ =>
-          case null =>
+          case _ | null =>
         }
         __refuel_result
       }
@@ -53,12 +52,12 @@ object LazyForceInitializer extends LowLevelAPIConversionAlias {
     val candidates = StaticDependencyExtractor.searchInjectionCandidates[T]
     DependencyRankings(candidates).fold(
       report.throwError(
-        s"Can't find a dependency registration of ${q.reflect.TypeTree.of[T].symbol.fullName}."
+        s"Can't find a dependency registration of ${q.reflect.TypeRepr.of[T].typeSymbol.fullName}"
       )
     ) {
       case (priority, ranked) if ranked.size > 1 =>
         report.throwError(s"Invalid dependency definition. There must be one automatic injection per priority. But found [${ranked.map(_.symbol.fullName).mkString(", ")}]")
-      case (priority, ranked) =>
+      case (priority, ranked) => {
         val rankedOne = DependencyRankings.generateExprOne[T](ranked.head)
         '{
           ${exists} getOrElse {
@@ -70,6 +69,7 @@ object LazyForceInitializer extends LowLevelAPIConversionAlias {
             }
           }
         }
+      }
     }
   }
 }

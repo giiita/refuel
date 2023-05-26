@@ -148,6 +148,29 @@ class PredefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with In
       Success(row).writeAs[tpe].fold(fail(_), _ shouldBe tree)
     }
 
+//    trait Readable[F]
+//    trait Writable[F]
+//    trait Both[F] extends Readable[F] with Writable[F]
+//
+//    trait PermitContext[F[_]]
+//
+//    given Both[String] with {
+//    }
+//
+//
+//    given SetCodec[T, C[_] : PermitContext]: scala.Conversion[C[T], C[Set[T]]] = {
+//      ???
+//    }
+//    given SetCodecExports[T, C[_] : PermitContext](using codec: C[T]): C[Set[T]] = codec
+//    transparent inline def readAs[E](using c: Readable[E]): Serializable = ???
+//
+//    val x = readAs[Set[String]](using summon[Readable[Set[String]]])
+
+
+
+
+
+
     "Try (Failure) rw" in {
       val row = 3.2f
       val tree = Json.any(3.2f)
@@ -161,6 +184,7 @@ class PredefCodecsTest extends AsyncWordSpec with Matchers with Diagrams with In
       val row = Set("foo", "bar")
       val tree = Json.arr("foo", "bar")
       type tpe = Set[String]
+      val x: Read[String] = summon[Read[String]]
       tree.readAs[tpe].fold(fail(_), _ shouldBe row)
       row.writeAs[tpe].fold(fail(_), _ shouldBe tree)
     }

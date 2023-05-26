@@ -48,7 +48,9 @@ trait PredefCodecs { this: JsonTransform =>
       }
     )
   }
-  given TryCdcExp[T](using _c: Codec[T]): Codec[Try[T]] = TryCodec[T, Codec].apply(_c)
+  given TryCodecExp[T](using _c: Codec[T]): Codec[Try[T]] = TryCodec[T, Codec].apply(_c)
+  given TryReadExp[T](using _c: Read[T]): Read[Try[T]] = TryCodec[T, Read].apply(_c)
+  given TryWriteExp[T](using _c: Write[T]): Write[Try[T]] = TryCodec[T, Write].apply(_c)
 
   /**
     * [[Set]] codec generator.
@@ -60,22 +62,26 @@ trait PredefCodecs { this: JsonTransform =>
   given SetCodec[T, C[_]: CodecTypeProjection]: scala.Conversion[C[T], C[Set[T]]] = {
     IterableOnceCodec[T, Set, C](Set.empty, _ + _)(_)
   }
-  given SetCodecExp[T, C[_]: CodecTypeProjection](using codec: C[T]): C[Set[T]] = codec
+
+  given SetCodecExp[T](using codec: Codec[T]): Codec[Set[T]] = codec
+  given SetCodecExp[T](using codec: Read[T]): Read[Set[T]] = codec
+  given SetCodecExp[T](using codec: Write[T]): Write[Set[T]] = codec
 
   given ListCodec[T, C[_]: CodecTypeProjection]: scala.Conversion[C[T], C[List[T]]] = {
     IterableOnceCodec[T, List, C](List.empty, _ :+ _)(_)
   }
-  given ListCodecExp[T, C[_]: CodecTypeProjection](using codec: C[T]): C[List[T]] = codec
 
-  given SeqCodecExp[T](using codec: Codec[T]): Codec[Seq[T]] = SeqCodec[T, Codec].apply(codec)
+  given ListCodecExp[T](using codec: Codec[T]): Codec[List[T]] = codec
+  given ListReadExp[T](using codec: Read[T]): Read[List[T]] = codec
+  given ListWriteExp[T](using codec: Write[T]): Write[List[T]] = codec
 
-  given SeqReadExp[T](using codec: Read[T]): Read[Seq[T]] = SeqCodec[T, Read].apply(codec)
-
-  given SeqWriteExp[T](using codec: Write[T]): Write[Seq[T]] = SeqCodec[T, Write].apply(codec)
-
-  given SeqCodec[T, C[_]: CodecTypeProjection]: scala.Conversion[C[T], C[Seq[T]]] = {
+  given SeqCodec[T, C[_] : CodecTypeProjection]: scala.Conversion[C[T], C[Seq[T]]] = {
     IterableOnceCodec[T, Seq, C](Seq.empty, _ :+ _)(_)
   }
+
+  given SeqCodecExp[T](using codec: Codec[T]): Codec[Seq[T]] = SeqCodec[T, Codec].apply(codec)
+  given SeqReadExp[T](using codec: Read[T]): Read[Seq[T]] = SeqCodec[T, Read].apply(codec)
+  given SeqWriteExp[T](using codec: Write[T]): Write[Seq[T]] = SeqCodec[T, Write].apply(codec)
 
   /**
     * Codec base class for classes that inherit iterable.
@@ -111,7 +117,9 @@ trait PredefCodecs { this: JsonTransform =>
     IterableOnceCodec[T, Vector, C](Vector.empty, _ :+ _)(_)
   }
 
-  given VectorCodecExp[T, C[_]: CodecTypeProjection](using codec: C[T]): C[Vector[T]] = codec
+  given VectorCodecExp[T](using codec: Codec[T]): Codec[Vector[T]] = codec
+  given VectorReadExp[T](using codec: Read[T]): Read[Vector[T]] = codec
+  given VectorWriteExp[T](using codec: Write[T]): Write[Vector[T]] = codec
 
   /**
     * [[Array]] codec generator.
@@ -137,7 +145,10 @@ trait PredefCodecs { this: JsonTransform =>
       t => JsArray(t.map(projector.write(_)(using _x)))
     )
   }
-  given ArrayCodecExp[T: ClassTag, C[_]](using projector: CodecTypeProjection[C], codec: C[T]): C[Array[T]] = codec
+
+  given ArrayCodecExp[T: ClassTag](using codec: Codec[T]): Codec[Array[T]] = codec
+  given ArrayReadExp[T: ClassTag](using codec: Read[T]): Read[Array[T]] = codec
+  given ArrayWriteExp[T: ClassTag](using codec: Write[T]): Write[Array[T]] = codec
 
   /**
     * [[Map]] codec generator.
@@ -178,7 +189,9 @@ trait PredefCodecs { this: JsonTransform =>
         )
     )
   }
-  given MapCodecExp[K, V, C[_]](using projector: CodecTypeProjection[C], codec: C[(K, V)]): C[Map[K, V]] = codec
+  given MapCodecExp[K, V](using codec: Codec[(K, V)]): Codec[Map[K, V]] = codec
+  given MapCodecExp[K, V](using codec: Read[(K, V)]): Read[Map[K, V]] = codec
+  given MapCodecExp[K, V](using codec: Write[(K, V)]): Write[Map[K, V]] = codec
 
   /**
     * [[Option]] codec generator.
@@ -199,7 +212,10 @@ trait PredefCodecs { this: JsonTransform =>
       x => x.fold(JsEmpty: JsonVal)(t => projector.write(t)(using _x))
     )
   }
-  given OptionCodecExp[T, C[_]](using projector: CodecTypeProjection[C], codec: C[T]): C[Option[T]] = codec
+
+  given OptionCodecExp[T](using codec: Codec[T]): Codec[Option[T]] = codec
+  given OptionCodecExp[T](using codec: Read[T]): Read[Option[T]] = codec
+  given OptionCodecExp[T](using codec: Write[T]): Write[Option[T]] = codec
 
   /**
     * [[Either]] type codec generator.
@@ -216,6 +232,10 @@ trait PredefCodecs { this: JsonTransform =>
       }
     )
   }
+
+  given EitherCodecExp[L, R](using f: Codec[L], s: Codec[R]): Codec[Either[L, R]] = EitherCodec(using f, s)
+  given EitherCodecExp[L, R](using f: Read[L], s: Read[R]): Read[Either[L, R]] = EitherCodec(using f, s)
+  given EitherCodecExp[L, R](using f: Write[L], s: Write[R]): Write[Either[L, R]] = EitherCodec(using f, s)
 
   /**
     * The base of scala base api codec.
