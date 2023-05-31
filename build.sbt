@@ -9,7 +9,7 @@ lazy val Scala3_3  = "3.3.0"
 
 scalaVersion in Scope.Global := Scala3_3
 releaseCrossBuild in Scope.Global := true
-crossScalaVersions in Scope.Global := Seq(Scala2_13, Scala3_0, Scala3_1, Scala3_2/*, Scala3_3*/)
+crossScalaVersions in Scope.Global := Seq(Scala2_13, Scala3_0, Scala3_1, Scala3_2, Scala3_3)
 
 val isScala3 = Def.setting(
   CrossVersion.partialVersion(scalaVersion.value).exists(_._1 == 3)
