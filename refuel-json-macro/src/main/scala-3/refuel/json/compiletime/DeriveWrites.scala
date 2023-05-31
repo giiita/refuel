@@ -18,7 +18,7 @@ private[refuel] object DeriveWrites extends ProductProjection {
     }
   }
 
-  inline def derivedWrite[A](using inline A: Mirror.ProductOf[A]): Write[A] =
+  inline def derivedWrite[A](using A: Mirror.ProductOf[A]): Write[A] =
     new Write[A] {
       private[this] val elemLabels = inferLabels[A.MirroredElemLabels]
 

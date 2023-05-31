@@ -20,7 +20,7 @@ object InjectableSymbolHandler extends LowLevelAPIConversionAlias {
     symbols.filter { x =>
       // If the symbol is a subtype of the call type and has type parameters, it is required that all type parameters can be resolved with the type parameters of the call type
       x.tpe <:< tTypeRepr || {
-        x.symbol.typeMembers.nonEmpty && x.symbol.typeMembers.filter(!_.isNoSymbol).forall(a => !tTypeRepr.typeSymbol.typeMember(a.name).isNoSymbol)
+        x.symbol.typeMembers.filter(!_.isNoSymbol).nonEmpty && x.symbol.typeMembers.filter(!_.isNoSymbol).forall(a => !tTypeRepr.typeSymbol.typeMember(a.name).isNoSymbol)
       }
     }.toList.sortBy[String](_.symbol.fullName)
   }
@@ -67,7 +67,7 @@ object InjectableSymbolHandler extends LowLevelAPIConversionAlias {
     import q.reflect.*
     val callTypeRepr: TypeRepr = TypeT_TypeRepr[T]
     {
-      callTypeRepr.typeSymbol.typeMembers.map(_.name) zip {
+      callTypeRepr.typeSymbol.typeMembers.withFilter(!_.isNoSymbol).map(_.name) zip {
         callTypeRepr match {
           case AppliedType(_, args) => args
           case _ => Nil

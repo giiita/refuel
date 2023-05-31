@@ -19,7 +19,7 @@ private[refuel] object DeriveReadsWithIndex extends ProductProjection {
     }
   }
 
-  inline def derivedRead[A](using inline A: Mirror.ProductOf[A]): Read[A] =
+  inline def derivedRead[A](using A: Mirror.ProductOf[A]): Read[A] =
     new Read[A] {
       private[this] val elemReads: List[Read[_]] =
         inferReads[A.MirroredElemTypes]

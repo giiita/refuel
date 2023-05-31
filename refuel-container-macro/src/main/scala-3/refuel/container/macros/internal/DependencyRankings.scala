@@ -94,18 +94,17 @@ object DependencyRankings extends LowLevelAPIConversionAlias {
 
   private[this] def implicitInjectionTerm(using q: Quotes)(target: q.reflect.TypeRepr, typeBound: Map[String, q.reflect.TypeRepr]): q.reflect.Term = {
     import q.reflect._
-    Implicits.search(
-      target match {
-        case AppliedType(ths, args) => {
-          ths.appliedTo(args.flatMap(x => typeBound.get(x.typeSymbol.name)))
-        }
-        case e => {
-          e
-        }
+    val ap = target match {
+      case AppliedType(ths, args) => {
+        ths.appliedTo(args.flatMap(x => typeBound.get(x.typeSymbol.name)))
       }
-    ) match {
+      case e => {
+        e
+      }
+    }
+    Implicits.search(ap) match {
       case iss: ImplicitSearchSuccess => iss.tree.asExpr.asTerm
-      case e: ImplicitSearchFailure => report.throwError(e.explanation)
+      case e: ImplicitSearchFailure => report.throwError(s"${e.explanation} (${ap.show})")
     }
   }
 

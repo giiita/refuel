@@ -5,9 +5,9 @@ lazy val Scala2_13 = "2.13.10"
 lazy val Scala3_0  = "3.0.2"
 lazy val Scala3_1  = "3.1.3"
 lazy val Scala3_2  = "3.2.2"
-// lazy val Scala3_3  = "3.3.0-RC6"
+lazy val Scala3_3  = "3.3.0"
 
-scalaVersion in Scope.Global := Scala3_1
+scalaVersion in Scope.Global := Scala3_3
 releaseCrossBuild in Scope.Global := true
 crossScalaVersions in Scope.Global := Seq(Scala2_13, Scala3_0, Scala3_1, Scala3_2/*, Scala3_3*/)
 
@@ -158,7 +158,6 @@ lazy val `jsonMacro` = (project in file("refuel-json-macro"))
           Seq(
             "com.typesafe"   % "config"           % typesafeConfigVersion,
             "org.scala-lang" %% "scala3-compiler" % scalaVersion.value,
-            "org.scala-lang" %% "scala3-staging"  % scalaVersion.value
           )
         } else {
           Seq(
