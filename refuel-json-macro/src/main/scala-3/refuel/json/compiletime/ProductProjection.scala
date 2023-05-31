@@ -4,8 +4,8 @@ import scala.compiletime.package$package.{constValue, erasedValue}
 
 private[refuel] trait ProductProjection {
 
-  inline def inferLabels[T <: Tuple]: List[String] = foldElementLabels[T]
-  inline def foldElementLabels[T <: Tuple]: List[String] =
+  transparent inline def inferLabels[T <: Tuple]: List[String] = foldElementLabels[T]
+  transparent inline def foldElementLabels[T <: Tuple]: List[String] =
     inline erasedValue[T] match {
       case _: EmptyTuple =>
         Nil
